@@ -1,0 +1,14 @@
+#ifndef __WEBSERV_HPP__
+#define __WEBSERV_HPP__
+
+#include <exception>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+
+#include "Macros.hpp"
+#include "Utils.hpp"
+
+
+#endif
