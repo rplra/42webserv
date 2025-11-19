@@ -10,6 +10,7 @@
 #include "Macros.hpp"
 #include "Utils.hpp"
 #include "Config.hpp"
+#include "ConfigParse.hpp"
 
 
 #endif
