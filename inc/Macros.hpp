@@ -15,5 +15,8 @@ const std::string RESET  = "\033[0m";
 
 // errors
 const std::string ERR_ARGFORMAT = "Invalid argument. Usage: ./webserv [configuration file]";
+const std::string ERR_FILEINVALID = "Invalid file!";
+const std::string ERR_FILEEMPTY = "Empty file!";
+
 
 #endif

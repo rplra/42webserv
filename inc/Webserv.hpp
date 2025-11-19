@@ -9,6 +9,7 @@
 
 #include "Macros.hpp"
 #include "Utils.hpp"
+#include "Config.hpp"
 
 
 #endif
