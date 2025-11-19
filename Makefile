@@ -9,7 +9,8 @@ SRC         =	src
 OBJ         =	obj
 
 # Sources
-SRCS        =	src/main.cpp \
+SRCS        =	src/main_http.cpp \
+				src/Request.cpp \
 				src/Utils.cpp
 OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
 

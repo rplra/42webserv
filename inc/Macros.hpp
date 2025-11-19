@@ -3,6 +3,13 @@
 
 #include <string>
 
+/* 
+	for c++, we avoid using #define (could be accidentally modified)
+	because define behaves differently in C++ compared to C
+	- use `const` instead to follow modern C++ approach
+	- correct use is `constexpr` but it's only available for C++11 onwards 
+ */
+
 // colours
 const std::string GREEN  = "\033[38;2;168;204;124m";
 const std::string RED    = "\033[38;2;191;97;106m";
@@ -12,6 +19,14 @@ const std::string PINK   = "\033[38;2;224;147;217m";
 const std::string YELLOW = "\033[38;2;255;214;2m";
 const std::string ORANGE = "\033[38;2;255;135;0m";
 const std::string RESET  = "\033[0m";
+
+// limits (should be from Config.client_max_xx_size - similar to NGINX)
+// put here first
+const size_t client_max_header_size	= 8192;		// 8 KB (default = 4 buffers x 8 KB = 32 KB /request)
+const size_t client_max_body_size	= 1048576;	// 1 MB (default, can be increased - 10 MB etc)
+
+// values
+const size_t BUFFER_SIZE = 8192;
 
 // errors
 const std::string ERR_ARGFORMAT = "Invalid argument. Usage: ./webserv [configuration file]";
