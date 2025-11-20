@@ -24,13 +24,12 @@ public:
 	// void	readRequest(int fd);
 	void	readRequest(std::string& request); // append; incremental reading
 
-	// getters
+	//		getters
 	const	std::string&						getMethod() const;
 	const	std::string&						getPath() const;
 	const	std::map<std::string, std::string>&	getHeaders() const;
 	const	std::string&						getBody() const;
 	const 	std::map<std::string, std::string>&	getCookies() const;
-	const	ParserState							getState() const; // only for test
 
 	bool	hasBody();
 	bool 	hasCookies();
@@ -50,10 +49,17 @@ private:
 	size_t								_parsed_pos;
 	bool								_isChunked;
 
+	//		parser
 	void	parseByState();
-	void 	parseRequestLine(const std::string& requestLine);
-	void 	parseHeaders(const std::string& header);
-	void	parseBody(const std::string& body); // need to handle content length & chunked
+	void 	parseRequestLine(const std::string& raw, size_t &pos);
+	void 	parseHeaders(const std::string& raw, size_t &pos);
+	void	parseCookies(const std::string& value);
+	void	parseBody(const std::string& raw, size_t &pos); // need to handle content length & chunked
+	
+	// 		helpers
+	bool	isValidPath();
+	void	validateRequestLine();
+	void	handleSpecialHeaders(const std::string& key, const std::string& value);
 	size_t	bodyPosition(const std::string& request);
 };
 
