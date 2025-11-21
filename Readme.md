@@ -3,6 +3,7 @@ A fully functional HTTP/1.1 web server implemented in **C++98**, inspired by the
 
 This project covers low-level networking using **sockets**, **non-blocking I/O**, **poll()**, HTTP request/response parsing, CGI execution, configuration handling, and serving static/dynamic content.
 
+
 #### Technical Specs
 
 | Component            | Specification          |
@@ -15,6 +16,7 @@ This project covers low-level networking using **sockets**, **non-blocking I/O**
 | Configuration        | NGINX-style            |
 | CGI Scripts          | tbc (python/php/etc)   |
 | Build System         | `Makefile`             |
+
 
 #### Features
 - Fully non-blocking server using **poll()**
@@ -29,6 +31,7 @@ This project covers low-level networking using **sockets**, **non-blocking I/O**
 - Directory listing (autoindex)
 - Session handling & cookies
 - Config file parsing (NGINX-like syntax)
+
 
 #### Documentation
 [Notion : Webserv](https://www.notion.so/webserv-2a76434f644c80399b33c64b8c4dac1f) 
