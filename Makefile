@@ -9,8 +9,8 @@ SRC         =	src
 OBJ         =	obj
 
 # Sources
-SRCS        =	src/main.cpp \
-				src/Utils.cpp
+SRCS        =	src/server.cpp \
+				src/Utils.cpp 
 OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
 
 all: $(NAME)
