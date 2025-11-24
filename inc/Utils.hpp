@@ -1,11 +1,15 @@
 #ifndef __UTILS_HPP__
 #define __UTILS_HPP__
 
-// http
+// main
 void		checkArgument(int ac);
-//std::string	normalizePath(const std::string& s);
 
-// generic 
+// http
+// std::string	normalizePath(const std::string& s);
+std::string toLower(const std::string& s);
 std::string trim(const std::string& s);
+
+
+
 
 #endif

@@ -7,10 +7,11 @@ enum	ParserState
 {
 	PARSE_REQUEST_LINE,
 	PARSE_HEADERS,
+	PARSE_BODY,
 	PARSE_BODY_CONTENT_LENGTH,
 	PARSE_BODY_CHUNKED_SIZE,
 	PARSE_BODY_CHUNKED_DATA,
-	PARSE_BODY_COMPLETE,
+	// PARSE_BODY_COMPLETE,
 	PARSE_COMPLETE,
 	PARSE_ERROR
 };
@@ -18,7 +19,8 @@ enum	ParserState
 class	Request
 {
 public:
-	Request();
+	Request(); // to remove when socket ready
+	explicit Request(int socket_fd);
 	~Request() {};
 
 	// void	readRequest(int fd);
@@ -30,12 +32,18 @@ public:
 	const	std::map<std::string, std::string>&	getHeaders() const;
 	const	std::string&						getBody() const;
 	const 	std::map<std::string, std::string>&	getCookies() const;
+	const	ParserState&						getState() const;
 
 	bool	hasBody();
 	bool 	hasCookies();
 	bool	isParseComplete();
 
 private:
+	// Request();
+	Request(const Request& src);
+	Request& operator=(const Request& src);
+
+	int 								_socket_fd;
 	std::string							_raw;
 	std::string							_method;
 	std::string							_path;
@@ -44,23 +52,33 @@ private:
 	size_t								_content_length;
 	std::string							_body;
 	std::map<std::string, std::string>	_cookies; // session_id
+	std::string							_connection;
 	
 	ParserState							_state;
 	size_t								_parsed_pos;
+	int									_error_code;
 	bool								_isChunked;
+
+	// post: multipart - content type
 
 	//		parser
 	void	parseByState();
 	void 	parseRequestLine(const std::string& raw, size_t &pos);
 	void 	parseHeaders(const std::string& raw, size_t &pos);
 	void	parseCookies(const std::string& value);
-	void	parseBody(const std::string& raw, size_t &pos); // need to handle content length & chunked
-	
+	void	parseBody(const std::string& raw, size_t &pos);
+	void	parseContentLengthBody(const std::string& raw, size_t &pos);
+	void	parseChunkedBody(const std::string& raw, size_t &pos);
+
 	// 		helpers
 	bool	isValidPath();
 	void	validateRequestLine();
+	void	validateHeaders();
 	void	handleSpecialHeaders(const std::string& key, const std::string& value);
-	size_t	bodyPosition(const std::string& request);
+	void	decideBodyState();
+	// void		readChunkedSize(const std::string& raw, size_t &pos);
+	// void		readChunkedData(const std::string& raw, size_t &pos);
+
 };
 
 
