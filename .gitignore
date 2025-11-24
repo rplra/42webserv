@@ -4,5 +4,9 @@
 # VSCode settings
 .vscode/
 
-# Object files
+# Objects
+obj/
 *.o
+
+# Executable
+webserv
