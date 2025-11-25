@@ -36,7 +36,7 @@ void	Request::readRequest(std::string& request)
 	if (n > 0)
 	{
 		_raw.append(buffer, n);
-		std::cout << _raw; // DEBUG
+		// std::cout << _raw; // DEBUG
 		parseByState();
 	}
 }
@@ -83,8 +83,8 @@ bool	Request::isParseComplete()
 
 void	Request::parseByState()
 {
-	std::cout << _parsed_pos << std::endl; // DEBUG
-	std::cout << _raw.size() << std::endl; // DEBUG
+	// std::cout << _parsed_pos << std::endl; // DEBUG
+	// std::cout << _raw.size() << std::endl; // DEBUG
 	while (_parsed_pos < _raw.size())
 	{
 		switch (_state)
@@ -175,7 +175,7 @@ void 	Request::parseHeaders(const std::string& raw, size_t &pos)
 		
 		std::string key = trim(std::string(&raw[pos], colon - pos));
 		std::string value = trim(std::string(&raw[colon + 1], line_end - (colon + 1)));
-		std::cout << "\n> KEY:VALUE : " << key << " : " << value; // DEBUG
+		// std::cout << "\n> KEY:VALUE : " << key << " : " << value; // DEBUG
 
 		_headers[key] = value;
 		handleSpecialHeaders(key, value);

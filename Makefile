@@ -10,6 +10,7 @@ OBJ         =	obj
 
 # Sources
 SRCS        =	src/server.cpp \
+				src/Request.cpp \
 				src/Utils.cpp 
 OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
 
