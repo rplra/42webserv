@@ -30,6 +30,8 @@
 #include "Request.hpp"
 #include "Macros.hpp"
 #include "Utils.hpp"
+#include "Config.hpp"
+#include "ConfigParse.hpp"
 
 #include <netinet/in.h>
 #include <unistd.h>
