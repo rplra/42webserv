@@ -17,7 +17,6 @@ int main() {
     // Create socket 
     // AF_INET for IPv4, SOCK_STREAM for TCP
     // Server server; 
-    Request request;
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
         std::cerr << RED << "Error creating socket" << RESET << std::endl;
@@ -87,6 +86,9 @@ int main() {
             }
             // keep reading data from connected clients
             else if ((i != 0) & (fds[i].revents & POLLIN)) {
+                // Create a new Request object for each client connection
+                Request request;
+
                 // Receive and parse request from the client
                 std::string req;
                 size_t maxBodySize = 1024 * 1024 ; // replace with config value
@@ -108,6 +110,8 @@ int main() {
 
                     // need to terminate when the end of the HTTP request is reached
                     request.readRequest(req);
+
+                    // check parsing 
                     std::cout << "\nMethod : " << request.getMethod() << std::endl;
                     std::cout << "Path   : " << request.getPath() <<std::endl;
                     
