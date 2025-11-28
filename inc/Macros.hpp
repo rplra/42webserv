@@ -11,6 +11,7 @@ const std::string PURPLE = "\033[38;2;174;134;255m";
 const std::string PINK   = "\033[38;2;224;147;217m";
 const std::string YELLOW = "\033[38;2;255;214;2m";
 const std::string ORANGE = "\033[38;2;255;135;0m";
+const std::string GREY   = "\033[90m";
 const std::string RESET  = "\033[0m";
 
 // errors
