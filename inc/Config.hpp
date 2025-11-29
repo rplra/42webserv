@@ -1,27 +1,53 @@
 #ifndef __CONFIG_HPP__
 #define __CONFIG_HPP__
 
-#include "Webserv.hpp"
+// #include "Webserv.hpp"
+#include "Macros.hpp"
+
+// mock server for http
+class Server
+{
+public:
+	Server()  //init _error_map
+    {
+        _error_map[HTTP_BAD_REQUEST] = "./www/error/400.html";
+        _error_map[HTTP_FORBIDDEN] = "./www/error/403.html";
+        _error_map[HTTP_NOT_FOUND] = "./www/error/404.html";
+        _error_map[HTTP_METHOD_NOT_ALLOWED] = "./www/error/405.html";
+        _error_map[HTTP_PAYLOAD_TOO_LARGE] = "./www/error/413.html";
+        _error_map[HTTP_INTERNAL_SERVER_ERROR] = "./www/error/500.html";
+        _error_map[HTTP_BAD_GATEWAY] = "./www/error/502.html";
+        _error_map[HTTP_SERVICE_UNAVAILABLE] = "./www/error/503.html";
+    }
+	std::string									getRoot() const { return "./www"; }
+    const std::map<HttpStatus, std::string>& 	getErrorPages() const { return (_error_map); }
+	std::map<HttpStatus, std::string>& 			getErrorPages() { return _error_map; }
+	std::string 								getAutoIndex() const { return "on"; }
+
+private:
+    std::map<HttpStatus, std::string> _error_map;
+};
 
 // location should be a struct since it's a pure data container (no behaviour)
 // this is where HTTP and Config bridge (http depends entirely on Config's Location)
 // the fields needed by http else http can't function
-struct Location
+/* struct Location
 {
 	std::string					path;
 	std::string					root;
 	std::string					index;
 	bool						autoindex;
 	std::vector<std::string> 	allowed_methods;
-	// later : cgi externsion -> cgi path
-	// later : upload path
-	// later : redirect path + code(?)
-};
+	
+	std::map<int, std::string>	cgi;			//cgi extension type, cgi path
+	std::string					upload_path;
+	std::map<int, std::string>	redirect;		//return code, redirect path
+}; */
 
 // server contains data and behaviour (parsing, etc)
 // if parsing bloats this Server class, can create another seperate ConfigParser class
 // Network and HTTP depend on these fields to route requests
-class Server
+/* class Server
 {
 public:
 	Server();
@@ -56,13 +82,13 @@ private:
 	std::vector<Location>		_locations;
 
 	// methods : parser funcs, etc
-};
+}; */
 
 // this is MAIN BRIDGE btw Network + Config 
 // Network depends on Config to know which Server obj's exist, which port they are on,
 // and which servers share the same port (virtual hosts)
 // HTTP depends on Server obj inside Config for routing + request handling
-class Config
+/* class Config
 {
 public:
 	// Config provide these to Network / HTTP after parsing the config file
@@ -87,6 +113,6 @@ private:
 	// - Network must known which servers share a port to pick the correct one based on Host header
 	// Map<key, value> container is recommended; key = port, value = vector<Server*> pointing to servers in _servers
 	std::map<int, std::vector<Server*> >	_port_map;
-};
+}; */
 
 #endif
