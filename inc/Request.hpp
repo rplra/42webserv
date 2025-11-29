@@ -19,10 +19,10 @@ enum	ParserState
 class	Request
 {
 public:
-	Request(); // to remove when socket ready
-	explicit Request(int socket_fd);
+	Request();
 	~Request() {};
-
+	// explicit Request(int socket_fd); // fd should only belong to client (network)
+	
 	// void	readRequest(int fd);
 	void	readRequest(std::string& request); // append; incremental reading
 
@@ -30,28 +30,31 @@ public:
 	const	std::string&						getMethod() const;
 	const	std::string&						getPath() const;
 	const	std::map<std::string, std::string>&	getHeaders() const;
+	const	std::string&						getContentType() const;
+	const	std::string&						getConnection() const;
+	const	std::string&						getSessionID() const;
+	// const 	std::map<std::string, std::string>&	getCookies() const;
 	const	std::string&						getBody() const;
-	const 	std::map<std::string, std::string>&	getCookies() const;
 	const	ParserState&						getState() const;
 
 	bool	hasBody();
-	bool 	hasCookies();
+	bool 	hasCookies() const;
 	bool	isParseComplete();
 
 private:
-	// Request();
 	Request(const Request& src);
 	Request& operator=(const Request& src);
 
-	int 								_socket_fd;
 	std::string							_raw;
 	std::string							_method;
 	std::string							_path;
 	std::string							_http_version;
 	std::map<std::string, std::string>	_headers;
 	size_t								_content_length;
+	std::string							_content_type;
 	std::string							_body;
-	std::map<std::string, std::string>	_cookies; // session_id
+	std::map<std::string, std::string>	_cookies; // may be redundant
+	std::string							_session_id;
 	std::string							_connection;
 	
 	ParserState							_state;
