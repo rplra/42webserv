@@ -10,18 +10,8 @@
 
 /* read up to ; only */
 
-Server::Server()
-{
-
-}
-
-Server::~Server()
-{
-
-}
-
 template <typename T>
-bool	Server::isCommonDirective(std::string str, std::istringstream &iss, T &data)
+bool	Server::checkCommonDirective(std::string str, std::istringstream &iss, T &data)
 {
 	const char *arr[] =
 	{
@@ -43,27 +33,27 @@ bool	Server::isCommonDirective(std::string str, std::istringstream &iss, T &data
 	return (0);
 }
 
-bool	Server::isServerDirective(std::string str, std::istringstream &iss)
+bool	Server::checkServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile)
 {
 	const char *arr[] =
 	{
 		"listen",
-		"server_name"
-		// "location",
+		"server_name",
+		"location"
 	};
-	std::vector<std::string> types(arr, arr + 2);
+	std::vector<std::string> types(arr, arr + 3);
 	for (std::size_t i=0; i < types.size(); i++)
 	{
 		if (types[i] == str)
 		{
-			getServerDirective(i, iss);
+			getServerDirective(i, iss, inFile);
 			return (1);
 		}
 	}
 	return (0);
 }
 
-bool	Server::isLocationDirective(std::string str, std::istringstream &iss, Location& data)
+bool	Server::checkLocationDirective(std::string str, std::istringstream &iss, Location& data)
 {
 	const char *arr[] =
 	{
@@ -84,6 +74,20 @@ bool	Server::isLocationDirective(std::string str, std::istringstream &iss, Locat
 	return (0);
 }
 
+void	Server::getListen(std::istringstream &iss)
+{
+	std::string word, port;
+
+	if (iss >> word)
+	{
+		port = trimStringHead(word, ':');
+		port = trimStringTail(port, ';');
+		std::istringstream(port) >> this->_port;
+
+		this->_host = trimStringTail(word, ':');
+	}
+}
+
 template <typename T>
 void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &data)
 {
@@ -92,18 +96,18 @@ void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &da
 	if (code != ERROR_PAGE)
 	{
 		iss >> word;
-		word = trimSemiColon(word);
+		word = trimStringTail(word, ';');
 	}
 	switch (code)
 	{
 		case ROOT:
 			data._root = word;
-			/*debug*/ std::cout << data._root << std::endl;
+			// /*debug*/ std::cout << data._root << std::endl;
 			break;
 
 		case INDEX:
 			data._index = word;
-			/*debug*/ std::cout << data._index << std::endl;
+			// /*debug*/ std::cout << data._index << std::endl;
 			break;
 
 		case AUTOINDEX:
@@ -111,17 +115,16 @@ void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &da
 				data._autoindex = 1;
 			else if (word == "off")
 				data._autoindex = 0;
-			/*debug*/ std::cout << data._autoindex << std::endl;
+			// /*debug*/ std::cout << data._autoindex << std::endl;
 			break;
 
 		case ERROR_PAGE:
 			assignMapContainer(data._error_pages, iss);
-			// /*debug*/ data.printErrorPage();
 			break;
 
 		case CLIENT_MAX_BODY_SIZE:
 			std::istringstream(word) >> data._client_max_body_size;
-			/*debug*/std::cout << data._client_max_body_size << std::endl;
+			// /*debug*/std::cout << data._client_max_body_size << std::endl;
 			break;
 
 		default:
@@ -129,23 +132,21 @@ void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &da
 	}
 }
 
-void	Server::getServerDirective(std::size_t code, std::istringstream &iss)
+void	Server::getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile)
 {
-	// std::string word;
-	// iss >> word;
-	// word = trimSemiColon(word);
-
 	switch (code)
 	{
 		case LISTEN:
-			// std::istringstream(word) >> this->_port;
+			getListen(iss);
 			break;
+
 		case SERVER_NAME:
 			assignVecContainer(this->_server_names, iss);
-			// this->_server_names.push_back(word);
-			// while (iss >> word)
-			// 	this->_server_names.push_back(word);
 			break;
+
+		case LOCATION:
+			parseLocation(inFile, iss);
+
 		default:
 			break;
 	}
@@ -155,7 +156,6 @@ void	Server::getLocationDirective(std::size_t code, std::istringstream &iss, Loc
 {
 	std::string word;
 
-	/*debug*/ std::cout << "loc: " << word << std::endl;
 	switch (code)
 	{
 		case CGI_HANDLER:
@@ -168,7 +168,7 @@ void	Server::getLocationDirective(std::size_t code, std::istringstream &iss, Loc
 
 		case UPLOAD_STORE:
 			iss >> word;
-			data._upload_path = trimSemiColon(word);
+			data._upload_path = trimStringTail(word, ';');
 			break;
 
 		case RETURN:
@@ -185,28 +185,26 @@ void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 	std::string			buffer, word;
 	Location			tmp;
 
+	initLocation(tmp);
 	iss >> tmp._path;
-	/*debug*/std::cout << "path: " << tmp._path << std::endl;
+	// /*debug*/std::cout << "path: " << tmp._path << std::endl;
 	while (std::getline(inFile, buffer))
 	{
 		iss.clear();
 		iss.str(buffer);
-		// /*debug*/std::cout << word << std::endl;
 		if (!(iss >> word))
 			continue ;
 		if (word == "}")
 		{
 			this->_locations.push_back(tmp);
-			// std::cout << "printLocations: " << std::endl;
-			// printLocations(this->_locations);
 			return ;
 		}
-		if (isCommonDirective(word, iss, tmp))
-			std::cout << RED << word << RESET << std::endl;
-		else if (isLocationDirective(word, iss, tmp))
-			std::cout << PINK << word << RESET << std::endl;
-		else if (word == "return")
-			std::cout << "is return: " << word << std::endl;
+		checkCommonDirective(word, iss, tmp);
+		checkLocationDirective(word, iss, tmp);
+		// if (checkCommonDirective(word, iss, tmp))
+		// 	std::cout << RED << word << RESET << std::endl;
+		// else if (checkLocationDirective(word, iss, tmp))
+		// 	std::cout << PINK << word << RESET << std::endl;
 	}
 }
 
@@ -218,7 +216,7 @@ void	Server::parseServer(std::ifstream &inFile)
 
 	while (std::getline(inFile, buffer))
 	{
-		/*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
+		// /*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
@@ -229,18 +227,12 @@ void	Server::parseServer(std::ifstream &inFile)
 			break;
 		}
 		pos = inFile.tellg();
-		if (isCommonDirective(word, iss, *this))
-		{
-			// 	getCommonDirective();
-			std::cout << RED << word << RESET << std::endl;
-		}
-		else if (isServerDirective(word, iss))
-		{
-			// 	getServerDirective();
-			std::cout << CYAN << word << RESET << std::endl;
-		}
-		if (word == "location")
-			parseLocation(inFile, iss);
+		checkCommonDirective(word, iss, *this);
+		checkServerDirective(word, iss, inFile);
+		// if (checkCommonDirective(word, iss, *this))
+		// 	std::cout << RED << word << RESET << std::endl;
+		// else if (checkServerDirective(word, iss, inFile))
+		// 	std::cout << CYAN << word << RESET << std::endl;
 		// while (iss >> word)
 			// std::cout << word << std::endl;
 	}
@@ -256,7 +248,6 @@ void	Server::parseServer(std::ifstream &inFile)
 
 void	Config::startParser(std::ifstream &inFile)
 {
-	(void) inFile;
 	/* error checks */
 
 	/* get tokens */
@@ -272,13 +263,12 @@ void	Config::startParser(std::ifstream &inFile)
 		if (word == "server")
 		{
 			Server tmp;
-			std::cout << PINK << word << RESET << std::endl;
+			/*debug*/std::cout << PINK << word << RESET << std::endl;
 			tmp.parseServer(inFile);
 			this->_servers.push_back(tmp);
-			// /*debug*/tmp.printServer();
 		}
-		else
-			std::cout << word << std::endl;
+		// else
+			// /*debug*/std::cout << word << std::endl;
 	}
 }
 
@@ -292,11 +282,12 @@ void	Config::parseConfig(char **av)
 			throw (std::invalid_argument(ERR_FILEINVALID));
 		if (inFile.peek() == EOF)
 			throw (std::invalid_argument(ERR_FILEEMPTY));
-
 		/* scan all errors */
+
 		/* else, start parsing */
 		this->startParser(inFile);
 		/*debug*/ this->printAllServer();
+
 		/* reset after reading */
 		inFile.close();
 		return ;

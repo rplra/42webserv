@@ -3,6 +3,10 @@
 
 #include "Webserv.hpp"
 
-void	checkArgument(int ac);
+void		checkArgument(int ac);
+
+// parsing
+std::string	trimStringTail(const std::string &str, char c);
+std::string	trimStringHead(const std::string &str, char c);
 
 #endif

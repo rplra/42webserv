@@ -41,15 +41,6 @@ void	Config::printAllServer()
 	}
 }
 
-std::string	Server::trimSemiColon(std::string &str)
-{
-	std::size_t i = str.find(';');
-
-	if (i != std::string::npos)
-		return (str.substr(0, i));
-	return (str);
-}
-
 void	Server::assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss)
 {
 	std::string	word;
@@ -57,7 +48,7 @@ void	Server::assignMapContainer(std::map<int, std::string> &data, std::istringst
 
 	iss >> err_code;
 	iss >> word;
-	word = trimSemiColon(word);
+	word = trimStringTail(word, ';');
 	data[err_code] = word;
 }
 
@@ -67,7 +58,13 @@ void	Server::assignVecContainer(std::vector<std::string> &data, std::istringstre
 
 	while (iss >> word)
 	{
-		word = trimSemiColon(word);
+		word = trimStringTail(word, ';');
 		data.push_back(word);
 	}
+}
+
+void	Server::initLocation(Location &obj)
+{
+	obj._autoindex = 0;
+	obj._client_max_body_size = this->_client_max_body_size;
 }

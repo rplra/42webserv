@@ -3,6 +3,8 @@
 
 #include "Webserv.hpp"
 
+# define CLIENT_MAX_BODY	1000
+
 // location should be a struct since it's a pure data container (no behaviour)
 // this is where HTTP and Config bridge (http depends entirely on Config's Location)
 // the fields needed by http else http can't function
@@ -67,18 +69,19 @@ private:
 
 	// methods : parser funcs, etc
 	template <typename T>
-	bool	isCommonDirective(std::string str, std::istringstream &iss, T &data);
+	bool		checkCommonDirective(std::string str, std::istringstream &iss, T &data);
 	template <typename T>
-	void	getCommonDirective(std::size_t code, std::istringstream &iss, T &data);
+	void		getCommonDirective(std::size_t code, std::istringstream &iss, T &data);
 
-	bool	isServerDirective(std::string str, std::istringstream &iss);
-	bool	isLocationDirective(std::string str, std::istringstream &iss, Location& data);
-	void	parseLocation(std::ifstream &inFile, std::istringstream &iss);
+	bool		checkServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile);
+	bool		checkLocationDirective(std::string str, std::istringstream &iss, Location& data);
+	
+	void		getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
+	void		getLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
+	void		getListen(std::istringstream &iss);
+	void		initLocation(Location &obj);
 
-	void	getServerDirective(std::size_t code, std::istringstream &iss);
-	void	getLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
-
-	std::string	trimSemiColon(std::string &str);
+	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
 };
 
 // this is MAIN BRIDGE btw Network + Config 

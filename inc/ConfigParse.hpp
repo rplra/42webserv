@@ -36,6 +36,4 @@ enum e_location_scope
 	/* ... plus common directives */
 };
 
-void	parseConfig(char **av);
-
 #endif
