@@ -1,5 +1,5 @@
-#ifndef __SERVERUTILS_T_HPP__
-# define __SERVERUTILS_T_HPP__
+#ifndef __SERVERDEBUG_HPP__
+# define __SERVERDEBUG_HPP__
 
 #include "Config.hpp"
 
