@@ -35,7 +35,9 @@ const std::string ERR_ARGFORMAT = "Invalid argument. Usage: ./webserv [configura
 enum HttpStatus
 {
 	HTTP_OK	= 200,
+	HTTP_MOVED_PERMANENTLY = 301, // redirects
 	HTTP_BAD_REQUEST = 400,
+	HTTP_FORBIDDEN = 403,
 	HTTP_NOT_FOUND = 404,
 	HTTP_METHOD_NOT_ALLOWED = 405,
 	HTTP_LENGTH_REQUIRED = 411,

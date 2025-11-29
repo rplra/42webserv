@@ -3,10 +3,14 @@
 #define __WEBSERV_HPP__
 
 // lib
+#include <dirent.h> // posix dir-handling API
 #include <exception>
+#include <fstream>
+#include <sstream>
 #include <iostream>
 #include <cstring>
 #include <string>
+#include <ctime>
 
 // stl
 #include <vector>
@@ -17,7 +21,7 @@
 // sys
 // #include <sys/types.h>
 // #include <sys/wait.h>
-// #include <sys/stat.h>
+#include <sys/stat.h> // S_ISREG
 // #include <sys/time.h>
 // #include <signal.h> 
 
@@ -25,8 +29,10 @@
 #include <sys/socket.h>
 
 // headers
-#include "Request.hpp"
 #include "Macros.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
+#include "Config.hpp"
 #include "Utils.hpp"
 
 
