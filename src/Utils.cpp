@@ -9,6 +9,7 @@ void	checkArgument(int ac)
 	{
 		if (ac != 2)
 			throw std::invalid_argument(ERR_ARGFORMAT);
+		return ;
 	}
 	catch(const std::exception& e)
 	{

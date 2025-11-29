@@ -1,18 +1,20 @@
-NAME        =	webserv
+NAME		=	webserv
 
-CXX         =	c++
-CXXFLAGS    =	-Wall -Wextra -Werror -std=c++98 -Iinc
-RM          =	rm -rf
+CXX			=	c++
+CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98 -Iinc -fsanitize=address -g3
+RM			=	rm -rf
 
 # Directory
-SRC         =	src
-OBJ         =	obj
+SRC			=	src
+OBJ			=	obj
+PARSE_DIR	=	$(SRC)/parsing
 
 # Sources
-SRCS        =	dev/main_http.cpp \
+SRCS        =	src/server.cpp \
 				src/Request.cpp \
 				src/Response.cpp \
-				src/Utils.cpp
+				src/Utils.cpp 
+				
 OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
 
 all: $(NAME)
@@ -21,8 +23,8 @@ $(NAME): $(OBJS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 	@echo "Compile $(NAME)    : OK!"
 
-$(OBJ)/%.o: $(SRC)/%.cpp
-	@mkdir -p $(OBJ)
+$(OBJ)/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:

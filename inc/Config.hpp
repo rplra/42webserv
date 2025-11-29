@@ -33,16 +33,18 @@ private:
 // the fields needed by http else http can't function
 /* struct Location
 {
-	std::string					path;
+	std::string					path;			//location path
 	std::string					root;
 	std::string					index;
 	bool						autoindex;
+	size_t						client_max_body_size;
+	std::map<int, std::string>	error_pages;
 	std::vector<std::string> 	allowed_methods;
-	
+
 	std::map<int, std::string>	cgi;			//cgi extension type, cgi path
 	std::string					upload_path;
 	std::map<int, std::string>	redirect;		//return code, redirect path
-}; */
+};
 
 // server contains data and behaviour (parsing, etc)
 // if parsing bloats this Server class, can create another seperate ConfigParser class

@@ -30,6 +30,9 @@ const size_t BUFFER_SIZE = 8192;
 
 // error args
 const std::string ERR_ARGFORMAT = "Invalid argument. Usage: ./webserv [configuration file]";
+const std::string ERR_FILEINVALID = "Invalid file!";
+const std::string ERR_FILEEMPTY = "Empty file!";
+
 
 // http
 enum HttpStatus
