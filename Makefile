@@ -10,12 +10,18 @@ OBJ			=	obj
 PARSE_DIR	=	$(SRC)/parsing
 
 # Sources
-SRCS        =	src/server.cpp \
-				src/Request.cpp \
-				src/Response.cpp \
-				src/Utils.cpp 
-				
-OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
+PARSE_FILES	=	ParseConfig.cpp ParseUtils.cpp Server.cpp
+SRC_FILES	=	main.cpp Utils.cpp
+
+# SRCS		=	src/main.cpp
+# 				src/Utils.cpp
+# OBJS		=	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
+
+SRCS		=	$(addprefix $(SRC)/, $(SRC_FILES))			\
+				$(addprefix $(PARSE_DIR)/, $(PARSE_FILES))
+
+OBJS		=	$(patsubst %.cpp, $(OBJ)/%.o, $(SRCS))
+
 
 all: $(NAME)
 

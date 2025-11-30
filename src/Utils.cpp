@@ -1,7 +1,9 @@
-#include <iostream>
+// #include <iostream>
+// #include <vector>
 
-#include "Macros.hpp"
-#include "Utils.hpp"
+// #include "Macros.hpp"
+// #include "Utils.hpp"
+#include "Webserv.hpp"
 
 void	checkArgument(int ac)
 {
@@ -16,6 +18,26 @@ void	checkArgument(int ac)
 		std::cerr << RED << "Exception: " << e.what() << RESET << std::endl;
 	}
 	exit (1);
+}
+
+/* trims and discards string after symbol specified */
+std::string	trimStringTail(const std::string &str, char c)
+{
+	std::size_t i = str.find(c);
+
+	if (i != std::string::npos)
+		return (str.substr(0, i));
+	return (str);
+}
+
+/* trims and discards string before symbol specified */
+std::string	trimStringHead(const std::string &str, char c)
+{
+	std::size_t i = str.find(c);
+
+	if (i != std::string::npos)
+		return (str.substr(i + 1, std::string::npos));
+	return (str);
 }
 
 // RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax

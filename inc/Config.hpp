@@ -2,6 +2,8 @@
 #define __CONFIG_HPP__
 
 // #include "Webserv.hpp"
+
+# define CLIENT_MAX_BODY	1000
 #include "Macros.hpp"
 
 // mock server for http
@@ -33,17 +35,17 @@ private:
 // the fields needed by http else http can't function
 /* struct Location
 {
-	std::string					path;			//location path
-	std::string					root;
-	std::string					index;
-	bool						autoindex;
-	size_t						client_max_body_size;
-	std::map<int, std::string>	error_pages;
-	std::vector<std::string> 	allowed_methods;
+	std::string					_path;			//location path
+	std::string					_root;
+	std::string					_index;
+	bool						_autoindex;
+	size_t						_client_max_body_size;
+	std::map<int, std::string>	_error_pages;
+	std::vector<std::string> 	_allowed_methods;
 
-	std::map<int, std::string>	cgi;			//cgi extension type, cgi path
-	std::string					upload_path;
-	std::map<int, std::string>	redirect;		//return code, redirect path
+	std::string					_upload_path;
+	std::map<int, std::string>	_cgi;			//cgi extension type, cgi path
+	std::map<int, std::string>	_redirect;		//return code, redirect path
 };
 
 // server contains data and behaviour (parsing, etc)
@@ -54,6 +56,13 @@ private:
 public:
 	Server();
 	~Server();
+
+	void	parseServer(std::ifstream &inFile);
+	void	printErrorPage();
+	void	printServer();
+
+	void	assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
+	void	assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
 
 	// getters - these method names must align for ALL otherwise integration fails
 	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
@@ -69,7 +78,7 @@ public:
 // network must let config know what fields it expects (if config doesnt have, then it fails to build)
 private:
 	// Config <-> Network alignment : Network needs exact types to bind sockets
-	std::string					_host;					
+	std::string					_host;					// ip addr
 	int							_port;					// string or int?
 	std::vector<std::string>	_server_names;			// string or vector?
 	
@@ -84,6 +93,20 @@ private:
 	std::vector<Location>		_locations;
 
 	// methods : parser funcs, etc
+	template <typename T>
+	bool		checkCommonDirective(std::string str, std::istringstream &iss, T &data);
+	template <typename T>
+	void		getCommonDirective(std::size_t code, std::istringstream &iss, T &data);
+
+	bool		checkServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile);
+	bool		checkLocationDirective(std::string str, std::istringstream &iss, Location& data);
+	
+	void		getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
+	void		getLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
+	void		getListen(std::istringstream &iss);
+	void		initLocation(Location &obj);
+
+	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
 }; */
 
 // this is MAIN BRIDGE btw Network + Config 
@@ -93,6 +116,9 @@ private:
 /* class Config
 {
 public:
+	void	parseConfig(char **av);
+	void	startParser(std::ifstream &inFile);
+
 	// Config provide these to Network / HTTP after parsing the config file
 	
 	// needed by Network, rarely used by HTTP
@@ -104,6 +130,8 @@ public:
 	const std::vector<Server*> getServerOnPort(int port) const;
 
 private: 
+	void	printAllServer();
+
 	// CONFIG creates Server Objs after parsing
 	// Network depends on these objs to bind sockets
 	// store in vector? or other type of Container? (usually vector is fine)
@@ -115,6 +143,8 @@ private:
 	// - Network must known which servers share a port to pick the correct one based on Host header
 	// Map<key, value> container is recommended; key = port, value = vector<Server*> pointing to servers in _servers
 	std::map<int, std::vector<Server*> >	_port_map;
+
+	// helper functions
 }; */
 
 #endif
