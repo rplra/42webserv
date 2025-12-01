@@ -1,6 +1,22 @@
 #include "Webserv.hpp"
 
-int createListeningSockets(std::string host, int port) {
+int createAllListeningSockets(const std::vector<Server>& servers, 
+    std::vector<int>& serverSockets, std::map<int, const Server*>& socketServerMap) 
+{
+    for (size_t i = 0; i < servers.size(); ++i) {
+        int serverSocket = createListeningSocket(servers[i].getHost(), servers[i].getPort());
+        if (serverSocket < 0) {
+            std::cerr << RED << "Failed to create listening socket for server on port " << servers[i].getPort() << RESET << std::endl;
+            return 1;
+        }
+        serverSockets.push_back(serverSocket);
+        socketServerMap[serverSocket] = &servers[i];
+    }
+
+    return 0;
+}
+
+int createListeningSocket(std::string host, int port) {
     // Attach the socket to the port 
     // struct addrinfo {
     //     int              ai_flags;       // Options for getaddrinfo (e.g., AI_PASSIVE)
@@ -73,27 +89,4 @@ void createPollFds(const std::vector<int>& serverSockets, std::vector<pollfd>& f
         server_fd.events = POLLIN; // reading data
         fds.push_back(server_fd);
     }
-}
-
-int handleRequest(int serverSocket, std::vector<pollfd>& fds, std::map<int, int>& clientServerMap) {
-    // Accept a connection
-    int clientSocket = accept(serverSocket, nullptr, nullptr);
-    if (clientSocket < 0) 
-        return 0;
-    
-    pollfd client_fd;
-    client_fd.fd = clientSocket;
-    client_fd.events = POLLIN; // reading and writing data
-    fds.push_back(client_fd);
-    
-    // Non-blocking mode for client socket
-    // recv() uses clientSocket to read data
-    // If clientSocket is blocking, recv() will freeze the whole server
-    // Retrieve current flags of the socket and set O_NONBLOCK
-    int flags = fcntl(clientSocket, F_GETFL, 0);
-    fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
-    
-    clientServerMap[clientSocket] = serverSocket;
-    std::cout << GREEN << "Mapped client fd: " << clientSocket << " to server fd: " << serverSocket << RESET << std::endl;
-    return 0;
 }

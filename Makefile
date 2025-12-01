@@ -15,6 +15,7 @@ SRCS        =	src/main.cpp \
 				src/ServerParsing.cpp \
 				src/ResponseHandling.cpp \
 				src/SocketHandling.cpp \
+				src/RequestHandling.cpp \
 				src/Utils.cpp 
 
 OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
