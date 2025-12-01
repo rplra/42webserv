@@ -31,24 +31,29 @@
 #include "Macros.hpp"
 #include "Utils.hpp"
 #include "Config.hpp"
-#include "ConfigParse.hpp"
 
 #include <netinet/in.h>
+#include <netdb.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <sys/stat.h>
+#include <csignal>
+#include <dirent.h>
 
-// class Server; // forward declaration
 class Request; // forward declaration
 
 // Socket handling
-int         handleRequest(int serverSocket, std::vector<pollfd>& fds);
-// int         handleRequest(int serverSocket, Server& server, Request& req);
-// Location*   getBestMatchingLocation(const std::string& requestPath, const Server& server);
-bool        isDirectory(const std::string& path);
-bool        isFile(const std::string& path);
-// std::string getErrorPagePath(int errorCode, const Server& server);
+int         createListeningSockets(std::string host, int port);
+void        createPollFds(const std::vector<int>& serverSockets, std::vector<pollfd>& fds);
+int         handleRequest(int serverSocket, std::vector<pollfd>& fds, std::map<int, int>& clientServerMap);
+
+// utilities
+std::string readFile(const std::string& filePath);
+void        closeAllFd(std::vector<pollfd>& fds);
+std::string        sendResponse(std::string filePath, int statusCode);
+std::string        sendRedirectResponse(const std::string& redirectPath, int statusCode); 
+void        closeClient(size_t& i, size_t& fds_count, std::vector<pollfd>& fds, std::map<int, Request>& clientRequests, std::map<int, int>& clientServerMap);
 
 #endif
