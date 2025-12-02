@@ -25,6 +25,7 @@ int handleResponse(std::map<int, int>& clientServerMap, std::map<int, Request>& 
         req.append(buffer, bytes);
         std::cout << GREEN << "Buffer: " << RESET << req << std::endl; // DEBUG
         request.readRequest(req);
+        std::cout << GREEN << "Body: " << RESET << request.getBody() << std::endl; // DEBUG
 
         // Ensure the entire request is parsed before proceeding
         if (request.isParseComplete()) {
@@ -45,9 +46,9 @@ int handleResponse(std::map<int, int>& clientServerMap, std::map<int, Request>& 
 }
 
 std::string sendData(const Server* clientServer, const Request& client, const Location* locPath, size_t totalReceived) {
-    std::string fullPath = clientServer->getRoot() + client.getPath();
+    std::string fullPath = clientServer->getRoot();
     if (locPath && locPath->root != "")
-        fullPath = locPath->root + client.getPath();
+        fullPath = locPath->root;
 
     std::cout << GREEN << "Full path before checks: " << RESET << fullPath << std::endl;
     std::cout << GREEN << "Directory ? " << RESET << clientServer->isDirectory(fullPath) << std::endl;

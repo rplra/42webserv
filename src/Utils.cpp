@@ -59,6 +59,8 @@ void closeClient(size_t& i, size_t& fds_count, std::vector<pollfd>& fds, std::ma
     // adjust index after erasing element as the remaining elements shift left 
     i--;
     fds_count--;
+}
+
 // RFC 9110 (Http Semantics; headers interpretation), RFC 9112 (Message Syntax; parse http msg correctly)
 std::string toLower(const std::string& s)
 {
