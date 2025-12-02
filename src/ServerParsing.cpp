@@ -64,10 +64,12 @@ const std::string Server::getErrorPagePath(int errorCode) const {
 const Location* Server::bestMatchingLocation(const std::string& requestPath) const {
 	const Location* best_match = nullptr;
 	size_t best_len = 0;
+
 	for (size_t i = 0; i < _locations.size(); ++i) {
 		const Location& loc = _locations[i];
 		size_t len = loc.path.length();
-		if (requestPath.find(loc.path) == 0) {
+		if (requestPath.compare(0, len, loc.path) == 0 
+			&& (requestPath.length() == len || requestPath[len] == '/')) {
 			if (len > best_len) {
 				best_len = len;
 				best_match = &_locations[i];

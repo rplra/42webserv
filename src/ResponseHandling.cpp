@@ -34,11 +34,9 @@ int handleResponse(std::map<int, int>& clientServerMap, std::map<int, Request>& 
             std::cout << GREEN << "Best matching location: " << RESET << (locPath ? locPath->path : "None") << std::endl;
             std::cout << GREEN << "index: " << RESET << (locPath ? locPath->index : "None") << std::endl;
 
-            if (locPath) {
-                std::string path = sendData(clientServer, request, locPath, totalReceived);
-                clientSendBuffers[fds[i].fd] = path;
-                fds[i].events |= POLLOUT; // enable write event
-            }
+            std::string path = sendData(clientServer, request, locPath, totalReceived);
+            clientSendBuffers[fds[i].fd] = path;
+            fds[i].events |= POLLOUT; // enable write event
         }                       
     }
 
@@ -46,16 +44,9 @@ int handleResponse(std::map<int, int>& clientServerMap, std::map<int, Request>& 
 }
 
 std::string sendData(const Server* clientServer, const Request& client, const Location* locPath, size_t totalReceived) {
-    std::string fullPath = clientServer->getRoot();
-    if (locPath && locPath->root != "")
-        fullPath = locPath->root;
-
-    std::cout << GREEN << "Full path before checks: " << RESET << fullPath << std::endl;
-    std::cout << GREEN << "Directory ? " << RESET << clientServer->isDirectory(fullPath) << std::endl;
-
     // check client_max_body_size in location first, then server
     if (locPath && locPath->client_max_body_size > 0) {
-        std::string result = checkMaxBodySize(clientServer, totalReceived, locPath->client_max_body_size, fullPath, locPath);
+        std::string result = checkMaxBodySize(clientServer, totalReceived, locPath->client_max_body_size, locPath->root, locPath);
         if (result != "")
             return result;
     }
@@ -65,23 +56,45 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
             return result;
     }
 
-    if (clientServer->getIndex() != "" && client.getPath() == "/") {
+    if ( !locPath && clientServer->getIndex() != "" && (client.getPath() == "/" || client.getPath() == "/" + clientServer->getIndex()) ) {
         std::string fullPath = clientServer->getRoot() + "/" + clientServer->getIndex();
         return createResponse(fullPath, 200);
+    } else if (!locPath) {
+        std::string errorPagePath = clientServer->getRoot() + "/" + clientServer->getErrorPagePath(404);
+        return createResponse(errorPagePath, 404);
+    }
+
+    std::string fullPath = clientServer->getRoot();
+    if (locPath->root != "")
+        fullPath = locPath->root;
+
+    std::cout << GREEN << "Full path before checks: " << RESET << fullPath << std::endl;
+    std::cout << GREEN << "Directory ? " << RESET << clientServer->isDirectory(fullPath) << std::endl;
+
+    if (locPath->redirect.size() > 0) {
+        std::map<int, std::string>::const_iterator it = locPath->redirect.begin();
+        int redirectCode = it->first;
+        std::string redirectPath = it->second;
+        std::cout << GREEN << "Redirecting to: " << RESET << redirectPath << " with code " << redirectCode << std::endl;
+        return createRedirectResponse(redirectPath, redirectCode);
+    }
+    else if (clientServer->isFile(fullPath + client.getPath())) {
+        std::cout << GREEN << "Full path to resource: " << RESET << fullPath + client.getPath() << std::endl;
+        return createResponse(fullPath + client.getPath(), 200);
     }
     else if (clientServer->isDirectory(fullPath)) {
-        if (locPath && locPath->index != "") {
+        if (locPath->index != "") {
             std::cout << GREEN << "Full path to resource: " << RESET << fullPath << std::endl;
             if (fullPath[fullPath.length() - 1] != '/')
                 fullPath += "/";
             std::string indexPath = fullPath + locPath->index;
             return createResponse(indexPath, 200);
         }
-        else if (locPath && locPath->autoindex) {
+        else if (locPath->autoindex) {
             return generateAutoindexPage(fullPath, client.getPath());
         }
         else {
-            if (locPath && locPath->error_pages.find(403) != locPath->error_pages.end()) {
+            if (locPath->error_pages.find(403) != locPath->error_pages.end()) {
                 std::string errorPagePath = fullPath + "/" + locPath->error_pages.at(403);             
                 std::cout << GREEN << "error Page path: " << RESET << errorPagePath << std::endl;
                 return createResponse(errorPagePath, 403);
@@ -90,17 +103,6 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
             std::string errorPagePath = clientServer->getRoot() + "/" + clientServer->getErrorPagePath(403);
             return createResponse(errorPagePath, 403);
         }
-    }
-    else if (locPath && locPath->redirect.size() > 0) {
-        std::map<int, std::string>::const_iterator it = locPath->redirect.begin();
-        int redirectCode = it->first;
-        std::string redirectPath = it->second;
-        std::cout << GREEN << "Redirecting to: " << RESET << redirectPath << " with code " << redirectCode << std::endl;
-        return createRedirectResponse(redirectPath, redirectCode);
-    }
-    else if (locPath && clientServer->isFile(fullPath)) {
-        std::cout << GREEN << "Full path to resource: " << RESET << fullPath << std::endl;
-        return createResponse(fullPath, 200);
     }
     else {
         std::string errorPagePath = clientServer->getRoot() + "/" + clientServer->getErrorPagePath(404);
@@ -161,6 +163,7 @@ std::string createResponse(std::string filePath, int statusCode) {
     response << "\r\n";
     response << body;
 
+    std::cout << GREEN << "Response: " << RESET << response.str() << std::endl; // DEBUG 
     return response.str();
 }
 
