@@ -3,6 +3,12 @@
 
 #include "Webserv.hpp"
 
+#include "Request.hpp"
+#include <csignal>
+
+class Request;
+extern int g_signal;
+
 // main
 void			checkArgument(int ac);
 
@@ -15,7 +21,10 @@ std::string	trimStringHead(const std::string &str, char c);
 std::string toLower(const std::string& s);
 std::string trim(const std::string& s);
 
-
-
+// close 
+void        closeAllFd(std::vector<pollfd>& fds);
+void        closeClient(size_t& i, size_t& fds_count, std::vector<pollfd>& fds, 
+    std::map<int, Request>& clientRequests, std::map<int, int>& clientServerMap);
+void handleSignal(int signum);
 
 #endif

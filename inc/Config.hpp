@@ -1,41 +1,49 @@
 #ifndef __CONFIG_HPP__
 #define __CONFIG_HPP__
 
-// #include "Webserv.hpp"
+#include "Webserv.hpp"
+# include <fstream> 
+# include <sstream> 
 
-# define CLIENT_MAX_BODY	1000
-#include "Macros.hpp"
-
-// mock server for http
-class Server
+enum e_common_directive
 {
-public:
-	Server()  //init _error_map
-    {
-        _error_map[HTTP_BAD_REQUEST] = "./www/error/400.html";
-        _error_map[HTTP_FORBIDDEN] = "./www/error/403.html";
-        _error_map[HTTP_NOT_FOUND] = "./www/error/404.html";
-        _error_map[HTTP_METHOD_NOT_ALLOWED] = "./www/error/405.html";
-        _error_map[HTTP_PAYLOAD_TOO_LARGE] = "./www/error/413.html";
-        _error_map[HTTP_INTERNAL_SERVER_ERROR] = "./www/error/500.html";
-        _error_map[HTTP_BAD_GATEWAY] = "./www/error/502.html";
-        _error_map[HTTP_SERVICE_UNAVAILABLE] = "./www/error/503.html";
-    }
-	std::string									getRoot() const { return "./www"; }
-    const std::map<HttpStatus, std::string>& 	getErrorPages() const { return (_error_map); }
-	std::map<HttpStatus, std::string>& 			getErrorPages() { return _error_map; }
-	std::string 								getAutoIndex() const { return "on"; }
-
-private:
-    std::map<HttpStatus, std::string> _error_map;
+	NONE_COMMON,
+	ROOT,
+	INDEX,
+	AUTOINDEX,
+	ERROR_PAGE,
+	CLIENT_MAX_BODY_SIZE,
 };
 
-// location should be a struct since it's a pure data container (no behaviour)
-// this is where HTTP and Config bridge (http depends entirely on Config's Location)
-// the fields needed by http else http can't function
-/* struct Location
+enum e_global_scope
 {
-	std::string					_path;			//location path
+	NONE_GLOBAL,
+	SERVER
+	/* plus common directives */
+};
+
+enum e_server_scope
+{
+	NONE_SERVER,
+	LISTEN,
+	SERVER_NAME,
+	LOCATION
+	/* ... plus common directives */
+};
+
+enum e_location_scope
+{
+	NONE_LOCATION,
+	CGI_HANDLER,		// not for global scope
+	ALLOWED_METHODS,	//allowed_methods
+	UPLOAD_STORE,		// upload path
+	RETURN				// redirect path
+	/* ... plus common directives */
+};
+
+struct Location
+{
+	std::string					_path;
 	std::string					_root;
 	std::string					_index;
 	bool						_autoindex;
@@ -51,7 +59,7 @@ private:
 // server contains data and behaviour (parsing, etc)
 // if parsing bloats this Server class, can create another seperate ConfigParser class
 // Network and HTTP depend on these fields to route requests
-/* class Server
+class Server
 {
 public:
 	Server();
@@ -64,15 +72,32 @@ public:
 	void	assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
 	void	assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
 
-	// getters - these method names must align for ALL otherwise integration fails
 	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
 	// Network use : getHost(), getPort(),  getServerNames()
+	const std::string&					getHost() const;
+	int									getPort() const;
+	const std::vector<std::string>&		getServerNames() const;
+	const std::string&					getRoot() const;
+	const std::string&					getIndex() const;
+	bool								getAutoindex() const;
+	size_t								getClientMaxBodySize() const;
+	std::vector<Location>&				getLocations() ;
+	const std::string					getErrorPagePath(int errorCode) const;
+	const Location*						bestMatchingLocation(const std::string& requestPath) const;
 
-	// helpers
-	// HTTP use    : matchLocation() - returns Location* based on longest prefix match
-	//			   : isAllowedMethod()
-	// Network use : isMatchesPort() (optional) - does this server listen on given port?
-	//			   : isMatchesHost() (optional) - does this server match the Host header?
+	// setters
+	void								setPort(int port);
+	void								setHost(const std::string& host);
+	void								addServerName(const std::string& server_name);
+	void								setRoot(const std::string& root);
+	void								setIndex(const std::string& index);
+	void								setAutoindex(bool autoindex);
+	void								setClientMaxBodySize(size_t size);
+	void								addErrorPage(int errorCode, const std::string& path);
+	void 								addLocation(const Location& location);
+
+	bool								isDirectory(const std::string& path) const;
+	bool								isFile(const std::string& path) const;
 
 // this is where both network and config MUST ALIGN in terms of what DATA TYPE and FIELDS to have
 // network must let config know what fields it expects (if config doesnt have, then it fails to build)
@@ -107,20 +132,23 @@ private:
 	void		initLocation(Location &obj);
 
 	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
-}; */
+};
 
 // this is MAIN BRIDGE btw Network + Config 
 // Network depends on Config to know which Server obj's exist, which port they are on,
 // and which servers share the same port (virtual hosts)
 // HTTP depends on Server obj inside Config for routing + request handling
-/* class Config
+class Config
 {
 public:
+	Config();
+	~Config();
+
+
 	void	parseConfig(char **av);
 	void	startParser(std::ifstream &inFile);
 
 	// Config provide these to Network / HTTP after parsing the config file
-	
 	// needed by Network, rarely used by HTTP
 	const std::vector<Server>& getServers() const;
 
@@ -130,7 +158,7 @@ public:
 	const std::vector<Server*> getServerOnPort(int port) const;
 
 private: 
-	void	printAllServer();
+
 
 	// CONFIG creates Server Objs after parsing
 	// Network depends on these objs to bind sockets
@@ -144,7 +172,14 @@ private:
 	// Map<key, value> container is recommended; key = port, value = vector<Server*> pointing to servers in _servers
 	std::map<int, std::vector<Server*> >	_port_map;
 
-	// helper functions
-}; */
+	int 			_global_scope;
+	int				_server_scope;
+	int				_location_scope;
+	int				_common_directive;
+
+	void			printAllServer();
+	void			block_validation(std::string buffer);
+	std::string		removeSemicolon(std::string str);
+};
 
 #endif
