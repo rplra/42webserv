@@ -17,6 +17,9 @@ int g_signal;
     1. set up server socket and get the port number from config file 
     2. receive request from client and store in a struct
     3. process the request and generate a response
+
+    GET method - headers + blank line
+    POST method - headers + blank line + body
 */
 int main(int ac, char **av) {
     // signal handling for shutting down
