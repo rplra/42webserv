@@ -2,6 +2,23 @@
 
 Request::Request() 
 :
+	_socket_fd(0),
+	_raw(),
+	_method(),
+	_path(),
+	_http_version(),
+	_headers(),
+	_content_length(0),
+	_body(),
+	_cookies(),
+	_state(PARSE_REQUEST_LINE),
+	_parsed_pos(0),
+	_isChunked(false)
+{}
+
+Request::Request(int fd) 
+:
+	_socket_fd(fd),
 	_raw(),
 	_method(),
 	_path(),
@@ -43,32 +60,38 @@ void	Request::readRequest(std::string& request)
 
 const	std::string& Request::getMethod() const
 {
-	return _method;
+	return (_method);
 }
 
 const	std::string& Request::getPath() const
 {
-	return _path;
+	return (_path);
 }
 
 const	std::map<std::string, std::string>&	Request::getHeaders() const
 {
-	return _headers;
+	return (_headers);
 }
 
 const	std::string& Request::getBody() const
 {
-	return _body;
+	// std::cout << "get body" << std::endl; // DEBUG
+	return (_body);
 }
 
 const 	std::map<std::string, std::string>&	Request::getCookies() const
 {
-	return _cookies;
+	return (_cookies);
+}
+
+const	ParserState& Request::getState() const
+{
+	return (_state);
 }
 
 bool	Request::hasBody()
 {
-	return(_state == PARSE_BODY_COMPLETE);
+	return (_state == PARSE_BODY);
 }
 	
 bool 	Request::hasCookies()
@@ -92,44 +115,33 @@ void	Request::parseByState()
 			case PARSE_REQUEST_LINE:
 				// std::cout << "here" << std::endl; // DEBUG
 				parseRequestLine(_raw, _parsed_pos);
-				_state = PARSE_HEADERS;
 				break;
 			
 			case PARSE_HEADERS:
 				parseHeaders(_raw, _parsed_pos);
-				if (_content_length > 0)
-					_state = PARSE_BODY_CONTENT_LENGTH;
-				else if (_isChunked)
-					_state = PARSE_BODY_CHUNKED_SIZE;
-				else
-					_state = PARSE_COMPLETE;
+				decideBodyState();
+				break;
+
+			case PARSE_BODY:
+			std::cout << "> state: PARSE_BODY" << std::endl; // DEBUG
+			parseBody(_raw, _parsed_pos);
 				break;
 
 			case PARSE_BODY_CONTENT_LENGTH:
-			// 	parseBody(_raw.substr(_parsed_pos));
-			// 	if (_body.size() >= _content_length)
-			// 		_state = PARSE_COMPLETE;
-			// 	break;
+			parseContentLengthBody(_raw, _parsed_pos);
+				break;
 			
 			case PARSE_BODY_CHUNKED_SIZE:
-			// 	// read chunk size, update pos
-			// 	_state = PARSE_BODY_CHUNKED_DATA;
-			// 	break;
-
 			case PARSE_BODY_CHUNKED_DATA:
-			// 	// read chunk of known size
-			// 	// if last chuck is size 0
-			// 		_state = PARSE_BODY_COMPLETE;
-			// 	// else
-			// 		_state = PARSE_BODY_CHUNKED_SIZE; // next chunk
-			// 	break;
+			parseChunkedBody(_raw, _parsed_pos);
+			std::cout << "> state: PARSE_BODY_CHUNKED" << std::endl; // DEBUG
+				break;
 
-			case PARSE_BODY_COMPLETE:
-			// 	_state = PARSE_COMPLETE;
-			// 	break;
-
+			// case PARSE_BODY_COMPLETE:
+			// std::cout << "> state: PARSE_BODY_COMPLETE" << std::endl; // DEBUG
 			case PARSE_COMPLETE:
-			case PARSE_ERROR:
+			std::cout << "> state: PARSE_COMPLETE" << std::endl; // DEBUG
+			case PARSE_ERROR: // later response will check state > build error
 				return;
 		}
 	}
@@ -154,7 +166,9 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	_path = std::string(&raw[method_end + 1], path_end - method_end - 1);
 	_http_version = std::string(&raw[path_end + 1], line_end - path_end - 1);
 
+	validateRequestLine();
 	pos = line_end + 2; // move past "\r\n"
+	_state = PARSE_HEADERS;
 }
 
 void 	Request::parseHeaders(const std::string& raw, size_t &pos)
@@ -174,14 +188,16 @@ void 	Request::parseHeaders(const std::string& raw, size_t &pos)
 			return;
 		
 		std::string key = trim(std::string(&raw[pos], colon - pos));
+		key = toLower(key);
 		std::string value = trim(std::string(&raw[colon + 1], line_end - (colon + 1)));
 		// std::cout << "\n> KEY:VALUE : " << key << " : " << value; // DEBUG
 
 		_headers[key] = value;
 		handleSpecialHeaders(key, value);
-
 		pos = line_end + 2;
 	}
+	validateHeaders();
+	pos = headers_end + 4; // move cursor to body_start, skipping header_end empty line
 }
 
 void	Request::parseCookies(const std::string& value)
@@ -192,20 +208,119 @@ void	Request::parseCookies(const std::string& value)
 
 	_cookies["session_id"] = std::string(&value[val], end - val);
 
-	std::cout << "\n\nparse cookies: " << value << std::endl; // DEBUG
-	std::cout << "cookie value : " << _cookies["session_id"] << std::endl; // DEBUG
+	std::cout << "\n\n> parse cookies: " << value << std::endl; // DEBUG
+	std::cout << "> session_id : " << _cookies["session_id"] << "\n" << std::endl; // DEBUG
 }
 
-// void	Request::parseBody(const std::string& raw, size_t &pos) // need to handle content length & chunked
-// {
+void	Request::parseBody(const std::string& raw, size_t &pos)
+{
+	// body starts after \r\n\r\n (header_end + empty line)
+	if (pos >= raw.length())
+		return; // no body data yet
+	if (_isChunked)
+	{
+		_state = PARSE_BODY_CHUNKED_SIZE;
+		parseChunkedBody(raw, pos);
+	}
+	else if (_content_length > 0)
+	{
+		// std::cout << "> check length > 0" << std::endl; // DEBUG
+		_state = PARSE_BODY_CONTENT_LENGTH;
+		parseContentLengthBody(raw, pos);
+	}
+	// else if (_content_length == 0)
+	// 	_state = PARSE_COMPLETE;
+}
 
-// }
+void	Request::parseChunkedBody(const std::string& raw, size_t &pos)
+{
+	size_t current_chunk_size = 0;
 
-// size_t	Request::bodyPosition(const std::string& request)
-// {
+	while (pos < raw.length())
+	{
+		// read chunk size
+		if (_state == PARSE_BODY_CHUNKED_SIZE)
+		{
+			// look for line end
+			size_t line_end = raw.find("\r\n", pos);
+			if (line_end == std::string::npos)
+				return ;
 
-// }
+			std::string hex;
+			// extract hex size string
+			size_t semicolon = raw.find(';', pos);
+			if (semicolon == std::string::npos || semicolon > line_end)
+				hex = std::string(&raw[pos], line_end - pos);
+			else
+				hex = std::string(&raw[pos], semicolon - pos);
+			
+			// convert hex to decimal
+			current_chunk_size = std::strtoul(hex.c_str(), NULL, 16);
+			pos = line_end + 2;
 
+			// check for last chunk
+			if (current_chunk_size == 0)
+			{
+				size_t trailer_end = raw.find("\r\n\r\n", pos);
+				if (trailer_end != std::string::npos)
+					pos = trailer_end + 4;
+				std::cout << "> last chunk" <<std::endl; // DEBUG
+				_state = PARSE_COMPLETE;
+				return;
+			}
+
+			// move on to reading data
+			// pos = line_end + 2;
+			_state = PARSE_BODY_CHUNKED_DATA;
+			std::cout << "> keep reading data" <<std::endl; // DEBUG
+		}
+
+		// read chunk data
+		if (_state == PARSE_BODY_CHUNKED_DATA)
+		{
+			size_t available = raw.length() - pos;
+			if (available < current_chunk_size + 2) // \r\n
+				return;
+			_body.append(raw, pos, current_chunk_size);
+
+			// check size limit
+			if (_body.length() > client_max_body_size)
+			{
+				_error_code = HTTP_PAYLOAD_TOO_LARGE;
+				_state = PARSE_ERROR;
+				return ;
+			}
+			pos += current_chunk_size + 2;
+			_state = PARSE_BODY_CHUNKED_SIZE;
+		}
+	}
+}
+
+void	Request::parseContentLengthBody(const std::string& raw, size_t &pos)
+{
+	// calculate how much data is available (from buffered _raw)
+	// std::cout << "> parse content body" << std::endl; // DEBUG
+	size_t	available = _raw.length() - pos;
+
+	// calculate how much more we need (to meet content_length)
+	size_t	body_received = _body.length();
+	size_t	body_remaining = _content_length - body_received;
+
+	// case a: not enough data
+	if (available < body_remaining)
+	{
+		_body.append(raw, pos, available);
+		pos += available;
+		_state = PARSE_BODY_CONTENT_LENGTH;
+		return;
+	}
+	
+	// case b: body completes / extra data
+	_body.append(raw, pos, body_remaining);
+	// std::cout << "> " << _body << std::endl; // DEBUG
+	pos += body_remaining;
+	_state = PARSE_COMPLETE;
+}
 
 /* 
 	check for c <= 31 || c == 127 is to abide RFC 9112 (HTTP/1.1)
@@ -235,12 +350,38 @@ void	Request::validateRequestLine()
 	return;
 }
 
+void	Request::validateHeaders()
+{
+	// Chunked + Content-Length together → 400 Bad Request
+	if (_isChunked && _content_length != 0)
+	{
+		_error_code = HTTP_BAD_REQUEST;
+		_state = PARSE_ERROR;
+		return;
+	}
+	// POST without body headers → 411 Length Required
+	if (_method == "POST" && !_isChunked && _content_length == 0)
+	{
+		_error_code = HTTP_LENGTH_REQUIRED;
+		_state = PARSE_ERROR;
+		return;
+	}
+}
+
 void	Request::handleSpecialHeaders(const std::string& key, const std::string& value)
 {
-	if (key == "Content-Length")
+	if (key == "content-length")
 		_content_length = std::stoul(value);
-	if (key == "Transfer-Encoding" && value == "chunked")
-		_isChunked = true;
-	if (key == "Cookie")
+	else if (key == "transfer-encoding" && value == "chunked")
+		_isChunked = true; 
+	else if (key == "cookie")
 		parseCookies(value);
+}
+
+void	Request::decideBodyState()
+{
+	if (_isChunked || _content_length > 0)
+		_state = PARSE_BODY;
+	else
+		_state = PARSE_COMPLETE;
 }

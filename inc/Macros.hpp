@@ -28,10 +28,25 @@ const size_t client_max_body_size	= 1048576;	// 1 MB (default, can be increased 
 // values
 const size_t BUFFER_SIZE = 8192;
 
-// errors
+// error args
 const std::string ERR_ARGFORMAT = "Invalid argument. Usage: ./webserv [configuration file]";
 const std::string ERR_FILEINVALID = "Invalid file!";
 const std::string ERR_FILEEMPTY = "Empty file!";
 
+
+// http
+enum HttpStatus
+{
+	HTTP_OK	= 200,
+	HTTP_BAD_REQUEST = 400,
+	HTTP_NOT_FOUND = 404,
+	HTTP_METHOD_NOT_ALLOWED = 405,
+	HTTP_LENGTH_REQUIRED = 411,
+	HTTP_PAYLOAD_TOO_LARGE = 413,
+	HTTP_INTERNAL_SERVER_ERROR = 500,
+	HTTP_NOT_IMPLEMENTED = 501,
+	HTTP_BAD_GATEWAY = 502,
+	HTTP_SERVICE_UNAVAILABLE = 503
+};
 
 #endif

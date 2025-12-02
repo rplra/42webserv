@@ -15,7 +15,7 @@ void	checkArgument(int ac)
 	exit (1);
 }
 
-// based on RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax
+// RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax
 //std::string	normalizePath(const std::string& s);
 // {
 	// percent decoding - %xx (%20 == space, %2F == /, %2E == . , etc)
@@ -25,6 +25,7 @@ void	checkArgument(int ac)
 // }
 
 
+// RFC 9112 §5.2 (Field Syntax) - leading/trailing OWS around the value is ignored
 // trims whitepsace
 std::string trim(const std::string& s)
 {
@@ -58,4 +59,11 @@ void closeClient(size_t& i, size_t& fds_count, std::vector<pollfd>& fds, std::ma
     // adjust index after erasing element as the remaining elements shift left 
     i--;
     fds_count--;
+// RFC 9110 (Http Semantics; headers interpretation), RFC 9112 (Message Syntax; parse http msg correctly)
+std::string toLower(const std::string& s)
+{
+	std::string res = s;
+	for (size_t i = 0; i < res.length(); i++)
+		res[i] = std::tolower(static_cast<unsigned char>(res[i]));
+	return (res);
 }
