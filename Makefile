@@ -1,7 +1,8 @@
 NAME		=	webserv
 
 CXX			=	c++
-CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98 -Iinc #-fsanitize=address -g3
+CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98 -Iinc
+# CXXFLAGS	+=	-fsanitize=address -g3
 RM			=	rm -rf
 
 # Directory
@@ -9,31 +10,17 @@ SRC			=	src
 OBJ			=	obj
 
 # Sources
-<<<<<<< HEAD
-PARSE_FILES	=	ParseConfig.cpp ParseUtils.cpp Server.cpp
-SRC_FILES	=	main.cpp Utils.cpp
-
-# SRCS		=	src/main.cpp
-# 				src/Utils.cpp
-# OBJS		=	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
-
-SRCS		=	$(addprefix $(SRC)/, $(SRC_FILES))			\
-				$(addprefix $(PARSE_DIR)/, $(PARSE_FILES))
-
-OBJS		=	$(patsubst %.cpp, $(OBJ)/%.o, $(SRCS))
-
-=======
 SRCS        =	src/main.cpp \
-				src/Request.cpp \
-				src/ConfigParsing.cpp \
-				src/ServerParsing.cpp \
-				src/ResponseHandling.cpp \
-				src/SocketHandling.cpp \
-				src/RequestHandling.cpp \
+				src/Config.cpp \
+				src/ConfigParse.cpp \
 				src/Utils.cpp 
 
+# 				src/Request.cpp \
+# 				src/Request.cpp \
+# 				src/Response.cpp \
+
+
 OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
->>>>>>> origin/socket-natalie
 
 all: $(NAME)
 

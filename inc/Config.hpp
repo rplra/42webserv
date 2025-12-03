@@ -2,44 +2,6 @@
 #define __CONFIG_HPP__
 
 #include "Webserv.hpp"
-# include <fstream> 
-# include <sstream> 
-
-enum e_common_directive
-{
-	NONE_COMMON,
-	ROOT,
-	INDEX,
-	AUTOINDEX,
-	ERROR_PAGE,
-	CLIENT_MAX_BODY_SIZE,
-};
-
-enum e_global_scope
-{
-	NONE_GLOBAL,
-	SERVER
-	/* plus common directives */
-};
-
-enum e_server_scope
-{
-	NONE_SERVER,
-	LISTEN,
-	SERVER_NAME,
-	LOCATION
-	/* ... plus common directives */
-};
-
-enum e_location_scope
-{
-	NONE_LOCATION,
-	CGI_HANDLER,		// not for global scope
-	ALLOWED_METHODS,	//allowed_methods
-	UPLOAD_STORE,		// upload path
-	RETURN				// redirect path
-	/* ... plus common directives */
-};
 
 struct Location
 {
@@ -56,21 +18,12 @@ struct Location
 	std::map<int, std::string>	_redirect;		//return code, redirect path
 };
 
-// server contains data and behaviour (parsing, etc)
-// if parsing bloats this Server class, can create another seperate ConfigParser class
-// Network and HTTP depend on these fields to route requests
+
 class Server
 {
 public:
 	Server();
-	~Server();
-
-	void	parseServer(std::ifstream &inFile);
-	void	printErrorPage();
-	void	printServer();
-
-	void	assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
-	void	assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
+	~Server() {};
 
 	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
 	// Network use : getHost(), getPort(),  getServerNames()
@@ -81,7 +34,8 @@ public:
 	const std::string&					getIndex() const;
 	bool								getAutoindex() const;
 	size_t								getClientMaxBodySize() const;
-	std::vector<Location>&				getLocations() ;
+	std::vector<Location>&				getLocations();
+	const std::vector<Location>&		getLocations() const;
 	const std::string					getErrorPagePath(int errorCode) const;
 	const Location*						bestMatchingLocation(const std::string& requestPath) const;
 
@@ -96,90 +50,37 @@ public:
 	void								addErrorPage(int errorCode, const std::string& path);
 	void 								addLocation(const Location& location);
 
-	bool								isDirectory(const std::string& path) const;
-	bool								isFile(const std::string& path) const;
-
-// this is where both network and config MUST ALIGN in terms of what DATA TYPE and FIELDS to have
-// network must let config know what fields it expects (if config doesnt have, then it fails to build)
 private:
-	// Config <-> Network alignment : Network needs exact types to bind sockets
-	std::string					_host;					// ip addr
-	int							_port;					// string or int?
-	std::vector<std::string>	_server_names;			// string or vector?
+	std::string					_host;
+	int							_port;
+	std::vector<std::string>	_server_names;
 	
 	// Server-Wide Default (used by HTTP when location-specific value not present)
-	std::string					_root;					//
-	std::string					_index;					//
-	bool						_autoindex;				//
+	std::string					_root;
+	std::string					_index;
+	bool						_autoindex;
 	size_t						_client_max_body_size;
 
 	// HTTP use
 	std::map<int, std::string>	_error_pages;
 	std::vector<Location>		_locations;
-
-	// methods : parser funcs, etc
-	template <typename T>
-	bool		checkCommonDirective(std::string str, std::istringstream &iss, T &data);
-	template <typename T>
-	void		getCommonDirective(std::size_t code, std::istringstream &iss, T &data);
-
-	bool		checkServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile);
-	bool		checkLocationDirective(std::string str, std::istringstream &iss, Location& data);
-	
-	void		getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
-	void		getLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
-	void		getListen(std::istringstream &iss);
-	void		initLocation(Location &obj);
-
-	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
 };
 
-// this is MAIN BRIDGE btw Network + Config 
-// Network depends on Config to know which Server obj's exist, which port they are on,
-// and which servers share the same port (virtual hosts)
-// HTTP depends on Server obj inside Config for routing + request handling
+
 class Config
 {
 public:
 	Config();
-	~Config();
+	~Config() {};
 
-
-	void	parseConfig(char **av);
-	void	startParser(std::ifstream &inFile);
-
-	// Config provide these to Network / HTTP after parsing the config file
-	// needed by Network, rarely used by HTTP
-	const std::vector<Server>& getServers() const;
-
-	// critical for Network
-	// Network asks : "which server are listening on this port?"
-	// Config must return the correct vector of pointers for that port
-	const std::vector<Server*> getServerOnPort(int port) const;
+	// getters for config is NON CONST since parser needs to update this class while parsing
+	std::vector<Server>& 		getServers();
+	std::vector<Server*>&		getServerOnPort(int port);
 
 private: 
-
-
-	// CONFIG creates Server Objs after parsing
-	// Network depends on these objs to bind sockets
-	// store in vector? or other type of Container? (usually vector is fine)
 	std::vector<Server>						_servers;
-
-	// Port Map : essential for Network
-	// - Network will bind 1 socket per port
-	// - multiple servers may share same port (virtual hosting)
-	// - Network must known which servers share a port to pick the correct one based on Host header
-	// Map<key, value> container is recommended; key = port, value = vector<Server*> pointing to servers in _servers
 	std::map<int, std::vector<Server*> >	_port_map;
 
-	int 			_global_scope;
-	int				_server_scope;
-	int				_location_scope;
-	int				_common_directive;
-
-	void			printAllServer();
-	void			block_validation(std::string buffer);
-	std::string		removeSemicolon(std::string str);
 };
 
 #endif

@@ -36,41 +36,41 @@
 
 // headers
 #include "Macros.hpp"
-#include "Request.hpp"
-#include "Response.hpp"
 #include "Config.hpp"
+#include "ConfigParse.hpp"
+// #include "Request.hpp"
+// #include "Response.hpp"
 #include "Utils.hpp"
-#include "Config.hpp"
-#include "ServerDebug.hpp"
+// #include "Debug.hpp"
 
 
-class Request; // forward declaration
+// class Request; // forward declaration
 
-// Socket handling
-int     createAllListeningSockets(const std::vector<Server>& servers, 
-            std::vector<int>& serverSockets, std::map<int, const Server*>& socketServerMap);
-int     createListeningSocket(std::string host, int port);
-void    createPollFds(const std::vector<int>& serverSockets, std::vector<pollfd>& fds);
+// // Socket handling
+// int     createAllListeningSockets(const std::vector<Server>& servers, 
+//             std::vector<int>& serverSockets, std::map<int, const Server*>& socketServerMap);
+// int     createListeningSocket(std::string host, int port);
+// void    createPollFds(const std::vector<int>& serverSockets, std::vector<pollfd>& fds);
 
-// Request handling
-int         handleRequest(int serverSocket, std::vector<pollfd>& fds, std::map<int, int>& clientServerMap);
-std::string checkMaxBodySize(const Server* server, size_t totalReceived, size_t maxBodySize, 
-    std::string fullPath, const Location* locPath);
+// // Request handling
+// int         handleRequest(int serverSocket, std::vector<pollfd>& fds, std::map<int, int>& clientServerMap);
+// std::string checkMaxBodySize(const Server* server, size_t totalReceived, size_t maxBodySize, 
+//     std::string fullPath, const Location* locPath);
 
-// Bridge function between Request and Response handling
-int         handleResponse(std::map<int, int>& clientServerMap, std::map<int, Request>& clientRequests, 
-                std::map<int, std::string>& clientSendBuffers, std::map<int, const Server*>& socketServerMap,
-                size_t& i, size_t& fds_count, std::vector<pollfd>& fds);
-std::string sendData(const Server* clientServer, const Request& client, const Location* locPath, size_t totalReceived);
+// // Bridge function between Request and Response handling
+// int         handleResponse(std::map<int, int>& clientServerMap, std::map<int, Request>& clientRequests, 
+//                 std::map<int, std::string>& clientSendBuffers, std::map<int, const Server*>& socketServerMap,
+//                 size_t& i, size_t& fds_count, std::vector<pollfd>& fds);
+// std::string sendData(const Server* clientServer, const Request& client, const Location* locPath, size_t totalReceived);
 
-// Response handling
-std::string readFile(const std::string& filePath);
-std::string createResponse(std::string filePath, int statusCode);
-std::string createRedirectResponse(const std::string& redirectPath, int statusCode); 
-std::string generateAutoindexPage(const std::string& dirPath, const std::string& requestPath); 
-void sendResponse(size_t& i, size_t& fds_count, std::vector<pollfd>& fds, 
-    std::map<int, Request>& clientRequests, 
-    std::map<int, int>& clientServerMap, 
-    std::map<int, std::string>& clientSendBuffers);
+// // Response handling
+// std::string readFile(const std::string& filePath);
+// std::string createResponse(std::string filePath, int statusCode);
+// std::string createRedirectResponse(const std::string& redirectPath, int statusCode); 
+// std::string generateAutoindexPage(const std::string& dirPath, const std::string& requestPath); 
+// void sendResponse(size_t& i, size_t& fds_count, std::vector<pollfd>& fds, 
+//     std::map<int, Request>& clientRequests, 
+//     std::map<int, int>& clientServerMap, 
+//     std::map<int, std::string>& clientSendBuffers);
 
 #endif

@@ -1,0 +1,19 @@
+www/
+├── index.html             # Main entry point for your site
+├── errors/                # Error pages
+│   ├── 400.html
+│   ├── ....html           
+│   └── ....html           
+├── html/                   # Other HTML pages
+│   ├── about.html
+│   ├── contact.html
+│   └── test.html
+├── assets/                 # Static resources
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   └── app.js
+│   └── img/
+│       └── logo.png
+└── cgi/                    # CGI scripts or server-side scripts
+    └── test.cgi
