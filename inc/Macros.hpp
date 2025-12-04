@@ -18,6 +18,9 @@ const std::string RESET  = "\033[0m";
 const std::string ERR_ARGFORMAT = "Invalid argument. Usage: ./webserv [configuration file]";
 const std::string ERR_FILEINVALID = "Invalid file!";
 const std::string ERR_FILEEMPTY = "Empty file!";
-
+// errors config
+const std::string ERR_DIRECTIVEINVALID = "Unknown directive found!";
+const std::string ERR_ARGCOUNTINVALID = "Invalid number of arguments!";
+const std::string ERR_SEMICOLONMISSING = "Directive is not terminated by ';'";
 
 #endif

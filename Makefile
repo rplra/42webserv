@@ -10,7 +10,7 @@ OBJ			=	obj
 PARSE_DIR	=	$(SRC)/parsing
 
 # Sources
-PARSE_FILES	=	ParseConfig.cpp ParseUtils.cpp Server.cpp
+PARSE_FILES	=	Server.cpp ParseConfig.cpp ParseUtils.cpp ParseErrorCheck.cpp ParseErrorCheckLoc.cpp
 SRC_FILES	=	main.cpp Utils.cpp
 
 # SRCS		=	src/main.cpp

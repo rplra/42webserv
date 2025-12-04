@@ -33,7 +33,7 @@ bool	Server::checkCommonDirective(std::string str, std::istringstream &iss, T &d
 	return (0);
 }
 
-bool	Server::checkServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile)
+bool	Server::handleServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile)
 {
 	const char *arr[] =
 	{
@@ -53,7 +53,7 @@ bool	Server::checkServerDirective(std::string str, std::istringstream &iss, std:
 	return (0);
 }
 
-bool	Server::checkLocationDirective(std::string str, std::istringstream &iss, Location& data)
+bool	Server::handleLocationDirective(std::string str, std::istringstream &iss, Location& data)
 {
 	const char *arr[] =
 	{
@@ -200,10 +200,10 @@ void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 			return ;
 		}
 		checkCommonDirective(word, iss, tmp);
-		checkLocationDirective(word, iss, tmp);
+		handleLocationDirective(word, iss, tmp);
 		// if (checkCommonDirective(word, iss, tmp))
 		// 	std::cout << RED << word << RESET << std::endl;
-		// else if (checkLocationDirective(word, iss, tmp))
+		// else if (handleLocationDirective(word, iss, tmp))
 		// 	std::cout << PINK << word << RESET << std::endl;
 	}
 }
@@ -228,10 +228,10 @@ void	Server::parseServer(std::ifstream &inFile)
 		}
 		pos = inFile.tellg();
 		checkCommonDirective(word, iss, *this);
-		checkServerDirective(word, iss, inFile);
+		handleServerDirective(word, iss, inFile);
 		// if (checkCommonDirective(word, iss, *this))
 		// 	std::cout << RED << word << RESET << std::endl;
-		// else if (checkServerDirective(word, iss, inFile))
+		// else if (handleServerDirective(word, iss, inFile))
 		// 	std::cout << CYAN << word << RESET << std::endl;
 		// while (iss >> word)
 			// std::cout << word << std::endl;
@@ -267,8 +267,11 @@ void	Config::startParser(std::ifstream &inFile)
 			tmp.parseServer(inFile);
 			this->_servers.push_back(tmp);
 		}
-		// else
-			// /*debug*/std::cout << word << std::endl;
+		else
+		{
+			/*debug*/std::cout	<< RED
+								<< "invalid directives: " << word << RESET << std::endl;
+		}
 	}
 }
 
@@ -283,6 +286,7 @@ void	Config::parseConfig(char **av)
 		if (inFile.peek() == EOF)
 			throw (std::invalid_argument(ERR_FILEEMPTY));
 		/* scan all errors */
+		this->errorCheckConfig(inFile); // throws error here
 
 		/* else, start parsing */
 		this->startParser(inFile);

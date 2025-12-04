@@ -23,6 +23,12 @@ struct Location
 	std::map<int, std::string>	_redirect;		//return code, redirect path
 };
 
+struct errCheck
+{
+	int							line_count;
+	std::string					keyword;
+};
+
 // server contains data and behaviour (parsing, etc)
 // if parsing bloats this Server class, can create another seperate ConfigParser class
 // Network and HTTP depend on these fields to route requests
@@ -32,12 +38,14 @@ public:
 	Server();
 	~Server();
 
-	void	parseServer(std::ifstream &inFile);
-	void	printErrorPage();
-	void	printServer();
+	void		parseServer(std::ifstream &inFile);
+	static void	errorCheckServer(std::ifstream &inFile);
 
-	void	assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
-	void	assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
+	void		printErrorPage();
+	void		printServer();
+
+	void		assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
+	void		assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
 
 	// getters - these method names must align for ALL otherwise integration fails
 	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
@@ -67,14 +75,17 @@ private:
 	std::map<int, std::string>	_error_pages;
 	std::vector<Location>		_locations;
 
+	// error check use
+	errCheck					_check;
+
 	// methods : parser funcs, etc
 	template <typename T>
 	bool		checkCommonDirective(std::string str, std::istringstream &iss, T &data);
 	template <typename T>
 	void		getCommonDirective(std::size_t code, std::istringstream &iss, T &data);
 
-	bool		checkServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile);
-	bool		checkLocationDirective(std::string str, std::istringstream &iss, Location& data);
+	bool		handleServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile);
+	bool		handleLocationDirective(std::string str, std::istringstream &iss, Location& data);
 	
 	void		getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
 	void		getLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
@@ -82,6 +93,20 @@ private:
 	void		initLocation(Location &obj);
 
 	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
+
+	// parser: error checks
+	static int		countArgs(std::istringstream &iss);
+	static bool		ignoreKeyword(std::string &word);
+
+	static bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
+	static bool		errorCommonDirective(std::string &str, std::istringstream &iss);
+	// static bool		errorCheckListen(std::istringstream &iss);
+	static void		checkCommonArgCount(size_t code, std::istringstream &iss);
+	static void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
+	static void		checkLocationArgCount(size_t code, std::istringstream &iss);
+
+	static bool		errorLocationArgCount(std::istringstream &iss, std::ifstream &inFile);
+	static bool		errorLocationDirective(std::string str, std::istringstream &iss);
 };
 
 // this is MAIN BRIDGE btw Network + Config 
@@ -92,7 +117,6 @@ class Config
 {
 public:
 	void	parseConfig(char **av);
-	void	startParser(std::ifstream &inFile);
 
 	// Config provide these to Network / HTTP after parsing the config file
 	
@@ -105,7 +129,9 @@ public:
 	const std::vector<Server*> getServerOnPort(int port) const;
 
 private: 
+	void	startParser(std::ifstream &inFile);
 	void	printAllServer();
+	bool	errorCheckConfig(std::ifstream &inFile);
 
 	// CONFIG creates Server Objs after parsing
 	// Network depends on these objs to bind sockets
