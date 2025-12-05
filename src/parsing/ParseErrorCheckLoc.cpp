@@ -2,7 +2,7 @@
 #include "Config.hpp"
 #include "ConfigParse.hpp"
 
-void	Server::checkLocationArgCount(size_t code, std::istringstream &iss)
+void	Config::checkLocationArgCount(size_t code, std::istringstream &iss)
 {
 	std::string word;
 	int			count = countArgs(iss);
@@ -28,7 +28,7 @@ void	Server::checkLocationArgCount(size_t code, std::istringstream &iss)
 }
 
 /* return (0) == no error */
-bool	Server::errorLocationDirective(std::string str, std::istringstream &iss)
+bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 {
 	const char *arr[] =
 	{
@@ -51,7 +51,7 @@ bool	Server::errorLocationDirective(std::string str, std::istringstream &iss)
 }
 
 // continue here
-bool	Server::errorLocationArgCount(std::istringstream &iss, std::ifstream &inFile)
+bool	Config::errorLocationArgCount(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string buffer, word;
 	int			count = 0;
@@ -68,10 +68,13 @@ bool	Server::errorLocationArgCount(std::istringstream &iss, std::ifstream &inFil
 		throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
 	while (std::getline(inFile, buffer))
 	{
+		this->_check.line_count++;
+
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
 			continue ;
+		this->_check.keyword = word;
 		if (word == "}")
 			return (0);
 		if (errorCommonDirective(word, iss) && errorLocationDirective(word, iss))

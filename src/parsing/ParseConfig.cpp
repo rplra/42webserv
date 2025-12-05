@@ -300,6 +300,7 @@ void	Config::parseConfig(char **av)
 	{
 		std::cout	<< RED
 					<< "Exception: " << err.what()
+					<< this->_check.keyword << "\" [line " << this->_check.line_count << "]"
 					<< RESET << std::endl;
 	}
 	exit(1);

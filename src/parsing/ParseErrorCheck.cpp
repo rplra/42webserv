@@ -13,7 +13,7 @@
 // 	std::istringstream	iss_cpy(iss.str());
 // }
 
-bool Server::ignoreKeyword(std::string &word)
+bool Config::ignoreKeyword(std::string &word)
 {
 	const char *arr[] =
 	{
@@ -34,7 +34,7 @@ bool Server::ignoreKeyword(std::string &word)
 	return (0);
 }
 
-int	Server::countArgs(std::istringstream &iss)
+int	Config::countArgs(std::istringstream &iss)
 {
 	std::string			word;
 	int					count = 0;
@@ -50,20 +50,34 @@ int	Server::countArgs(std::istringstream &iss)
 	throw (std::invalid_argument(ERR_SEMICOLONMISSING));
 }
 
-void	Server::checkCommonArgCount(size_t code, std::istringstream &iss)
+void	Config::checkCommonArgCount(size_t code, std::istringstream &iss)
 {
 	std::string word;
 	int			count = countArgs(iss);
 
 	/*debug*/std::cout << ", common_arg_count: " << count << std::endl;
-	if (code == ERROR_PAGE && count == 2)
-		return ;
-	else if (count == 1)
-		return ;
+	switch (code)
+	{
+		case ERROR_PAGE:
+		if (count == 2)
+			return ;
+		break ;
+
+		case ROOT:
+		case INDEX:
+		case AUTOINDEX:
+		case CLIENT_MAX_BODY_SIZE:
+		if (count == 1)
+			return ;
+	}
+	// if (code == ERROR_PAGE && count == 2)
+	// 	return ;
+	// else if (count == 1)
+	// 	return ;
 	throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
 }
 
-void	Server::checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile)
+void	Config::checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile)
 {
 	(void) code;
 	(void) inFile;
@@ -95,7 +109,7 @@ void	Server::checkServerArgCount(size_t code, std::istringstream &iss, std::ifst
 }
 
 /* return (0) == no error */
-bool	Server::errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile)
+bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile)
 {
 	(void) inFile;
 
@@ -130,8 +144,11 @@ bool	Server::errorServerDirective(std::string &str, std::istringstream &iss, std
 }
 
 /* return (0) == no error */
-bool	Server::errorCommonDirective(std::string &str, std::istringstream &iss)
+bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss)
 {
+	if (str == "}")
+		return (0);
+
 	const char *arr[] =
 	{
 		"root",
@@ -142,8 +159,6 @@ bool	Server::errorCommonDirective(std::string &str, std::istringstream &iss)
 	};
 	std::vector<std::string>	types(arr, arr + 5);
 
-	if (str == "}")
-		return (0);
 	for (std::size_t i=0; i < types.size(); i++)
 	{
 		if (types[i] == str)
@@ -166,7 +181,7 @@ bool	Server::errorCommonDirective(std::string &str, std::istringstream &iss)
 	return (1); //return 1 if type_not_found
 }
 
-void	Server::errorCheckServer(std::ifstream &inFile)
+void	Config::errorCheckServer(std::ifstream &inFile)
 {
 	std::string			word, buffer;
 	std::streampos		pos = inFile.tellg();
@@ -174,6 +189,8 @@ void	Server::errorCheckServer(std::ifstream &inFile)
 
 	while (std::getline(inFile, buffer))
 	{
+		this->_check.line_count++;
+
 		iss.clear();
 		iss.str(buffer);
 		/*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
@@ -183,6 +200,7 @@ void	Server::errorCheckServer(std::ifstream &inFile)
 			pos = inFile.tellg(); //tellg returns end of readed line
 			continue ;
 		}
+		this->_check.keyword = word;
 		/*debug*/ std::cout << "iss: " << word << std::endl;
 		if (word == "server")
 		{
@@ -216,6 +234,7 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 	/* errorCheckServer */
 	while (std::getline(inFile, buffer))
 	{
+		this->_check.line_count++;
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
@@ -224,8 +243,9 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 
 		try
 		{
+			this->_check.keyword = word;
 			if (word == "server")
-				Server::errorCheckServer(inFile);
+				this->errorCheckServer(inFile);
 			else
 			{
 				/*debug*/ std::cout << "errorCheckConfig " << word << std::endl; //throw invalid directive

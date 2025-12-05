@@ -4,7 +4,6 @@
 
 Server::Server()
 {
-	this->_check.line_count						= 0;
 	this->_port									= -1;
 	this->_autoindex							= 0;
 	this->_client_max_body_size					= CLIENT_MAX_BODY;	//default value

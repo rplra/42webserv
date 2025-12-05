@@ -39,7 +39,6 @@ public:
 	~Server();
 
 	void		parseServer(std::ifstream &inFile);
-	static void	errorCheckServer(std::ifstream &inFile);
 
 	void		printErrorPage();
 	void		printServer();
@@ -75,9 +74,6 @@ private:
 	std::map<int, std::string>	_error_pages;
 	std::vector<Location>		_locations;
 
-	// error check use
-	errCheck					_check;
-
 	// methods : parser funcs, etc
 	template <typename T>
 	bool		checkCommonDirective(std::string str, std::istringstream &iss, T &data);
@@ -93,20 +89,6 @@ private:
 	void		initLocation(Location &obj);
 
 	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
-
-	// parser: error checks
-	static int		countArgs(std::istringstream &iss);
-	static bool		ignoreKeyword(std::string &word);
-
-	static bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
-	static bool		errorCommonDirective(std::string &str, std::istringstream &iss);
-	// static bool		errorCheckListen(std::istringstream &iss);
-	static void		checkCommonArgCount(size_t code, std::istringstream &iss);
-	static void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
-	static void		checkLocationArgCount(size_t code, std::istringstream &iss);
-
-	static bool		errorLocationArgCount(std::istringstream &iss, std::ifstream &inFile);
-	static bool		errorLocationDirective(std::string str, std::istringstream &iss);
 };
 
 // this is MAIN BRIDGE btw Network + Config 
@@ -116,6 +98,8 @@ private:
 class Config
 {
 public:
+	Config();
+
 	void	parseConfig(char **av);
 
 	// Config provide these to Network / HTTP after parsing the config file
@@ -131,7 +115,13 @@ public:
 private: 
 	void	startParser(std::ifstream &inFile);
 	void	printAllServer();
+
+	// error check
 	bool	errorCheckConfig(std::ifstream &inFile);
+	void	errorCheckServer(std::ifstream &inFile);
+
+	// error check use
+	errCheck								_check;
 
 	// CONFIG creates Server Objs after parsing
 	// Network depends on these objs to bind sockets
@@ -146,6 +136,21 @@ private:
 	std::map<int, std::vector<Server*> >	_port_map;
 
 	// helper functions
+
+
+	// parser: error checks
+	int			countArgs(std::istringstream &iss);
+	bool		ignoreKeyword(std::string &word);
+
+	bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
+	bool		errorCommonDirective(std::string &str, std::istringstream &iss);
+	// bool		errorCheckListen(std::istringstream &iss);
+	void		checkCommonArgCount(size_t code, std::istringstream &iss);
+	void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
+	void		checkLocationArgCount(size_t code, std::istringstream &iss);
+
+	bool		errorLocationArgCount(std::istringstream &iss, std::ifstream &inFile);
+	bool		errorLocationDirective(std::string str, std::istringstream &iss);
 };
 
 #endif
