@@ -1,4 +1,5 @@
 #include "Request.hpp"
+#include "Utils.hpp"
 
 Request::Request() 
 :
@@ -14,34 +15,22 @@ Request::Request()
 	_connection("keep-alive"),
 	_state(PARSE_REQUEST_LINE),
 	_parsed_pos(0),
-	_error_code(0),
+	_status(HTTP_OK),
 	_isChunked(false)
 {}
 
-// helper func since we dont have socket yet
-ssize_t _recv(std::string& src, char* buffer, size_t size)
+void	Request::handleRequest(const char* data, size_t size, size_t limit)
 {
-	if (src.empty())
-		return (0);
-	ssize_t n = std::min(size, src.size());
-	std::memcpy(buffer, src.data(), n);
-	src.erase(0, n);
-	return n;
-}
-
-// to replace request with fd
-void	Request::readRequest(std::string& request)
-{
-	char buffer[BUFFER_SIZE];
-
-	// ssize_t n = recv(fd, buffer, BUFFER_SIZE, 0); // use when socket ready
-	ssize_t n = _recv(request, buffer, BUFFER_SIZE);
-	if (n > 0)
-	{
-		_raw.append(buffer, n);
+		_raw.append(data, size);
 		// /* debug */std::cout << _raw;
+
+		if (_raw.size() > limit)
+		{
+			_status = HTTP_PAYLOAD_TOO_LARGE;
+			_state = PARSE_COMPLETE;
+			return;
+		}
 		parseByState();
-	}
 }
 
 const	std::string& Request::getMethod() const
@@ -52,6 +41,20 @@ const	std::string& Request::getMethod() const
 const	std::string& Request::getPath() const
 {
 	return (_path);
+}
+
+const	std::string& Request::getHttpVersion() const
+{
+	return (_http_version);
+}
+
+const	std::string& Request::getHeader(const std::string& key) const
+{
+	static const std::string empty;
+	std::map<std::string, std::string>::const_iterator it = _headers.find(key);
+	if (it != _headers.end())
+		return (it->second);
+	return (empty);
 }
 
 const	std::map<std::string, std::string>&	Request::getHeaders() const
@@ -93,6 +96,11 @@ const	ParserState& Request::getState() const
 bool	Request::hasBody()
 {
 	return (!_body.empty());
+}
+
+HttpStatus	Request::getStatus() const
+{
+	return (_status);
 }
 	
 bool 	Request::hasCookies() const
@@ -288,7 +296,7 @@ void	Request::parseChunkedBody(const std::string& raw, size_t &pos)
 			// check size limit
 			if (_body.length() > client_max_body_size)
 			{
-				_error_code = HTTP_PAYLOAD_TOO_LARGE;
+				_status = HTTP_PAYLOAD_TOO_LARGE;
 				_state = PARSE_ERROR;
 				return ;
 			}
@@ -357,14 +365,14 @@ void	Request::validateHeaders()
 	// Chunked + Content-Length together → 400 Bad Request
 	if (_isChunked && _content_length != 0)
 	{
-		_error_code = HTTP_BAD_REQUEST;
+		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
 	}
 	// POST without body headers → 411 Length Required
 	if (_method == "POST" && !_isChunked && _content_length == 0)
 	{
-		_error_code = HTTP_LENGTH_REQUIRED;
+		_status = HTTP_LENGTH_REQUIRED;
 		_state = PARSE_ERROR;
 		return;
 	}
@@ -387,3 +395,40 @@ void	Request::decideBodyState()
 	else
 		_state = PARSE_COMPLETE;
 }
+
+void	Request::clear()
+{
+	_raw.clear();
+	_method.clear();
+	_path.clear();
+	_http_version.clear();
+	_headers.clear();
+	_content_length = 0;
+	_content_type.clear();
+	_body.clear();
+	_cookies.clear();
+	_session_id.clear();
+	_connection = "keep-alive";
+	_state = PARSE_REQUEST_LINE;
+	_parsed_pos = 0;
+	_status = HTTP_OK;
+	_isChunked = false;
+}
+
+
+// std::string checkMaxBodySize(const Server* server, size_t totalReceived, size_t maxBodySize, 
+//     std::string fullPath, const Location* locPath) {
+
+//     std::cout << GREEN << "Max body size: " << RESET << maxBodySize << std::endl; // DEBUG
+//     std::cout << GREEN << "Total received: " << RESET << totalReceived << std::endl; // DEBUG
+
+//     if (totalReceived >= maxBodySize) {
+//         std::cerr << RED << "Error: Request body too large" << RESET << std::endl;
+//         std::string serverErrorPath = server->getRoot() + "/" + server->getErrorPagePath(500);
+//         if (locPath && locPath->error_pages.find(500) != locPath->error_pages.end()) {
+//             serverErrorPath = fullPath + "/" + locPath->error_pages.at(500);
+//         }
+//         return createResponse(serverErrorPath, 500);
+//     }
+//     return "";
+// }

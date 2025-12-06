@@ -12,6 +12,7 @@ Response::Response(const Request* request, const Server& server, HttpStatus stat
 	_body(),
 	_content_type(),
 	_raw_response(),
+	_isBuilt(false),
 	_request(request),
 	_server(server)
 {
@@ -42,6 +43,9 @@ Response::Response(const Request* request, const Server& server, HttpStatus stat
 // 3. what metadata must accompany it? content type, content length, special headers (location for redirects)
 std::string	Response::buildResponse()
 {
+	// if (_isBuilt)
+	// 	return getRawResponse(); // return cached response
+	
 	/* debug */std::cout << PINK << "> building response" << RESET << std::endl;
 	switch(_type)
 	{
@@ -52,7 +56,14 @@ std::string	Response::buildResponse()
 		case (ERROR):		buildError(); break;
 	}
 
-	return (getRawResponse());
+	_isBuilt = true;
+	// return (getRawResponse());
+	return (_raw_response);
+}
+
+bool	Response::isResponseReady() const
+{
+	return (_isBuilt);
 }
 
 void	Response::setStatus(HttpStatus status)
@@ -62,18 +73,18 @@ void	Response::setStatus(HttpStatus status)
 
 	switch (_status_code)
 	{
-		case (HTTP_OK): _reason_phrase = "Ok"; break;
-		case (HTTP_MOVED_PERMANENTLY): _reason_phrase = "Moved Permanently"; break;
-		case (HTTP_BAD_REQUEST): _reason_phrase = "Bad Request"; break;
-		case (HTTP_FORBIDDEN): _reason_phrase = "Forbidden"; break;
-		case (HTTP_NOT_FOUND): _reason_phrase = "Not Found"; break;
-		case (HTTP_METHOD_NOT_ALLOWED): _reason_phrase = "Method Not Allowed"; break;
-		case (HTTP_LENGTH_REQUIRED): _reason_phrase = "Length Required"; break;
-		case (HTTP_PAYLOAD_TOO_LARGE): _reason_phrase = "Payload Too Large"; break;
-		case (HTTP_INTERNAL_SERVER_ERROR): _reason_phrase = "Internal Server Error"; break;
-		case (HTTP_NOT_IMPLEMENTED): _reason_phrase = "Not Implemented"; break;
-		case (HTTP_BAD_GATEWAY): _reason_phrase = "Bad Gateway"; break;
-		case (HTTP_SERVICE_UNAVAILABLE): _reason_phrase = "Service Unavailable"; break;
+		case (HTTP_OK):						_reason_phrase = "Ok"; break;
+		case (HTTP_MOVED_PERMANENTLY):		_reason_phrase = "Moved Permanently"; break;
+		case (HTTP_BAD_REQUEST):			_reason_phrase = "Bad Request"; break;
+		case (HTTP_FORBIDDEN):				_reason_phrase = "Forbidden"; break;
+		case (HTTP_NOT_FOUND):				_reason_phrase = "Not Found"; break;
+		case (HTTP_METHOD_NOT_ALLOWED):		_reason_phrase = "Method Not Allowed"; break;
+		case (HTTP_LENGTH_REQUIRED):		_reason_phrase = "Length Required"; break;
+		case (HTTP_PAYLOAD_TOO_LARGE):		_reason_phrase = "Payload Too Large"; break;
+		case (HTTP_INTERNAL_SERVER_ERROR):	_reason_phrase = "Internal Server Error"; break;
+		case (HTTP_NOT_IMPLEMENTED):		_reason_phrase = "Not Implemented"; break;
+		case (HTTP_BAD_GATEWAY):			_reason_phrase = "Bad Gateway"; break;
+		case (HTTP_SERVICE_UNAVAILABLE):	_reason_phrase = "Service Unavailable"; break;
 	}
 }
 
@@ -109,7 +120,7 @@ void	Response::setBody(const std::string& body)
 void	Response::setError(HttpStatus code)
 {
 	_type = ERROR;
-	_status_code = code;
+	setStatus(code); // updates status code and reason phrase
 	buildError();
 }
 
@@ -196,10 +207,12 @@ void	Response::buildAutoIndex()
 void	Response::buildError()
 {
 	/* debug */std::cout << PINK << "> building error" << RESET << std::endl;
-	std::map<HttpStatus, std::string>::const_iterator it = _server.getErrorPages().find(_status_code);
-	if (it != _server.getErrorPages().end())
+	// std::map<HttpStatus, std::string>::const_iterator it = _server.getErrorPagePath(_status_code).find(_status_code);
+	// if (it != _server.getErrorPagePath().end())
+	std::string error_file = _server.getErrorPagePath(_status_code);
+	if (!error_file.empty())
 	{
-		std::string error_file = it->second; // path to error page
+		// std::string error_file = it->second; // path to error page
 
 		struct stat st;
 		if (stat(error_file.c_str(), &st) == 0 && S_ISREG(st.st_mode))
@@ -338,7 +351,7 @@ void Response::handleDirectory()
 	}
 
 	// else, generate index file
-	if (_server.getAutoIndex() == "on")
+	if (_server.getAutoindex())
 	{
 		/* debug */std::cout << PINK << "> handle directory: autoindex ON" << RESET << std::endl;
 		_type = AUTOINDEX;
