@@ -30,10 +30,21 @@ const size_t client_max_body_size	= 1048576;	// 1 MB (default, can be increased 
 const size_t BUFFER_SIZE = 8192;
 
 // error args
-const std::string ERR_ARGFORMAT = "Invalid argument. Usage: ./webserv [configuration file]";
-const std::string ERR_FILEINVALID = "Invalid file!";
-const std::string ERR_FILEEMPTY = "Empty file!";
+const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configuration file]";
+const std::string ERR_FILEINVALID		= "Invalid file!";
+const std::string ERR_FILEEMPTY			= "Empty file!";
 
+// error - servermanager
+const std::string ERR_POLL				= "Error in poll()";
+const std::string ERR_CLIENTDISCONECT 	= "Client disconnected at fd: ";
+const std::string ERR_RECVFD 			= "recv() error on fd ";
+
+const std::string ERR_SERVERCONFIG		= "No servers configured";
+const std::string ERR_GETADDRINFO		= "Getaddrinfo error: ";
+const std::string ERR_CREATEALLSOCK		= "Failed to create listening socket for server on port ";
+const std::string ERR_CREATESOCK		= "Error creating socket";
+const std::string ERR_BINDSOCK			= "Error binding socket";
+const std::string ERR_LISTENSOCK		= "Error listening on socket";
 
 // http
 enum HttpStatus

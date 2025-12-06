@@ -22,22 +22,42 @@ void testConfigParse(const std::vector<Server>&servers);
     GET method - headers + blank line
     POST method - headers + blank line + body
 */
-int main(int ac, char **av) {
-    // signal handling for shutting down
-    // g_signal = 1;
-    // signal(SIGINT, handleSignal);
-
-    checkArgument(ac);
+int main(int ac, char **av)
+{
+	try
+	{
+	checkArgument(ac);
 	std::string filename = av[1];
+
+    // signal handling for shutting down
+    g_signal = 1;
+    signal(SIGINT, handleSignal);
 
 	// create parser and parse the file
 	Config config;
     ConfigParse parser(config);
 	parser.parseConfig(filename);
 
-	// print parsed servers
-	const std::vector<Server>& servers = config.getServers();
-	testConfigParse(servers); // tested with basic_config.conf
+	// // print parsed servers
+	// const std::vector<Server>& servers = config.getServers();
+	// testConfigParse(servers); // tested with basic.conf
+
+	// TO DO : ctrl+c to shutdown server? or should we enter "exit" to gracefully shut down the server?
+	std::cout << PINK << ">> Server running ... (ctrl+C to stop)" << std::endl;
+
+	// run webserver
+	ServerManager webserv(config);
+	webserv.run();
+
+	// graceful shutdown
+	std::cout << PINK << ">> Webserv shut down gracefully" << std::endl;
+
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << RED << "Exception: " << e.what() << RESET << std::endl;
+		return (EXIT_FAILURE);
+	}
 
 
 
@@ -108,6 +128,8 @@ int main(int ac, char **av) {
     // closeAllFd(fds);
     return 0;
 }
+
+
 
 void testConfigParse(const std::vector<Server>&servers)
 {

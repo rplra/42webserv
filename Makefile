@@ -13,12 +13,11 @@ OBJ			=	obj
 SRCS        =	src/main.cpp \
 				src/Config.cpp \
 				src/ConfigParse.cpp \
-				src/Utils.cpp 
-
-# 				src/Request.cpp \
-# 				src/Request.cpp \
-# 				src/Response.cpp \
-
+				src/Utils.cpp \
+				src/Request.cpp \
+				src/Response.cpp \
+				src/ServerManager.cpp \
+				src/Client.cpp
 
 OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
 

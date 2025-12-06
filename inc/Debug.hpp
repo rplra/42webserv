@@ -1,5 +1,5 @@
-// #ifndef __SERVERDEBUG_HPP__
-// # define __SERVERDEBUG_HPP__
+// #ifndef __DEBUG_HPP__
+// # define __DEBUG_HPP__
 
 // #include "Config.hpp"
 

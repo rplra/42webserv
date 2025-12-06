@@ -2,20 +2,11 @@
 
 void	checkArgument(int ac)
 {
-	try
-	{
-		if (ac != 2)
-			throw std::invalid_argument(ERR_ARGFORMAT);
-		return ;
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << RED << "Exception: " << e.what() << RESET << std::endl;
-	}
-	exit (1);
+	if (ac != 2)
+		throw std::invalid_argument(ERR_ARGFORMAT);
 }
 
-// /* trims and discards string after symbol specified */
+/* trims and discards string after symbol specified */
 // std::string	trimStringTail(const std::string &str, char c)
 // {
 // 	std::size_t i = str.find(c);
@@ -25,7 +16,7 @@ void	checkArgument(int ac)
 // 	return (str);
 // }
 
-// /* trims and discards string before symbol specified */
+/* trims and discards string before symbol specified */
 // std::string	trimStringHead(const std::string &str, char c)
 // {
 // 	std::size_t i = str.find(c);
@@ -56,53 +47,34 @@ std::string trim(const std::string& s)
 	return (s.substr(start, end - start + 1));
 }
 
-// // RFC 9110 (Http Semantics; headers interpretation), RFC 9112 (Message Syntax; parse http msg correctly)
-// std::string toLower(const std::string& s)
-// {
-// 	std::string res = s;
-// 	for (size_t i = 0; i < res.length(); i++)
-// 		res[i] = std::tolower(static_cast<unsigned char>(res[i]));
-// 	return (res);
-// }
+// RFC 9110 (Http Semantics; headers interpretation), RFC 9112 (Message Syntax; parse http msg correctly)
+std::string toLower(const std::string& s)
+{
+	std::string res = s;
+	for (size_t i = 0; i < res.length(); i++)
+		res[i] = std::tolower(static_cast<unsigned char>(res[i]));
+	return (res);
+}
 
-// void handleSignal(int signum) {
-//     g_signal = 0;
-//     std::cout << RED << "\nSignal " << signum << " received, shutting down server..." << RESET << std::endl;
-// }
+void handleSignal(int signum)
+{
+    g_signal = 0;
+    std::cout << RED << "\nSignal " << signum << " received, shutting down server..." << RESET << std::endl;
+}
 
-// void closeAllFd(std::vector<pollfd>& fds) {
-//     std::cout << RED << "Closing all file descriptors..." << RESET << std::endl;
-//     for (size_t i=0; i < fds.size(); i++) {
-//         close(fds[i].fd);
-//     }
-// }
+bool isDirectory(const std::string& path)
+{
+    struct stat pathStat;
+    if (stat(path.c_str(), &pathStat) != 0)
+        return false; // error accessing path
+    return S_ISDIR(pathStat.st_mode);
+}
 
-// void closeClient(size_t& i, size_t& fds_count, std::vector<pollfd>& fds, std::map<int, 
-//     Request>& clientRequests, std::map<int, int>& clientServerMap) {
-
-//     close(fds[i].fd);
-//     clientRequests.erase(fds[i].fd);
-//     clientServerMap.erase(fds[i].fd);
-//     fds.erase(fds.begin() + i);
-
-//     // adjust index after erasing element as the remaining elements shift left 
-//     i--;
-//     fds_count--;
-// }
-
-// bool isDirectory(const std::string& path)
-// {
-//     struct stat pathStat;
-//     if (stat(path.c_str(), &pathStat) != 0)
-//         return false; // error accessing path
-//     return S_ISDIR(pathStat.st_mode);
-// }
-
-// bool isFile(const std::string& path)
-// {
-//     struct stat pathStat;
-//     if (stat(path.c_str(), &pathStat) != 0)
-//         return false; // error accessing path
-//     // Check if it's a regular file
-//     return S_ISREG(pathStat.st_mode);
-// }
+bool isFile(const std::string& path)
+{
+    struct stat pathStat;
+    if (stat(path.c_str(), &pathStat) != 0)
+        return false; // error accessing path
+    // Check if it's a regular file
+    return S_ISREG(pathStat.st_mode);
+}

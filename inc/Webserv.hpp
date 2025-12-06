@@ -3,7 +3,6 @@
 #define __WEBSERV_HPP__
 
 // lib
-#include <exception>
 #include <fstream>
 #include <sstream>	
 #include <iostream>
@@ -11,6 +10,8 @@
 #include <cstring>
 #include <string>
 #include <ctime>
+#include <exception>
+#include <stdexcept>
 
 // stl
 #include <vector>
@@ -34,14 +35,26 @@
 #include <netdb.h>			// gethostbyname, getaddrinfo, struct addrinfo
 #include <poll.h>			// poll, struct pollfd
 
-// headers
+// headers or forward declaration?
 #include "Macros.hpp"
 #include "Config.hpp"
 #include "ConfigParse.hpp"
-// #include "Request.hpp"
-// #include "Response.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
+#include "ServerManager.hpp"
+#include "Client.hpp"
 #include "Utils.hpp"
 // #include "Debug.hpp"
+
+// class Config;
+// class Server;
+// class ServerManager;
+// class Client;
+// class Request;
+// class Response;
+// class Utils;
+
+extern int g_signal;
 
 
 // class Request; // forward declaration
