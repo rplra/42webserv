@@ -126,6 +126,21 @@ std::vector<Server>& Config::getServers()
 {
 	return (_servers);
 }
+
+const std::vector<Server>& Config::getServers() const
+{
+	return (_servers);
+}
+
+const std::vector<Server*>& Config::getServerOnPort(int port) const
+{
+	static const std::vector<Server*> empty;
+	std::map<int, std::vector<Server*> > ::const_iterator it = _port_map.find(port);
+	if (it != _port_map.end())
+		return (it->second);
+	return (empty);
+}
+
 std::vector<Server*>& Config::getServerOnPort(int port)
 {
 	return (_port_map[port]);

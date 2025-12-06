@@ -26,7 +26,7 @@ public:
 	~Server() {};
 
 	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
-	// Network use : getHost(), getPort(),  getServerNames()
+	// ServerManager use : getHost(), getPort(),  getServerNames()
 	const std::string&					getHost() const;
 	int									getPort() const;
 	const std::vector<std::string>&		getServerNames() const;
@@ -73,9 +73,12 @@ public:
 	Config();
 	~Config() {};
 
-	// getters for config is NON CONST since parser needs to update this class while parsing
-	std::vector<Server>& 		getServers();
-	std::vector<Server*>&		getServerOnPort(int port);
+	// NON CONST for parser to update this class while parsing
+	std::vector<Server>& 			getServers();
+	std::vector<Server*>&			getServerOnPort(int port);
+
+	const std::vector<Server>& 		getServers() const;
+	const std::vector<Server*>&		getServerOnPort(int port) const;
 
 private: 
 	std::vector<Server>						_servers;
