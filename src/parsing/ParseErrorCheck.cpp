@@ -2,17 +2,6 @@
 #include "Config.hpp"
 #include "ConfigParse.hpp"
 
-/* check if string ends with semicolon */
-// void	Server::checkSemicolon(std::istringstream &iss)
-// {
-
-// }
-
-// void	Server::checkSemicolon(std::istringstream &iss)
-// {
-// 	std::istringstream	iss_cpy(iss.str());
-// }
-
 bool Config::ignoreKeyword(std::string &word)
 {
 	const char *arr[] =
@@ -32,6 +21,23 @@ bool Config::ignoreKeyword(std::string &word)
 		}
 	}
 	return (0);
+}
+
+void Config::checkDuplicate(std::string &str, std::vector<std::string> &data)
+{
+	std::vector<std::string>::iterator it = data.begin();
+	std::vector<std::string>::iterator ite = data.end();
+
+	if (str == "location") //location can have multiples
+		return ;
+
+	while (it != ite)
+	{
+		if (*it == str)
+			throw (std::invalid_argument(ERR_DIRECTIVEDUP));
+		it++;
+	}
+	data.push_back(str);
 }
 
 int	Config::countArgs(std::istringstream &iss)
@@ -99,11 +105,6 @@ void	Config::checkServerArgCount(size_t code, std::istringstream &iss, std::ifst
 		if (count >= 1)
 			return ;
 		break;
-		
-		case LOCATION:
-		if (!errorLocationArgCount(iss, inFile)) //handle loc arg c
-			return ;
-		break;
 	}
 	throw std::invalid_argument(ERR_ARGCOUNTINVALID);
 }
@@ -129,7 +130,13 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 		{
 			try
 			{
-				checkServerArgCount(i, iss, inFile);
+				if (i == LOCATION)
+					errorCheckLocation(iss, inFile);
+				else //errorCheckServer
+				{
+					checkDuplicate(str, this->_check.dup);
+					checkServerArgCount(i, iss, inFile);
+				}
 			}
 			catch (std::exception &err)
 			{
@@ -144,7 +151,7 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 }
 
 /* return (0) == no error */
-bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss)
+bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, std::vector<std::string> &data)
 {
 	if (str == "}")
 		return (0);
@@ -166,6 +173,7 @@ bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss)
 			std::cout << str << std::endl;
 			try
 			{
+				checkDuplicate(str, data);
 				checkCommonArgCount(i, iss);
 			}
 			catch (std::exception &err)
@@ -181,6 +189,7 @@ bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss)
 	return (1); //return 1 if type_not_found
 }
 
+/* checks the server scope */
 void	Config::errorCheckServer(std::ifstream &inFile)
 {
 	std::string			word, buffer;
@@ -189,8 +198,6 @@ void	Config::errorCheckServer(std::ifstream &inFile)
 
 	while (std::getline(inFile, buffer))
 	{
-		this->_check.line_count++;
-
 		iss.clear();
 		iss.str(buffer);
 		/*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
@@ -198,20 +205,24 @@ void	Config::errorCheckServer(std::ifstream &inFile)
 		if (!(iss >> word) || ignoreKeyword(word))
 		{
 			pos = inFile.tellg(); //tellg returns end of readed line
+			this->_check.line_count++;
 			continue ;
 		}
-		this->_check.keyword = word;
 		/*debug*/ std::cout << "iss: " << word << std::endl;
+
+		this->_check.keyword = word;
+		// if (word == "}")
+			// break ;
 		if (word == "server")
 		{
 			inFile.seekg(pos);	//rewind back
 			break;
 		}
-		// pos = inFile.tellg();
+		this->_check.line_count++;
 
 		try
 		{
-			if (errorCommonDirective(word, iss) && errorServerDirective(word, iss, inFile))
+			if (errorCommonDirective(word, iss, this->_check.dup) && errorServerDirective(word, iss, inFile))
 				throw (std::invalid_argument(ERR_DIRECTIVEINVALID)); //invalid_directive
 		}
 		catch (std::exception &err)
@@ -244,6 +255,7 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 		try
 		{
 			this->_check.keyword = word;
+			this->_check.dup.clear();
 			if (word == "server")
 				this->errorCheckServer(inFile);
 			else

@@ -2,6 +2,24 @@
 #include "Config.hpp"
 #include "ConfigParse.hpp"
 
+/* checks argcount for location /path */
+void	Config::errorLocationBase(std::istringstream &iss)
+{
+	std::string word;
+	int			count = 0;
+	while (iss >> word)
+	{
+		std::cout << "errorCheckLocation " << word << std::endl;
+		if (word == "{")
+			break ;
+		count++;
+	}
+	/*debug*/ std::cout << ", loc_arg_count: " << count << std::endl;
+	if (count != 1)
+		throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
+
+}
+
 void	Config::checkLocationArgCount(size_t code, std::istringstream &iss)
 {
 	std::string word;
@@ -42,6 +60,7 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 	{
 		if (types[i] == str)
 		{
+			checkDuplicate(str, this->_check.dup_loc);
 			checkLocationArgCount(i, iss);
 			return (0);
 		}
@@ -51,21 +70,15 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 }
 
 // continue here
-bool	Config::errorLocationArgCount(std::istringstream &iss, std::ifstream &inFile)
+void	Config::errorCheckLocation(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string buffer, word;
-	int			count = 0;
+	this->_check.dup_loc.clear();
 
-	while (iss >> word)
-	{
-		std::cout << "errorLocationArgCount " << word << std::endl;
-		if (word == "{")
-			break ;
-		count++;
-	}
-	/*debug*/ std::cout << ", loc_arg_count: " << count << std::endl;
-	if (count != 1)
-		throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
+	/* checks location / arg_count */
+	errorLocationBase(iss);
+
+	/* checks arg_count in location scope{} */
 	while (std::getline(inFile, buffer))
 	{
 		this->_check.line_count++;
@@ -76,9 +89,9 @@ bool	Config::errorLocationArgCount(std::istringstream &iss, std::ifstream &inFil
 			continue ;
 		this->_check.keyword = word;
 		if (word == "}")
-			return (0);
-		if (errorCommonDirective(word, iss) && errorLocationDirective(word, iss))
+			return ;
+		if (errorCommonDirective(word, iss, this->_check.dup_loc) && errorLocationDirective(word, iss))
         	throw (std::invalid_argument(ERR_DIRECTIVEINVALID));
 	}
-	return (1);
+	throw std::invalid_argument(ERR_ARGCOUNTINVALID);
 }

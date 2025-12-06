@@ -27,6 +27,8 @@ struct errCheck
 {
 	int							line_count;
 	std::string					keyword;
+	std::vector<std::string>	dup;
+	std::vector<std::string>	dup_loc;
 };
 
 // server contains data and behaviour (parsing, etc)
@@ -113,13 +115,6 @@ public:
 	const std::vector<Server*> getServerOnPort(int port) const;
 
 private: 
-	void	startParser(std::ifstream &inFile);
-	void	printAllServer();
-
-	// error check
-	bool	errorCheckConfig(std::ifstream &inFile);
-	void	errorCheckServer(std::ifstream &inFile);
-
 	// error check use
 	errCheck								_check;
 
@@ -139,18 +134,27 @@ private:
 
 
 	// parser: error checks
+	void		startParser(std::ifstream &inFile);
+	void		printAllServer();
+
+	// error check
+	bool		errorCheckConfig(std::ifstream &inFile);
+	void		errorCheckServer(std::ifstream &inFile);
 	int			countArgs(std::istringstream &iss);
 	bool		ignoreKeyword(std::string &word);
-
+	
 	bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
-	bool		errorCommonDirective(std::string &str, std::istringstream &iss);
+	bool		errorCommonDirective(std::string &str, std::istringstream &iss, std::vector<std::string> &data);
 	// bool		errorCheckListen(std::istringstream &iss);
-	void		checkCommonArgCount(size_t code, std::istringstream &iss);
-	void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
-	void		checkLocationArgCount(size_t code, std::istringstream &iss);
-
-	bool		errorLocationArgCount(std::istringstream &iss, std::ifstream &inFile);
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
+	void		errorCheckLocation(std::istringstream &iss, std::ifstream &inFile);
+	
+	void		checkDuplicate(std::string &str, std::vector<std::string> &data);
+	void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
+	void		checkCommonArgCount(size_t code, std::istringstream &iss);
+	void		checkLocationArgCount(size_t code, std::istringstream &iss);
+	void		errorLocationBase(std::istringstream &iss);
+
 };
 
 #endif
