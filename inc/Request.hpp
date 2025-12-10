@@ -13,7 +13,6 @@ enum	ParserState
 	PARSE_BODY_CONTENT_LENGTH,
 	PARSE_BODY_CHUNKED_SIZE,
 	PARSE_BODY_CHUNKED_DATA,
-	// PARSE_BODY_COMPLETE,
 	PARSE_COMPLETE,
 	PARSE_ERROR
 };
@@ -24,7 +23,7 @@ public:
 	Request();
 	~Request() {};
 	
-	void	handleRequest(const char* data, size_t size, size_t limit); // append; incremental reading
+	void	handleRequest(const char* data, size_t size, size_t limit);
 
 	//		getters
 	const	std::string&						getMethod() const;
@@ -41,7 +40,7 @@ public:
 	HttpStatus									getStatus() const;
 
 	bool	hasBody();
-	bool 	hasCookies() const;
+	bool 	hasSessionId() const;
 	bool	isParseComplete();
 	void	clear();
 
@@ -65,17 +64,19 @@ private:
 	size_t								_parsed_pos;
 	HttpStatus							_status;
 	bool								_isChunked;
+	size_t								_current_chunk_size;
 
 	// post: multipart - content type
+	// bonus: cookies
 
 	//		parser
-	void	parseByState();
+	void	parseByState(size_t limit);
 	void 	parseRequestLine(const std::string& raw, size_t &pos);
 	void 	parseHeaders(const std::string& raw, size_t &pos);
 	void	parseCookies(const std::string& value);
-	void	parseBody(const std::string& raw, size_t &pos);
-	void	parseContentLengthBody(const std::string& raw, size_t &pos);
-	void	parseChunkedBody(const std::string& raw, size_t &pos);
+	void	parseBody(const std::string& raw, size_t &pos, size_t limit);
+	void	parseContentLengthBody(const std::string& raw, size_t &pos, size_t limit);
+	void	parseChunkedBody(const std::string& raw, size_t &pos, size_t limit);
 
 	// 		helpers
 	bool	isValidPath();

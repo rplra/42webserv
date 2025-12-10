@@ -19,22 +19,6 @@ Response::Response(const Request* request, const Server& server, HttpStatus stat
 	setStatus(status);
 }
 
-// for errors
-// Response::Response(HttpStatus status_code, const Server& server)
-// :
-// 	_http_version(),
-// 	_status_code(),
-// 	_reason_phrase(),
-// 	_headers(),
-// 	_body(),
-// 	_content_type(),
-// 	_raw_response(),
-// 	_request(NULL),
-// 	_server(server)
-// {
-// 	setStatus(status_code);
-// }
-
 // 1. what type of response is this? - error, static, index, cgi, redirect?
 // 2. where does the content come from?
 // 	- generated in memmory; error pages, html
@@ -66,6 +50,18 @@ bool	Response::isResponseReady() const
 	return (_isBuilt);
 }
 
+void Response::setType(ResponseType type)
+{
+	_type = type;
+}
+
+void	Response::setError(HttpStatus code)
+{
+	_type = ERROR;
+	setStatus(code);
+	buildError();
+}
+
 void	Response::setStatus(HttpStatus status)
 {
 	_status_code = status;
@@ -74,7 +70,7 @@ void	Response::setStatus(HttpStatus status)
 	switch (_status_code)
 	{
 		case (HTTP_OK):						_reason_phrase = "Ok"; break;
-		case (HTTP_MOVED_PERMANENTLY):		_reason_phrase = "Moved Permanently"; break;
+		case (HTTP_FOUND):					_reason_phrase = "Found"; break;
 		case (HTTP_BAD_REQUEST):			_reason_phrase = "Bad Request"; break;
 		case (HTTP_FORBIDDEN):				_reason_phrase = "Forbidden"; break;
 		case (HTTP_NOT_FOUND):				_reason_phrase = "Not Found"; break;
@@ -101,12 +97,12 @@ void	Response::setHeaders()
 	
 	if (_request)
 		_headers["Connection"] = _request->getConnection();
-	else // for errors
+	else
 		_headers["Connection"] = "close";
 	
 	if (!_content_type.empty())
 		_headers["Content-Type"] = _content_type;
-	if (_request->hasCookies())
+	if (_request->hasSessionId())
 		_headers["Set-Cookie"] = "session_id=" + _request->getSessionID() + "; Path=/";
 	if (_type == STATIC)
 		_headers["Last-Modified"] = getLastModified();
@@ -117,13 +113,6 @@ void	Response::setBody(const std::string& body)
 	_body = body;
 }
 
-void	Response::setError(HttpStatus code)
-{
-	_type = ERROR;
-	setStatus(code); // updates status code and reason phrase
-	buildError();
-}
-
 /* 
 	1. set _status to 301 or 302
 	2. set Location header from config
@@ -131,10 +120,30 @@ void	Response::setError(HttpStatus code)
 */
 void	Response::buildRedirect()
 {
-	/* temp */redirect_path = "(to replace: _server.getMatchingLocation())";
+	/* debug */std::cout << PINK << "> build redirect() for path: " << RESET << _request->getPath() << "'" << std::endl;
 
-	setStatus(HTTP_MOVED_PERMANENTLY);
-	setHeader("Location", redirect_path);
+	const Location* loc = _server.getMatchingLocation(_request->getPath());
+	if (!loc)
+	{
+		/* debug */std::cerr << RED << "> no matching loc " << RESET << std::endl;
+		setError(HTTP_INTERNAL_SERVER_ERROR);
+		return ;
+	}
+	/* debug */std::cout << PINK << "> matching loc path: " << RESET << loc->_path << "'" << std::endl;
+	int				code = HTTP_FOUND;
+	std::string		url;
+
+	std::map<int, std::string>::const_iterator it = loc->_redirect.find(code);
+	if (it != loc->_redirect.end())
+		url = it->second;
+	else
+	{
+		setError(HTTP_INTERNAL_SERVER_ERROR);
+		return ;
+	}
+
+	setStatus(static_cast<HttpStatus>(code));
+	setHeader("Location", url);
 	setBody("");
 	setHeaders();
 }
@@ -147,22 +156,24 @@ void	Response::buildRedirect()
 */
 void	Response::buildStatic()
 {
+	std::string full_path = _server.getFullPath(*_request);
+
 	struct stat file_stat;
 	// file exist?
-	if (stat(file_path.c_str(), &file_stat) != 0)
+	if (stat(full_path.c_str(), &file_stat) != 0)
 		return (setError(HTTP_NOT_FOUND));
 	// is directory?
 	if (S_ISDIR(file_stat.st_mode))
 	{
 		/* debug */std::cout << PINK << "> build static: is directory" << RESET << std::endl;
-		handleDirectory();
+		handleDirectory(full_path);
 		return;
 	}
 	// regular file?
 	if (!S_ISREG(file_stat.st_mode))
 		return (setError(HTTP_FORBIDDEN));
 
-	serveFile(file_path, HTTP_OK);
+	serveFile(full_path, HTTP_OK);
 }
 
 /* 
@@ -173,6 +184,8 @@ void	Response::buildStatic()
 */
 void	Response::buildAutoIndex()
 {
+	std::string file_path = _server.getFullPath(*_request);
+
 	DIR *dir = opendir(file_path.c_str());
 	if (!dir)
 	{
@@ -212,14 +225,15 @@ void	Response::buildError()
 	std::string error_file = _server.getErrorPagePath(_status_code);
 	if (!error_file.empty())
 	{
-		// std::string error_file = it->second; // path to error page
+		// resolve relative to server root
+		std::string full_path = _server.getRoot() + error_file;
 
 		struct stat st;
-		if (stat(error_file.c_str(), &st) == 0 && S_ISREG(st.st_mode))
+		if (stat(full_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
 		{
 			// file exist > serve
 			/* debug */std::cout << PINK << "> serving error page" << RESET << std::endl;
-			serveFile(error_file, _status_code);
+			serveFile(full_path, _status_code);
 			return;
 		}
 	}
@@ -253,6 +267,8 @@ std::string Response::getDate()
 */
 std::string	Response::getLastModified()
 {
+	std::string file_path = _server.getFullPath(*_request);
+
 	struct stat file_stat;
 	if (!file_path.empty() && 
 		stat(file_path.c_str(), &file_stat) == 0 &&
@@ -328,30 +344,37 @@ std::string Response::getFileBody(const std::string& path)
 	return (body);
 }
 
-void Response::handleDirectory()
+void Response::handleDirectory(const std::string& dir_path)
 {
+	std::string request_path = _request->getPath();
+
 	// redirect if missing trailing slash
-	if (_request->getPath().back() != '/')
+	if (!request_path.empty() && request_path.back() != '/')
 	{
 		_type = REDIRECT;
-		redirect_path = _request->getPath() + "/";
-		buildRedirect();
+		setHeader("Location", request_path + "/");
+		setBody("");
+		setHeaders();
+		setStatus(HTTP_FOUND);
 		return;
 	}
 	
 	// check if index.html exist inside directory
-	std::string index_path = file_path + "/index.html";
+	std::string index_path = dir_path + "/index.html";
 	struct stat index_stat;
 	if (stat(index_path.c_str(), &index_stat) == 0 && S_ISREG(index_stat.st_mode))
 	{
 		// serve index file like normal static file
-		file_path = index_path; // update file_path
-		serveFile(file_path, _status_code);
+		serveFile(index_path, _status_code);
 		return;
 	}
 
 	// else, generate index file
-	if (_server.getAutoindex())
+	const Location* location = _server.getMatchingLocation(request_path);
+	bool autoindex = _server.getAutoindex();	// server default
+	if (location)
+		autoindex = location->_autoindex;		// location override
+	if (autoindex)
 	{
 		/* debug */std::cout << PINK << "> handle directory: autoindex ON" << RESET << std::endl;
 		_type = AUTOINDEX;
@@ -365,9 +388,11 @@ void Response::handleDirectory()
 
 void Response::serveFile(const std::string& file_path, HttpStatus status)
 {
+	/* debug */std::cout << PINK << "> RESPONSE: serve file: " << RESET << file_path << std::endl; 
 	setStatus(status);
 	setBody(getFileBody(file_path));
 	setHeader("Content-Type", getMimeType(file_path));
+	/* debug */std::cout << PINK << "> RESPONSE: mime type: " << RESET << getMimeType(file_path) << std::endl; 
 	setHeaders();
 }
 
@@ -420,8 +445,3 @@ std::string	Response::generateAutoIndexBody(const std::string& file_path)
 
 // 	return (html);
 // }
-
-void Response::setType(ResponseType type)
-{
-	_type = type;
-}

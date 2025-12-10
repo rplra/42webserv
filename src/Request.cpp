@@ -16,21 +16,14 @@ Request::Request()
 	_state(PARSE_REQUEST_LINE),
 	_parsed_pos(0),
 	_status(HTTP_OK),
-	_isChunked(false)
+	_isChunked(false),
+	_current_chunk_size(0)
 {}
 
 void	Request::handleRequest(const char* data, size_t size, size_t limit)
 {
 		_raw.append(data, size);
-		// /* debug */std::cout << _raw;
-
-		if (_raw.size() > limit)
-		{
-			_status = HTTP_PAYLOAD_TOO_LARGE;
-			_state = PARSE_COMPLETE;
-			return;
-		}
-		parseByState();
+		parseByState(limit);
 }
 
 const	std::string& Request::getMethod() const
@@ -103,9 +96,9 @@ HttpStatus	Request::getStatus() const
 	return (_status);
 }
 	
-bool 	Request::hasCookies() const
+bool 	Request::hasSessionId() const
 {
-	return (!_cookies.empty());
+	return (!_session_id.empty());
 }
 
 bool	Request::isParseComplete()
@@ -113,7 +106,7 @@ bool	Request::isParseComplete()
 	return (_state == PARSE_COMPLETE);
 }
 
-void	Request::parseByState()
+void	Request::parseByState(size_t limit)
 {
 	// /* debug */std::cout << _parsed_pos << std::endl;
 	// /* debug */std::cout << _raw.size() << std::endl;
@@ -122,7 +115,6 @@ void	Request::parseByState()
 		switch (_state)
 		{
 			case PARSE_REQUEST_LINE:
-				// /* debug */std::cout << "here" << std::endl;
 				parseRequestLine(_raw, _parsed_pos);
 				break;
 			
@@ -133,24 +125,22 @@ void	Request::parseByState()
 
 			case PARSE_BODY:
 			// /* debug */std::cout << "> state: PARSE_BODY" << std::endl;
-			parseBody(_raw, _parsed_pos);
+			parseBody(_raw, _parsed_pos, limit);
 				break;
 
 			case PARSE_BODY_CONTENT_LENGTH:
-			parseContentLengthBody(_raw, _parsed_pos);
+			parseContentLengthBody(_raw, _parsed_pos, limit);
 				break;
 			
 			case PARSE_BODY_CHUNKED_SIZE:
 			case PARSE_BODY_CHUNKED_DATA:
-			parseChunkedBody(_raw, _parsed_pos);
+			parseChunkedBody(_raw, _parsed_pos, limit);
 			// /* debug */std::cout << "> state: PARSE_BODY_CHUNKED" << std::endl;
 				break;
 
-			// case PARSE_BODY_COMPLETE:
-			// /* debug */std::cout << "> state: PARSE_BODY_COMPLETE" << std::endl;
 			case PARSE_COMPLETE:
-			/* debug */std::cout << "> state: PARSE_COMPLETE" << std::endl;
-			case PARSE_ERROR: // later response will check state > build error
+			// /* debug */std::cout << "> state: PARSE_COMPLETE" << std::endl;
+			case PARSE_ERROR:
 				return;
 		}
 	}
@@ -158,26 +148,47 @@ void	Request::parseByState()
 
 void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 {
-	// /* debug */std::cout << "here" << std::endl;
+	/* debug */std::cout << PINK << "> raw request: " << RESET << raw.substr(pos,100) << std::endl;
 	size_t line_end = raw.find("\r\n", pos);
 	if (line_end == std::string::npos)
+	{
+		/* debug */std::cout << PINK << "> REQ: no \\r\\n end found" << RESET << std::endl;
+		_status = HTTP_BAD_REQUEST;
+		_state = PARSE_ERROR;
 		return;
+	}	
 	
 	size_t method_end = raw.find(' ', pos);
 	if (method_end == std::string::npos || method_end > line_end)
+	{
+		/* debug */std::cout << PINK << "> REQ: no method end found" << RESET << std::endl;
+		_status = HTTP_BAD_REQUEST;
+		_state = PARSE_ERROR;
 		return;
+	}
 
 	size_t path_end = raw.find(' ', method_end + 1);
 	if (path_end == std::string::npos || path_end > line_end)
+	{
+		/* debug */std::cout << PINK << "> REQ: no path end found" << RESET << std::endl;
+		_status = HTTP_BAD_REQUEST;
+		_state = PARSE_ERROR;
 		return;
+	}
 
 	_method = std::string(&raw[pos], method_end - pos);
+	/* debug */std::cout << PINK << "> REQ parsed method: " << RESET << _method << std::endl;
 	_path = std::string(&raw[method_end + 1], path_end - method_end - 1);
+	/* debug */std::cout << PINK << "> REQ parsed path: " << RESET << _path << std::endl;
 	_http_version = std::string(&raw[path_end + 1], line_end - path_end - 1);
+	/* debug */std::cout << PINK << "> REQ parsed version: " << RESET << _http_version << std::endl;
 
 	validateRequestLine();
-	pos = line_end + 2; // move past "\r\n"
-	_state = PARSE_HEADERS;
+	if (_state != PARSE_ERROR)
+	{
+		pos = line_end + 2; // move past "\r\n"
+		_state = PARSE_HEADERS;
+	}
 }
 
 void 	Request::parseHeaders(const std::string& raw, size_t &pos)
@@ -211,18 +222,24 @@ void 	Request::parseHeaders(const std::string& raw, size_t &pos)
 
 void	Request::parseCookies(const std::string& value)
 {
-	size_t start = 0;
-	size_t val = start + std::strlen("session_id=");
-	size_t end = value.size();
+	const std::string key = "session_id";
+	size_t start = value.find(key);
+	if (start == std::string::npos)
+		return ;
 
-	_cookies["session_id"] = std::string(&value[val], end - val);
-	_session_id = _cookies["session_id"];
+	start += key.length();
+	size_t end = value.find(';', start);
+	if (end == std::string::npos)
+		_session_id = std::string(&value[start], value.size() - start);
+	else
+		_session_id = std::string(&value[start], end - start);
 
-	// /* debug */std::cout << "\n\n> parse cookies: " << value << std::endl;
-	std::cout << "> session_id : " << _cookies["session_id"] << "\n" << std::endl; // debug
+	_cookies["session_id"] = _session_id;
+
+	// /* debug */std::cout << "> session_id : " << _session_id << "\n" << std::endl;
 }
 
-void	Request::parseBody(const std::string& raw, size_t &pos)
+void	Request::parseBody(const std::string& raw, size_t &pos, size_t limit)
 {
 	// body starts after \r\n\r\n (header_end + empty line)
 	if (pos >= raw.length())
@@ -230,22 +247,20 @@ void	Request::parseBody(const std::string& raw, size_t &pos)
 	if (_isChunked)
 	{
 		_state = PARSE_BODY_CHUNKED_SIZE;
-		parseChunkedBody(raw, pos);
+		parseChunkedBody(raw, pos, limit);
 	}
 	else if (_content_length > 0)
 	{
 		// /* debug */std::cout << "> check length > 0" << std::endl;
 		_state = PARSE_BODY_CONTENT_LENGTH;
-		parseContentLengthBody(raw, pos);
+		parseContentLengthBody(raw, pos, limit);
 	}
 	// else if (_content_length == 0)
 	// 	_state = PARSE_COMPLETE;
 }
 
-void	Request::parseChunkedBody(const std::string& raw, size_t &pos)
+void	Request::parseChunkedBody(const std::string& raw, size_t &pos, size_t limit)
 {
-	size_t current_chunk_size = 0;
-
 	while (pos < raw.length())
 	{
 		// read chunk size
@@ -265,11 +280,11 @@ void	Request::parseChunkedBody(const std::string& raw, size_t &pos)
 				hex = std::string(&raw[pos], semicolon - pos);
 			
 			// convert hex to decimal
-			current_chunk_size = std::strtoul(hex.c_str(), NULL, 16);
+			_current_chunk_size = std::strtoul(hex.c_str(), NULL, 16);
 			pos = line_end + 2;
 
 			// check for last chunk
-			if (current_chunk_size == 0)
+			if (_current_chunk_size == 0)
 			{
 				size_t trailer_end = raw.find("\r\n\r\n", pos);
 				if (trailer_end != std::string::npos)
@@ -289,24 +304,24 @@ void	Request::parseChunkedBody(const std::string& raw, size_t &pos)
 		if (_state == PARSE_BODY_CHUNKED_DATA)
 		{
 			size_t available = raw.length() - pos;
-			if (available < current_chunk_size + 2) // \r\n
+			if (available < _current_chunk_size + 2) // \r\n
 				return;
-			_body.append(raw, pos, current_chunk_size);
+			_body.append(raw, pos, _current_chunk_size);
 
 			// check size limit
-			if (_body.length() > client_max_body_size)
+			if (_body.size() > limit)
 			{
 				_status = HTTP_PAYLOAD_TOO_LARGE;
 				_state = PARSE_ERROR;
 				return ;
 			}
-			pos += current_chunk_size + 2;
+			pos += _current_chunk_size + 2;
 			_state = PARSE_BODY_CHUNKED_SIZE;
 		}
 	}
 }
 
-void	Request::parseContentLengthBody(const std::string& raw, size_t &pos)
+void	Request::parseContentLengthBody(const std::string& raw, size_t &pos, size_t limit)
 {
 	// calculate how much data is available (from buffered _raw)
 	// /* debug */std::cout << "> parse content body" << std::endl;
@@ -327,6 +342,13 @@ void	Request::parseContentLengthBody(const std::string& raw, size_t &pos)
 	
 	// case b: body completes / extra data
 	_body.append(raw, pos, body_remaining);
+
+	if (_body.size() > limit)
+	{
+		_status = HTTP_PAYLOAD_TOO_LARGE;
+		_state = PARSE_ERROR;
+		return ;
+	}
 	// /* debug */std::cout << "> " << _body << std::endl;
 	pos += body_remaining;
 	_state = PARSE_COMPLETE;
@@ -356,21 +378,31 @@ void	Request::validateRequestLine()
 {
 	if ((_method != "GET" && _method != "POST" && _method != "DELETE") 
 		|| !isValidPath() || _http_version != "HTTP/1.1")
+	{
+		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
-	return;
+		return;
+	}
 }
 
 void	Request::validateHeaders()
 {
-	// Chunked + Content-Length together → 400 Bad Request
+	// missing host (typically absent with HTTP/1.0)
+	if (_headers.find("host") == _headers.end() || _headers.at("host").empty())
+	{
+		/* debug */std::cout << PINK << "> REQ: invalid host header" << RESET << std::endl;
+		_status = HTTP_BAD_REQUEST;
+		_state = PARSE_ERROR;
+	}
+	// Chunked + Content-Length together > 400 error
 	if (_isChunked && _content_length != 0)
 	{
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
 	}
-	// POST without body headers → 411 Length Required
-	if (_method == "POST" && !_isChunked && _content_length == 0)
+	// no content length, no chunked > 411 error
+	if (_method == "POST" && !_isChunked && _headers.find("content-length") == _headers.end())
 	{
 		_status = HTTP_LENGTH_REQUIRED;
 		_state = PARSE_ERROR;
@@ -386,6 +418,8 @@ void	Request::handleSpecialHeaders(const std::string& key, const std::string& va
 		_isChunked = true; 
 	else if (key == "cookie")
 		parseCookies(value);
+	else if (key == "content-type")
+		_content_type = value;
 }
 
 void	Request::decideBodyState()
@@ -413,22 +447,5 @@ void	Request::clear()
 	_parsed_pos = 0;
 	_status = HTTP_OK;
 	_isChunked = false;
+	_current_chunk_size = 0;
 }
-
-
-// std::string checkMaxBodySize(const Server* server, size_t totalReceived, size_t maxBodySize, 
-//     std::string fullPath, const Location* locPath) {
-
-//     std::cout << GREEN << "Max body size: " << RESET << maxBodySize << std::endl; // DEBUG
-//     std::cout << GREEN << "Total received: " << RESET << totalReceived << std::endl; // DEBUG
-
-//     if (totalReceived >= maxBodySize) {
-//         std::cerr << RED << "Error: Request body too large" << RESET << std::endl;
-//         std::string serverErrorPath = server->getRoot() + "/" + server->getErrorPagePath(500);
-//         if (locPath && locPath->error_pages.find(500) != locPath->error_pages.end()) {
-//             serverErrorPath = fullPath + "/" + locPath->error_pages.at(500);
-//         }
-//         return createResponse(serverErrorPath, 500);
-//     }
-//     return "";
-// }

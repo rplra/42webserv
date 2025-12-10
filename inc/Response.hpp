@@ -20,7 +20,6 @@ class Response
 {
 public:
 	Response(const Request* request, const Server& server, HttpStatus status);
-	// Response(HttpStatus status_code, const Server& server);
 	~Response() {};
 
 	std::string	buildResponse();
@@ -28,11 +27,8 @@ public:
 
 	std::string	getRawResponse();
 
-	// TEMPORARY - until routing is implemented
 	void		setType(ResponseType type);
 	void		setError(HttpStatus code);
-	std::string file_path;		// this should be private later
-	std::string redirect_path; 	// this should be private later
 
 private:
 	Response();
@@ -49,6 +45,7 @@ private:
 
 	ResponseType						_type;
 	std::map<std::string, std::string>	_mime;
+	std::string							_redirect;
 	std::string							_raw_response;
 	bool								_isBuilt;
 
@@ -75,7 +72,7 @@ private:
 
 	// static
 	std::string	getFileBody(const std::string& file_path);
-	void		handleDirectory();
+	void		handleDirectory(const std::string& dir_path);
 	void		serveFile(const std::string& file_path, HttpStatus status);
 
 	// page generators
