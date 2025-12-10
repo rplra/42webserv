@@ -325,6 +325,8 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 		try
 		{
 			this->_check.keyword = word;
+			if (word == "#")
+				continue ;
 			if (word == "server")
 				this->errorCheckServer(iss, inFile);
 			else

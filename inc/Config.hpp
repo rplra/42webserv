@@ -54,9 +54,10 @@ public:
 
 	void		printErrorPage();
 	void		printServer();
-
 	void		assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
 	void		assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
+	void		assignCgiContainer(std::map<int, std::string> &data, std::istringstream &iss);
+
 
 	// getters - these method names must align for ALL otherwise integration fails
 	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
@@ -162,6 +163,8 @@ private:
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
 	
 	void		checkDuplicate(std::string &str, std::vector<std::string> &data);
+	void		checkValidType(size_t code, std::istringstream &iss);
+	void		checkValidTypeCgi(std::istringstream &iss);
 	void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
 	void		checkCommonArgCount(size_t code, std::istringstream &iss);
 	void		checkLocationArgCount(size_t code, std::istringstream &iss);

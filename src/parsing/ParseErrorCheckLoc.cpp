@@ -1,6 +1,8 @@
 #include "Utils.hpp"
 #include "Config.hpp"
 #include "ConfigParse.hpp"
+#include <sys/stat.h>
+#include <unistd.h>
 
 /* checks argcount for location /path */
 void	Config::errorLocationBase(std::istringstream &iss)
@@ -17,6 +19,51 @@ void	Config::errorLocationBase(std::istringstream &iss)
 	/*debug*/ std::cout << ", loc_arg_count: " << count << std::endl;
 	if (count != 1)
 		throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
+}
+
+void	Config::checkValidTypeCgi(std::istringstream &iss)
+{
+	std::string word;
+	struct stat	sb;
+	std::istringstream	tmp_iss(iss.str());
+	tmp_iss.seekg(iss.tellg());
+
+	const char *types[] =
+	{
+		".py",
+		".cpp",
+		".js",
+		".php",
+		NULL
+	};
+	tmp_iss >> word;
+	for (size_t i=0;  types[i];  i++)
+	{
+		if (types[i] == word)
+		{
+			tmp_iss >> word;
+			word = trimStringTail(word, ';');
+			if (stat(word.c_str(), &sb) == 0 && S_ISREG(sb.st_mode) \
+				&& access(word.c_str(), X_OK) == 0)
+				return ;
+			else
+			{
+				this->_check.keyword = word;
+				throw (std::invalid_argument(ERR_INVALIDPATH));
+			}
+		}
+	}
+	this->_check.keyword = word;
+	throw (std::invalid_argument(ERR_CGIUNSUPPORTED));
+}
+
+void	Config::checkValidType(size_t code, std::istringstream &iss)
+{
+	switch (code)
+	{
+		case CGI_HANDLER:
+			checkValidTypeCgi(iss);
+	}
 }
 
 void	Config::checkLocationArgCount(size_t code, std::istringstream &iss)
@@ -61,6 +108,7 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 		{
 			checkDuplicate(str, this->_check.loc.dup);
 			checkLocationArgCount(i, iss);
+			checkValidType(i, iss);
 			return (0);
 		}
 	}

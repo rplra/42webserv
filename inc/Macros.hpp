@@ -26,5 +26,7 @@ const std::string ERR_OPENBRACEMISSING = "Directive has no opening: \"";
 const std::string ERR_CLOSEBRACEMISSING = "Unexpected end of file, expecting: \"";
 const std::string ERR_DIRECTIVEDUP = "Duplicate directive: \"";
 const std::string ERR_UNEXPECTSIGN = "Unexpected: \"";
+const std::string ERR_CGIUNSUPPORTED = "Unsupported CGI: \"";
+const std::string ERR_INVALIDPATH = "Invalid path: \"";
 
 #endif

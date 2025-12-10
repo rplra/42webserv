@@ -52,6 +52,31 @@ void	Server::assignMapContainer(std::map<int, std::string> &data, std::istringst
 	data[err_code] = word;
 }
 
+void	Server::assignCgiContainer(std::map<int, std::string> &data, std::istringstream &iss)
+{
+	std::string	word;
+	size_t		i = 0;
+	const char *types[] =
+	{
+		".py",
+		".cpp",
+		".js",
+		".php",
+		NULL
+	};
+
+	iss >> word;
+	for (i=0;  types[i];  i++)
+	{
+		if (types[i] == word)
+		{
+			iss >> word;
+			data[i] = word;
+			return ;
+		}
+	}
+}
+
 void	Server::assignVecContainer(std::vector<std::string> &data, std::istringstream &iss)
 {
 	std::string word;

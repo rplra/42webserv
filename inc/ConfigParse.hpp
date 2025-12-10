@@ -19,6 +19,14 @@ enum e_global_scope
 	/* plus common directives */
 };
 
+enum cgi
+{
+	PY,
+	CPP,
+	JS,
+	PHP
+};
+
 enum e_server_scope
 {
 	LISTEN,

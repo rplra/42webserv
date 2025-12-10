@@ -26,6 +26,7 @@ bool	Server::checkCommonDirective(std::string str, std::istringstream &iss, T &d
 	{
 		if (types[i] == str)
 		{
+			std::cout << str << std::endl;
 			getCommonDirective(i, iss, data);
 			return (1);	//save data
 		}
@@ -47,27 +48,6 @@ bool	Server::handleServerDirective(std::string str, std::istringstream &iss, std
 		if (types[i] == str)
 		{
 			getServerDirective(i, iss, inFile);
-			return (1);
-		}
-	}
-	return (0);
-}
-
-bool	Server::handleLocationDirective(std::string str, std::istringstream &iss, Location& data)
-{
-	const char *arr[] =
-	{
-		"cgi_handler",
-		"allowed_methods",
-		"upload_store",
-		"return"
-	};
-	std::vector<std::string> types(arr, arr + 4);
-	for (std::size_t i=0; i < types.size(); i++)
-	{
-		if (types[i] == str)
-		{
-			getLocationDirective(i, iss, data);
 			return (1);
 		}
 	}
@@ -152,34 +132,6 @@ void	Server::getServerDirective(std::size_t code, std::istringstream &iss, std::
 	}
 }
 
-void	Server::getLocationDirective(std::size_t code, std::istringstream &iss, Location &data)
-{
-	std::string word;
-
-	switch (code)
-	{
-		case CGI_HANDLER:
-			assignMapContainer(data._cgi, iss);
-			break;
-
-		case ALLOWED_METHODS:
-			assignVecContainer(data._allowed_methods, iss);
-			break;
-
-		case UPLOAD_STORE:
-			iss >> word;
-			data._upload_path = trimStringTail(word, ';');
-			break;
-
-		case RETURN:
-			assignMapContainer(data._error_pages, iss);
-			break;
-
-		default:
-			break;
-	}
-}
-
 void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 {
 	std::string			buffer, word;
@@ -188,8 +140,10 @@ void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 	initLocation(tmp);
 	iss >> tmp._path;
 	// /*debug*/std::cout << "path: " << tmp._path << std::endl;
+	/*debug*/std::cout << "parseLoc" << std::endl;
 	while (std::getline(inFile, buffer))
 	{
+		/*debug*/ std::cout << PINK << buffer << RESET << std::endl;
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
@@ -197,14 +151,12 @@ void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 		if (word == "}")
 		{
 			this->_locations.push_back(tmp);
+			std::cout << "locs: " << std::endl;
+			printLocations(this->_locations);
 			return ;
 		}
 		checkCommonDirective(word, iss, tmp);
 		handleLocationDirective(word, iss, tmp);
-		// if (checkCommonDirective(word, iss, tmp))
-		// 	std::cout << RED << word << RESET << std::endl;
-		// else if (handleLocationDirective(word, iss, tmp))
-		// 	std::cout << PINK << word << RESET << std::endl;
 	}
 }
 
@@ -216,7 +168,7 @@ void	Server::parseServer(std::ifstream &inFile)
 
 	while (std::getline(inFile, buffer))
 	{
-		// /*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
+		/*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
@@ -227,8 +179,9 @@ void	Server::parseServer(std::ifstream &inFile)
 			break;
 		}
 		pos = inFile.tellg();
-		checkCommonDirective(word, iss, *this);
+		// checkCommonDirective(word, iss, *this);
 		handleServerDirective(word, iss, inFile);
+
 		// if (checkCommonDirective(word, iss, *this))
 		// 	std::cout << RED << word << RESET << std::endl;
 		// else if (handleServerDirective(word, iss, inFile))
@@ -248,8 +201,6 @@ void	Server::parseServer(std::ifstream &inFile)
 
 void	Config::startParser(std::ifstream &inFile)
 {
-	/* error checks */
-
 	/* get tokens */
 	std::string				buffer, word;
 	std::istringstream		iss;
