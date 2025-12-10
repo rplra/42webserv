@@ -4,6 +4,7 @@
 #include "Webserv.hpp"
 
 class Client;
+
 class ServerManager
 {
 public:
@@ -15,28 +16,48 @@ public:
 private:
 	const Config&					_config;
 	std::vector<int>				_serverSockets;
-	std::map<int, const Server*>	_listentoServer;
+	std::map<int, const Server*>	_socketToServer;
 	std::map<int, Client*>			_clients;
 	std::vector<pollfd>				_pollFds;
+	static const int				_pollTimeoutMs = 5000;
 
-	int		createListeningSocket(std::string host, int port); 	// done
-	void	createAllListeningSockets();						// done
-	void	createPollFds();									// done
-	void	addPollFd(int fd, short events);					// done
-	void	removePollFd(int fd);								// done
+	int		createListeningSocket(std::string host, int port);
+	void	createAllListeningSockets();
+	void	createPollFds();
+	void	addPollFd(int fd, short events);
+	void	removePollFd(int fd);
 
-	void	acceptNewClient(int serverSocket);					// done
-	void	removeClient(int clientSocket);						// closeClient  ; done
+	void	acceptNewClient(int serverSocket);
+	void	removeClient(int clientSocket);
 
-	void	handleEventRead(int clientSocket);					// wip
-	void	handleEventWrite(int clientSocket);					// wip
+	void	handleEventRead(int clientSocket);
+	void	handleEventWrite(int clientSocket);
 	void	enableWriteEvent(int clientSocket);
 	void	disableWriteEvent(int clientSocket);
 
-	bool	isListenFd(int fd);
+	bool	isServerSocket(int fd);
 	bool	isKeepAlive(Client* client);
 	void	cleanUp();
-
 };
 
 #endif
+
+/* 
+	std::map<int, const Server*>	_socketToServer;
+	using Server* (pointer)
+	- _config owns the Server objs
+	- _socketToServer just needs to reference them, not copy them
+	- avoid copying Server obj itself into the map
+		- takes up more memory
+		- changes to original server would not reflect to copy
+		- multiple client to same server but different copies is wrong
+	- _listenServer points to existing Server obj, no copies / duplication 
+	- clients sotre a pointer to the server they belong to
+
+	_config will take reference from the config obj itself, 
+	_serversockets are created based config's server in createListeningSocket, 
+	_socketToServer is mapped to server obj when createAllListeningSocket, 
+	_clients are created when we need to accept a connection (checked during run if its listenFd), 
+	_pollfds are collective addition of listeningfd (serverSocket) and connectionfd (clientSocket)
+
+*/
