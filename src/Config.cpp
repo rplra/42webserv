@@ -11,10 +11,7 @@ Server::Server()
 	_client_max_body_size(0),
 	_error_pages(),
 	_locations()
-{
-    // set default error page
-    addErrorPage(404, _root + "/error.html");
-} 
+{};
 
 const std::string& Server::getHost() const {
 	return _host;
@@ -44,6 +41,46 @@ size_t Server::getClientMaxBodySize() const {
 	return _client_max_body_size;
 }
 
+std::string	Server::getFullPath(const Request& request) const
+{
+	const Location* location = getMatchingLocation(request.getPath());
+
+	/* debug */std::cout << PINK << "> SVR: req path: " << RESET << request.getPath() << std::endl;
+	/* debug */std::cout << PINK << "> SVR: location found: " << RESET << (location ? "YES" : "NO") << std::endl;
+	/* debug */if (location)
+	/* debug */{
+	/* debug */		std::cout << PINK << "> SVR: location path: " << RESET << location->_path << std::endl;
+	/* debug */		std::cout << PINK << "> SVR: location root: " << RESET << location->_root << std::endl;
+	/* debug */}
+	/* debug */std::cout << PINK << "> SVR: server root: " << RESET << _root << std::endl;
+
+	std::string path = request.getPath();
+	std::string root = _root;
+
+	// if location has custom root, use it and strip the location prefix
+	if (location && !location->_root.empty())
+	{
+		/* debug */std::cout << PINK << "> SVR: using loc custom root" << RESET << std::endl;
+		root = location->_root;
+
+		// strip location from prefix path
+		if (!location->_path.empty())
+		{
+			size_t loc_len = location->_path.length();
+			if (path.compare(0, loc_len, location->_path) == 0)
+			{
+				path = path.substr(loc_len);
+				// ensure path starts with /
+				if (path.empty() || path[0] != '/')
+					path = "/" + path;
+			}
+		}
+	}
+	else
+		/* debug */std::cout << PINK << "> SVR: using server root, keeping full path" << RESET << std::endl;
+	return root + path;
+}
+
 std::vector<Location>& Server::getLocations() {
 	return _locations;
 }
@@ -63,15 +100,18 @@ const std::string Server::getErrorPagePath(int errorCode) const {
 	return default_it->second;
 }
 
-const Location* Server::bestMatchingLocation(const std::string& requestPath) const {
+const Location* Server::getMatchingLocation(const std::string& requestPath) const {
 	const Location* best_match = nullptr;
 	size_t best_len = 0;
 
+	/* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << "'" << std::endl;
 	for (size_t i = 0; i < _locations.size(); ++i) {
 		const Location& loc = _locations[i];
+		// /* debug */std::cout << PINK << "> check location path: " << RESET << loc._path << "'" << std::endl;
 		size_t len = loc._path.length();
-		if (requestPath.compare(0, len, loc._path) == 0 
-			&& (requestPath.length() == len || requestPath[len] == '/')) {
+		// if (requestPath.compare(0, len, loc._path) == 0 
+		// 	&& (requestPath.length() == len || requestPath[len] == '/')) {
+		if (requestPath.compare(0, len, loc._path) == 0) {
 			if (len > best_len) {
 				best_len = len;
 				best_match = &_locations[i];

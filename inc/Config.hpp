@@ -2,6 +2,7 @@
 #define __CONFIG_HPP__
 
 #include "Webserv.hpp"
+class Request;
 
 struct Location
 {
@@ -25,8 +26,6 @@ public:
 	Server();
 	~Server() {};
 
-	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
-	// ServerManager use : getHost(), getPort(),  getServerNames()
 	const std::string&					getHost() const;
 	int									getPort() const;
 	const std::vector<std::string>&		getServerNames() const;
@@ -34,10 +33,11 @@ public:
 	const std::string&					getIndex() const;
 	bool								getAutoindex() const;
 	size_t								getClientMaxBodySize() const;
+	std::string							getFullPath(const Request& request) const;
 	std::vector<Location>&				getLocations();
 	const std::vector<Location>&		getLocations() const;
 	const std::string					getErrorPagePath(int errorCode) const;
-	const Location*						bestMatchingLocation(const std::string& requestPath) const;
+	const Location*						getMatchingLocation(const std::string& requestPath) const;
 
 	// setters
 	void								setPort(int port);
