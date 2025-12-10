@@ -2,13 +2,54 @@
 #include "Config.hpp"
 #include "ConfigParse.hpp"
 
-bool Config::ignoreKeyword(std::string &word)
+/* returns 1 if no repeat brace */
+bool	Config::addCheckBrace(std::string &word, std::vector<std::string> &data)
+{
+	std::vector<std::string>::iterator it = std::find(data.begin(), data.end(), word);
+	if (it != data.end()) // if scope exists
+	{
+		this->_check.keyword = word;
+		throw (std::invalid_argument(ERR_UNEXPECTSIGN));
+	}
+	data.push_back(word);
+	return (1);
+}
+
+bool	Config::checkBraces(const std::string &to_find, std::vector<std::string> &data)
+{
+	std::vector<std::string>::iterator it = std::find(data.begin(), data.end(), to_find);
+	if (it == data.end()) // if brace_not_found
+	{
+		if (to_find == "{")
+			throw (std::invalid_argument(ERR_OPENBRACEMISSING));
+		else if (to_find == "}")
+			throw (std::invalid_argument(ERR_CLOSEBRACEMISSING));
+	}
+	return (1);
+}
+
+/* checks if line has only 1 brace, else throw error */
+bool	Config::noMoreBrace(std::istringstream &iss)
+{
+	std::string word;
+	int			count = 0;
+	while (iss >> word)
+		count++;
+	if (count != 0)
+	{
+		this->_check.keyword = word;
+		throw (std::invalid_argument(ERR_UNEXPECTSIGN));
+	}
+	return (1);
+}
+
+bool Config::ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data)
 {
 	const char *arr[] =
 	{
 		"#",
 		"{",
-		"}",
+		// "}",
 		NULL
 	};
 
@@ -17,12 +58,15 @@ bool Config::ignoreKeyword(std::string &word)
 		if (word == arr[i])
 		{
 			std::cout << "ignoreKeyword: " << word << std::endl;
+			if (i != 0 && noMoreBrace(iss))
+				this->addCheckBrace(word, data.brace);
 			return (1);
 		}
 	}
 	return (0);
 }
 
+/* checks for duplicate directives in config file */
 void Config::checkDuplicate(std::string &str, std::vector<std::string> &data)
 {
 	std::vector<std::string>::iterator it = data.begin();
@@ -134,7 +178,7 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 					errorCheckLocation(iss, inFile);
 				else //errorCheckServer
 				{
-					checkDuplicate(str, this->_check.dup);
+					checkDuplicate(str, this->_check.serv.dup);
 					checkServerArgCount(i, iss, inFile);
 				}
 			}
@@ -168,7 +212,7 @@ bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, std
 
 	for (std::size_t i=0; i < types.size(); i++)
 	{
-		if (types[i] == str)
+		if (types[i] == str) // && checkBraces()
 		{
 			std::cout << str << std::endl;
 			try
@@ -190,39 +234,45 @@ bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, std
 }
 
 /* checks the server scope */
-void	Config::errorCheckServer(std::ifstream &inFile)
+void	Config::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string			word, buffer;
-	std::streampos		pos = inFile.tellg();
-	std::istringstream	iss;
+	// std::streampos		pos = inFile.tellg();
+
+	this->_check.serv.dup.clear();
+	this->_check.serv.brace.clear();
+	this->_check.serv.b_openBrace = 0;
+	this->_check.serv.b_closeBrace = 0;
+
+	/* checks server base arg_count & {} */
+	errorServerBase(iss);
 
 	while (std::getline(inFile, buffer))
 	{
 		iss.clear();
 		iss.str(buffer);
+		this->_check.line_count++;
 		/*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
 
-		if (!(iss >> word) || ignoreKeyword(word))
-		{
-			pos = inFile.tellg(); //tellg returns end of readed line
-			this->_check.line_count++;
+		if (!(iss >> word) || ignoreKeyword(word, iss, this->_check.serv))
 			continue ;
-		}
 		/*debug*/ std::cout << "iss: " << word << std::endl;
 
 		this->_check.keyword = word;
-		// if (word == "}")
-			// break ;
-		if (word == "server")
+
+		/* updates openBrace */
+		if (this->_check.serv.b_openBrace == 0)
+			this->_check.serv.b_openBrace = checkBraces("{", this->_check.serv.brace);
+
+		if (word == "}" && noMoreBrace(iss)) //(throw here)
 		{
-			inFile.seekg(pos);	//rewind back
-			break;
+			std::cout << GREEN << "end brace found!" << RESET << std::endl;
+			break ;
 		}
-		this->_check.line_count++;
 
 		try
 		{
-			if (errorCommonDirective(word, iss, this->_check.dup) && errorServerDirective(word, iss, inFile))
+			if (errorCommonDirective(word, iss, this->_check.serv.dup) && errorServerDirective(word, iss, inFile))
 				throw (std::invalid_argument(ERR_DIRECTIVEINVALID)); //invalid_directive
 		}
 		catch (std::exception &err)
@@ -231,6 +281,26 @@ void	Config::errorCheckServer(std::ifstream &inFile)
 			throw ;
 		}
 	}
+}
+
+/* return 0 == no error */
+bool	Config::errorServerBase(std::istringstream &iss)
+{
+	std::string word;
+	int			count = 0;
+
+	while (iss >> word)
+	{
+		this->_check.keyword = word;
+		if (word == "{" || word == "}")
+		{
+			count++;
+			addCheckBrace(word, this->_check.serv.brace);
+		}
+		else
+			throw (std::invalid_argument(ERR_DIRECTIVEINVALID));
+	}
+	return (0);
 }
 
 bool	Config::errorCheckConfig(std::ifstream &inFile)
@@ -255,9 +325,8 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 		try
 		{
 			this->_check.keyword = word;
-			this->_check.dup.clear();
 			if (word == "server")
-				this->errorCheckServer(inFile);
+				this->errorCheckServer(iss, inFile);
 			else
 			{
 				/*debug*/ std::cout << "errorCheckConfig " << word << std::endl; //throw invalid directive

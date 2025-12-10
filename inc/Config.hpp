@@ -2,8 +2,10 @@
 #define __CONFIG_HPP__
 
 #include "Webserv.hpp"
+#include <algorithm>
 
-# define CLIENT_MAX_BODY	1000
+
+# define CLIENT_MAX_BODY		1000
 
 // location should be a struct since it's a pure data container (no behaviour)
 // this is where HTTP and Config bridge (http depends entirely on Config's Location)
@@ -23,12 +25,20 @@ struct Location
 	std::map<int, std::string>	_redirect;		//return code, redirect path
 };
 
+struct errCheckGroup
+{
+	std::vector<std::string>	dup;
+	std::vector<std::string>	brace;
+	bool						b_openBrace;
+	bool						b_closeBrace;
+};
+
 struct errCheck
 {
 	int							line_count;
 	std::string					keyword;
-	std::vector<std::string>	dup;
-	std::vector<std::string>	dup_loc;
+	errCheckGroup				loc;
+	errCheckGroup				serv;
 };
 
 // server contains data and behaviour (parsing, etc)
@@ -138,22 +148,25 @@ private:
 	void		printAllServer();
 
 	// error check
-	bool		errorCheckConfig(std::ifstream &inFile);
-	void		errorCheckServer(std::ifstream &inFile);
 	int			countArgs(std::istringstream &iss);
-	bool		ignoreKeyword(std::string &word);
+	bool		checkBraces(const std::string &to_find, std::vector<std::string> &data);
+	bool		noMoreBrace(std::istringstream &iss);
+	bool		addCheckBrace(std::string &word, std::vector<std::string> &data);
+	bool		ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data);
 	
+	bool		errorCheckConfig(std::ifstream &inFile);
+	void		errorCheckServer(std::istringstream &iss, std::ifstream &inFile);
+	void		errorCheckLocation(std::istringstream &iss, std::ifstream &inFile);
 	bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
 	bool		errorCommonDirective(std::string &str, std::istringstream &iss, std::vector<std::string> &data);
-	// bool		errorCheckListen(std::istringstream &iss);
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
-	void		errorCheckLocation(std::istringstream &iss, std::ifstream &inFile);
 	
 	void		checkDuplicate(std::string &str, std::vector<std::string> &data);
 	void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
 	void		checkCommonArgCount(size_t code, std::istringstream &iss);
 	void		checkLocationArgCount(size_t code, std::istringstream &iss);
 	void		errorLocationBase(std::istringstream &iss);
+	bool		errorServerBase(std::istringstream &iss);
 
 };
 

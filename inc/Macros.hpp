@@ -22,7 +22,9 @@ const std::string ERR_FILEEMPTY = "Empty file!";
 const std::string ERR_DIRECTIVEINVALID = "Unknown directive: \"";
 const std::string ERR_ARGCOUNTINVALID = "Invalid number of arguments: \"";
 const std::string ERR_SEMICOLONMISSING = "Directive is not terminated by ';' : \"";
+const std::string ERR_OPENBRACEMISSING = "Directive has no opening: \"";
+const std::string ERR_CLOSEBRACEMISSING = "Unexpected end of file, expecting: \"";
 const std::string ERR_DIRECTIVEDUP = "Duplicate directive: \"";
-const std::string ERR_UNEXPECTSIGN = "Unexpected sign: \"";
+const std::string ERR_UNEXPECTSIGN = "Unexpected: \"";
 
 #endif

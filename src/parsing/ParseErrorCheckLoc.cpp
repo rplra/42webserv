@@ -10,14 +10,13 @@ void	Config::errorLocationBase(std::istringstream &iss)
 	while (iss >> word)
 	{
 		std::cout << "errorCheckLocation " << word << std::endl;
-		if (word == "{")
+		if (word == "{" && addCheckBrace(word, this->_check.loc.brace) && noMoreBrace(iss))
 			break ;
 		count++;
 	}
 	/*debug*/ std::cout << ", loc_arg_count: " << count << std::endl;
 	if (count != 1)
 		throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
-
 }
 
 void	Config::checkLocationArgCount(size_t code, std::istringstream &iss)
@@ -60,7 +59,7 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 	{
 		if (types[i] == str)
 		{
-			checkDuplicate(str, this->_check.dup_loc);
+			checkDuplicate(str, this->_check.loc.dup);
 			checkLocationArgCount(i, iss);
 			return (0);
 		}
@@ -73,24 +72,32 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 void	Config::errorCheckLocation(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string buffer, word;
-	this->_check.dup_loc.clear();
 
-	/* checks location / arg_count */
+	this->_check.loc.dup.clear();
+	this->_check.loc.brace.clear();
+	this->_check.loc.b_openBrace = 0;
+	this->_check.loc.b_closeBrace = 0;
+
+	/* checks location base arg_count */
 	errorLocationBase(iss);
 
 	/* checks arg_count in location scope{} */
 	while (std::getline(inFile, buffer))
 	{
-		this->_check.line_count++;
-
 		iss.clear();
 		iss.str(buffer);
-		if (!(iss >> word))
+		this->_check.line_count++;
+
+		if (!(iss >> word) || ignoreKeyword(word, iss, this->_check.loc))
 			continue ;
 		this->_check.keyword = word;
-		if (word == "}")
+
+		/* updates braces && throw if no appropriate open/close brace */
+		if (this->_check.loc.b_openBrace == 0)
+			this->_check.loc.b_openBrace = checkBraces("{", this->_check.loc.brace);
+		if (word == "}" && noMoreBrace(iss))
 			return ;
-		if (errorCommonDirective(word, iss, this->_check.dup_loc) && errorLocationDirective(word, iss))
+		if (errorCommonDirective(word, iss, this->_check.loc.dup) && errorLocationDirective(word, iss))
         	throw (std::invalid_argument(ERR_DIRECTIVEINVALID));
 	}
 	throw std::invalid_argument(ERR_ARGCOUNTINVALID);
