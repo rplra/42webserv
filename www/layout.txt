@@ -1,19 +1,20 @@
 www/
-├── index.html             # Main entry point for your site
-├── errors/                # Error pages
-│   ├── 400.html
-│   ├── ....html           
-│   └── ....html           
-├── html/                   # Other HTML pages
-│   ├── about.html
-│   ├── contact.html
-│   └── test.html
-├── assets/                 # Static resources
+├── index.html             	# Main entry point
+├── 42/ 					# Redirects to 42KL page
+├── asset/                	# Static resources
 │   ├── css/
-│   │   └── style.css
-│   ├── js/
-│   │   └── app.js
+│   │   └── .../.css
 │   └── img/
-│       └── logo.png
-└── cgi/                    # CGI scripts or server-side scripts
-    └── test.cgi
+│       └── .../.png/jpg
+├── cgi/                    # CGI scripts or server-side scripts
+│   ├── submit.html 		(test only)
+│   └── test.py				(test only)
+├── error/                	# Error pages
+│   ├── 400.html
+│   ├── .../.html           
+│   └── ....html  
+├── gmail/ 					# Redirects to Gmail page         
+├── html/                   # Other HTML pages
+│   └── form.html
+├── test/ 					(test for error 400)
+└── upload/
