@@ -12,7 +12,7 @@ OBJ			=	obj
 # Sources
 SRCS        =	src/main.cpp \
 				src/Config.cpp \
-				src/ConfigParse.cpp \
+				src/ConfigParser.cpp \
 				src/Utils.cpp \
 				src/Request.cpp \
 				src/Response.cpp \
