@@ -1,6 +1,5 @@
 www/
 ├── index.html             	# Main entry point
-├── 42/ 					# Redirects to 42KL page
 ├── asset/                	# Static resources
 │   ├── css/
 │   │   └── .../.css
@@ -12,8 +11,7 @@ www/
 ├── error/                	# Error pages
 │   ├── 400.html
 │   ├── .../.html           
-│   └── ....html  
-├── gmail/ 					# Redirects to Gmail page         
+│   └── ....html         
 ├── html/                   # Other HTML pages
 │   └── form.html
 ├── test/ 					(test for error 400)
