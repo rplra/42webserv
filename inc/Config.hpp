@@ -152,7 +152,7 @@ private:
 	int			countArgs(std::istringstream &iss);
 	bool		checkBraces(const std::string &to_find, std::vector<std::string> &data);
 	bool		noMoreBrace(std::istringstream &iss);
-	bool		addCheckBrace(std::string &word, std::vector<std::string> &data);
+	// bool		addCheckBrace(std::string &word, std::vector<std::string> &data);
 	bool		ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data);
 	
 	bool		errorCheckConfig(std::ifstream &inFile);
@@ -162,10 +162,13 @@ private:
 	bool		errorCommonDirective(std::string &str, std::istringstream &iss, std::vector<std::string> &data);
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
 	
-	void		checkDuplicate(std::string &str, std::vector<std::string> &data);
 	void		checkValidType(size_t code, std::istringstream &iss);
 	void		checkValidTypeCgi(std::istringstream &iss);
-	void		checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile);
+	void		checkValidTypeAllowed(std::istringstream &iss);
+	
+	bool		checkMatch(const char* types[], std::string word, const std::string err_message);
+	bool		checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message);
+	void		checkServerArgCount(size_t code, std::istringstream &iss);
 	void		checkCommonArgCount(size_t code, std::istringstream &iss);
 	void		checkLocationArgCount(size_t code, std::istringstream &iss);
 	void		errorLocationBase(std::istringstream &iss);

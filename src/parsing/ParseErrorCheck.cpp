@@ -3,17 +3,17 @@
 #include "ConfigParse.hpp"
 
 /* returns 1 if no repeat brace */
-bool	Config::addCheckBrace(std::string &word, std::vector<std::string> &data)
-{
-	std::vector<std::string>::iterator it = std::find(data.begin(), data.end(), word);
-	if (it != data.end()) // if scope exists
-	{
-		this->_check.keyword = word;
-		throw (std::invalid_argument(ERR_UNEXPECTSIGN));
-	}
-	data.push_back(word);
-	return (1);
-}
+// bool	Config::addCheckBrace(std::string &word, std::vector<std::string> &data)
+// {
+// 	std::vector<std::string>::iterator it = std::find(data.begin(), data.end(), word);
+// 	if (it != data.end()) // if scope exists
+// 	{
+// 		this->_check.keyword = word;
+// 		throw (std::invalid_argument(ERR_UNEXPECTSIGN));
+// 	}
+// 	data.push_back(word);
+// 	return (1);
+// }
 
 bool	Config::checkBraces(const std::string &to_find, std::vector<std::string> &data)
 {
@@ -49,7 +49,6 @@ bool Config::ignoreKeyword(std::string &word, std::istringstream &iss, errCheckG
 	{
 		"#",
 		"{",
-		// "}",
 		NULL
 	};
 
@@ -57,9 +56,9 @@ bool Config::ignoreKeyword(std::string &word, std::istringstream &iss, errCheckG
 	{
 		if (word == arr[i])
 		{
-			std::cout << "ignoreKeyword: " << word << std::endl;
+			// /*debug*/ std::cout << "ignoreKeyword: " << word << std::endl;
 			if (i != 0 && noMoreBrace(iss))
-				this->addCheckBrace(word, data.brace);
+				this->checkDuplicate(word, data.brace, ERR_UNEXPECTSIGN);
 			return (1);
 		}
 	}
@@ -67,21 +66,22 @@ bool Config::ignoreKeyword(std::string &word, std::istringstream &iss, errCheckG
 }
 
 /* checks for duplicate directives in config file */
-void Config::checkDuplicate(std::string &str, std::vector<std::string> &data)
+bool Config::checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message)
 {
 	std::vector<std::string>::iterator it = data.begin();
 	std::vector<std::string>::iterator ite = data.end();
 
-	if (str == "location") //location can have multiples
-		return ;
-
 	while (it != ite)
 	{
 		if (*it == str)
-			throw (std::invalid_argument(ERR_DIRECTIVEDUP));
+		{
+			this->_check.keyword = str;
+			throw (std::invalid_argument(err_message));
+		}
 		it++;
 	}
 	data.push_back(str);
+	return (1);
 }
 
 int	Config::countArgs(std::istringstream &iss)
@@ -105,7 +105,7 @@ void	Config::checkCommonArgCount(size_t code, std::istringstream &iss)
 	std::string word;
 	int			count = countArgs(iss);
 
-	/*debug*/std::cout << ", common_arg_count: " << count << std::endl;
+	// /*debug*/std::cout << ", common_arg_count: " << count << std::endl;
 	switch (code)
 	{
 		case ERROR_PAGE:
@@ -120,24 +120,18 @@ void	Config::checkCommonArgCount(size_t code, std::istringstream &iss)
 		if (count == 1)
 			return ;
 	}
-	// if (code == ERROR_PAGE && count == 2)
-	// 	return ;
-	// else if (count == 1)
-	// 	return ;
 	throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
 }
 
-void	Config::checkServerArgCount(size_t code, std::istringstream &iss, std::ifstream &inFile)
+void	Config::checkServerArgCount(size_t code, std::istringstream &iss)
 {
-	(void) code;
-	(void) inFile;
 	std::string word;
 	int			count = 0;
 
 	if (code != LOCATION)
 		count = countArgs(iss);
 
-	/*debug*/std::cout << ", serv_arg_count: " << count << std::endl;
+	// /*debug*/std::cout << ", serv_arg_count: " << count << std::endl;
 	switch (code)
 	{
 		case LISTEN:
@@ -158,8 +152,8 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 {
 	(void) inFile;
 
-	if (str == "}")
-		return (0);
+	// if (str == "}")
+		// return (0);
 
 	const char *arr[] =
 	{
@@ -178,8 +172,8 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 					errorCheckLocation(iss, inFile);
 				else //errorCheckServer
 				{
-					checkDuplicate(str, this->_check.serv.dup);
-					checkServerArgCount(i, iss, inFile);
+					checkDuplicate(str, this->_check.serv.dup, ERR_DUPLICATE);
+					checkServerArgCount(i, iss);
 				}
 			}
 			catch (std::exception &err)
@@ -197,8 +191,8 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 /* return (0) == no error */
 bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, std::vector<std::string> &data)
 {
-	if (str == "}")
-		return (0);
+	// if (str == "}")
+		// return (0);
 
 	const char *arr[] =
 	{
@@ -212,32 +206,31 @@ bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, std
 
 	for (std::size_t i=0; i < types.size(); i++)
 	{
-		if (types[i] == str) // && checkBraces()
+		if (types[i] == str)
 		{
-			std::cout << str << std::endl;
+			// /*debug*/ std::cout << str << std::endl;
 			try
 			{
-				checkDuplicate(str, data);
+				checkDuplicate(str, data, ERR_DUPLICATE);
 				checkCommonArgCount(i, iss);
 			}
 			catch (std::exception &err)
 			{
-				std::cout << RED << "errorCommonDirective: " << RESET << std::endl;
+				/*debug*/ std::cout << RED << "errorCommonDirective" << RESET << std::endl;
 				throw ;
 			}
 			/* check semicolon : end and no other chars */
 			return (0);
 		}
 	}
-	std::cout << PINK << "errorCommonDirective invalid: " << str << RESET << std::endl;
-	return (1); //return 1 if type_not_found
+	// /*debug*/ std::cout << PINK << "errorCommonDirective invalid: " << str << RESET << std::endl;
+	return (1); //type_not_found
 }
 
 /* checks the server scope */
 void	Config::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string			word, buffer;
-	// std::streampos		pos = inFile.tellg();
 
 	this->_check.serv.dup.clear();
 	this->_check.serv.brace.clear();
@@ -252,12 +245,10 @@ void	Config::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
 		iss.clear();
 		iss.str(buffer);
 		this->_check.line_count++;
-		/*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
+		// /*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
 
 		if (!(iss >> word) || ignoreKeyword(word, iss, this->_check.serv))
 			continue ;
-		/*debug*/ std::cout << "iss: " << word << std::endl;
-
 		this->_check.keyword = word;
 
 		/* updates openBrace */
@@ -265,10 +256,7 @@ void	Config::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
 			this->_check.serv.b_openBrace = checkBraces("{", this->_check.serv.brace);
 
 		if (word == "}" && noMoreBrace(iss)) //(throw here)
-		{
-			std::cout << GREEN << "end brace found!" << RESET << std::endl;
 			break ;
-		}
 
 		try
 		{
@@ -295,12 +283,14 @@ bool	Config::errorServerBase(std::istringstream &iss)
 		if (word == "{" || word == "}")
 		{
 			count++;
-			addCheckBrace(word, this->_check.serv.brace);
+			checkDuplicate(word, this->_check.serv.brace, ERR_UNEXPECTSIGN);
 		}
 		else
 			throw (std::invalid_argument(ERR_DIRECTIVEINVALID));
 	}
-	return (0);
+	if (count <= 1)
+		return (0);
+	throw (std::invalid_argument(ERR_UNEXPECTSIGN));
 }
 
 bool	Config::errorCheckConfig(std::ifstream &inFile)
@@ -308,9 +298,6 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 	std::streampos		ori_pos = inFile.tellg();
 	std::string			word, buffer;
 	std::istringstream	iss;
-
-	/* errorCheckScope */
-	// implementation ...
 
 	/* errorCheckServer */
 	while (std::getline(inFile, buffer))
@@ -320,7 +307,7 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 		iss.str(buffer);
 		if (!(iss >> word))
 			continue ;
-		/*debug*/ std::cout << "errorCheckConfig_word: " << word << std::endl; //throw invalid directive
+		// /*debug*/ std::cout << "errorCheckConfig_word: " << word << std::endl; //throw invalid directive
 
 		try
 		{
@@ -331,7 +318,7 @@ bool	Config::errorCheckConfig(std::ifstream &inFile)
 				this->errorCheckServer(iss, inFile);
 			else
 			{
-				/*debug*/ std::cout << "errorCheckConfig " << word << std::endl; //throw invalid directive
+				// /*debug*/ std::cout << "errorCheckConfig " << word << std::endl; //throw invalid directive
 				throw (std::invalid_argument(ERR_DIRECTIVEINVALID));
 			}
 		}

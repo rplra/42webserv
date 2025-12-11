@@ -26,7 +26,7 @@ bool	Server::checkCommonDirective(std::string str, std::istringstream &iss, T &d
 	{
 		if (types[i] == str)
 		{
-			std::cout << str << std::endl;
+			// /*debug*/ std::cout << str << std::endl;
 			getCommonDirective(i, iss, data);
 			return (1);	//save data
 		}
@@ -140,10 +140,9 @@ void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 	initLocation(tmp);
 	iss >> tmp._path;
 	// /*debug*/std::cout << "path: " << tmp._path << std::endl;
-	/*debug*/std::cout << "parseLoc" << std::endl;
 	while (std::getline(inFile, buffer))
 	{
-		/*debug*/ std::cout << PINK << buffer << RESET << std::endl;
+		// /*debug*/ std::cout << PINK << buffer << RESET << std::endl;
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
@@ -168,7 +167,7 @@ void	Server::parseServer(std::ifstream &inFile)
 
 	while (std::getline(inFile, buffer))
 	{
-		/*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
+		// /*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
@@ -179,7 +178,7 @@ void	Server::parseServer(std::ifstream &inFile)
 			break;
 		}
 		pos = inFile.tellg();
-		// checkCommonDirective(word, iss, *this);
+		checkCommonDirective(word, iss, *this);
 		handleServerDirective(word, iss, inFile);
 
 		// if (checkCommonDirective(word, iss, *this))

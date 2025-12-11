@@ -11,14 +11,51 @@ void	Config::errorLocationBase(std::istringstream &iss)
 	int			count = 0;
 	while (iss >> word)
 	{
-		std::cout << "errorCheckLocation " << word << std::endl;
-		if (word == "{" && addCheckBrace(word, this->_check.loc.brace) && noMoreBrace(iss))
+		// /*debug*/ std::cout << "errorCheckLocation " << word << std::endl;
+		if (word == "{" && checkDuplicate(word, this->_check.loc.brace, ERR_UNEXPECTSIGN) && noMoreBrace(iss))
 			break ;
 		count++;
 	}
-	/*debug*/ std::cout << ", loc_arg_count: " << count << std::endl;
+	// /*debug*/ std::cout << ", loc_arg_count: " << count << std::endl;
 	if (count != 1)
 		throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
+}
+
+/* returns 1 if match found */
+bool	Config::checkMatch(const char* types[], std::string word, const std::string err_message)
+{
+	for (size_t i=0;  types[i];  i++)
+	{
+		if (types[i] == word)
+		{
+			checkDuplicate(word, this->_check.loc.dup, ERR_DUPLICATE);
+			return (1) ;
+		}
+	}
+	this->_check.keyword = word;
+	throw (std::invalid_argument(err_message));
+}
+
+/* check if input is valid for allowed_methods */
+void	Config::checkValidTypeAllowed(std::istringstream &iss)
+{
+	std::string			word;
+	std::istringstream	tmp_iss(iss.str());
+	tmp_iss.seekg(iss.tellg());
+
+	const char *types[] =
+	{
+		"GET",
+		"POST",
+		"DELETE",
+		NULL
+	};
+	while (tmp_iss >> word)
+	{
+		word = trimStringTail(word, ';');
+		// /*debug*/ std::cout << PINK << "checkAllowedType: " << word << std::endl;
+		checkMatch(types, word, ERR_TYPEUNSUPPORTED);
+	}
 }
 
 void	Config::checkValidTypeCgi(std::istringstream &iss)
@@ -63,6 +100,10 @@ void	Config::checkValidType(size_t code, std::istringstream &iss)
 	{
 		case CGI_HANDLER:
 			checkValidTypeCgi(iss);
+			break ;
+		case ALLOWED_METHODS:
+			checkValidTypeAllowed(iss);
+			break ;
 	}
 }
 
@@ -106,7 +147,7 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 	{
 		if (types[i] == str)
 		{
-			checkDuplicate(str, this->_check.loc.dup);
+			checkDuplicate(str, this->_check.loc.dup, ERR_DUPLICATE);
 			checkLocationArgCount(i, iss);
 			checkValidType(i, iss);
 			return (0);
@@ -116,7 +157,6 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
     return (1);
 }
 
-// continue here
 void	Config::errorCheckLocation(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string buffer, word;
