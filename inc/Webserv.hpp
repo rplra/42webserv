@@ -69,5 +69,6 @@ void sendResponse(size_t& i, size_t& fds_count, std::vector<pollfd>& fds,
     std::map<int, Request>& clientRequests, 
     std::map<int, int>& clientServerMap, 
     std::map<int, std::string>& clientSendBuffers);
+std::string createResponseFromCGI(const std::string& cgiResponse);
 
 #endif

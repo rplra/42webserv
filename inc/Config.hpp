@@ -54,7 +54,7 @@ struct Location
 	std::map<int, std::string>	error_pages;
 	std::vector<std::string> 	allowed_methods;
 
-	std::map<int, std::string>	cgi;			//cgi extension type, cgi path
+	std::map<std::string, std::string>	cgi;			//cgi extension type, cgi path
 	std::string					upload_path;
 	std::map<int, std::string>	redirect;		//return code, redirect path
 };

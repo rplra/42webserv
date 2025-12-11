@@ -233,7 +233,7 @@ void	Config::parseConfig(char **av)
 					iss >> directive >> index;
 					index = removeSemicolon(index);
 					currentLocation.index = index;
-					std::cout << GREEN << "Set location index to: " << currentLocation.index << RESET << std::endl;
+					// std::cout << GREEN << "Set location index to: " << currentLocation.index << RESET << std::endl;
 				}
 				else if (buffer.find("allowed_methods") != std::string::npos)
 				{
@@ -297,7 +297,7 @@ void	Config::parseConfig(char **av)
 					value = removeSemicolon(value);
 					bool autoindex = (value == "on") ? true : false;
 					currentLocation.autoindex = autoindex;
-					std::cout << GREEN << "Set location autoindex to: " << (currentLocation.autoindex ? "on" : "off") << RESET << std::endl;	
+					// std::cout << GREEN << "Set location autoindex to: " << (currentLocation.autoindex ? "on" : "off") << RESET << std::endl;	
 				}
 				else if (trim(buffer).compare(0, 10, "error_page") == 0)
 				{
@@ -319,8 +319,21 @@ void	Config::parseConfig(char **av)
 					{
 						int errorCode = std::stoi(value);
 						currentLocation.error_pages[errorCode] = path;
-						std::cout << GREEN << "Added error page for code " << errorCode << " with path: " << path << RESET << std::endl;
+						// std::cout << GREEN << "Added error page for code " << errorCode << " with path: " << path << RESET << std::endl;
 					}
+				}
+				else if (trim(buffer).compare(0, 3, "cgi") == 0)
+				{
+					// parse cgi directive inside location
+					std::istringstream	iss(buffer);
+					std::string			directive;
+					std::string			extension;
+					std::string			cgiPath;
+
+					iss >> directive >> extension >> cgiPath;
+					cgiPath = removeSemicolon(cgiPath);
+					currentLocation.cgi[extension] = cgiPath;
+					std::cout << GREEN << "Added CGI: " << extension << " -> " << cgiPath << RESET << std::endl;
 				}
 			}
 		}	

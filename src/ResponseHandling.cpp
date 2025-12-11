@@ -78,6 +78,65 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
         std::cout << GREEN << "Redirecting to: " << RESET << redirectPath << " with code " << redirectCode << std::endl;
         return createRedirectResponse(redirectPath, redirectCode);
     }
+    else if (locPath->cgi.size() > 0) {
+        std::cout << YELLOW << "Handling CGI for path: " << RESET << client.getPath() << std::endl;
+        int body_pipefd[2];
+        int cgi_pipefd[2];
+
+        // Must pipe first, then fork 
+        pipe(body_pipefd);
+        pipe(cgi_pipefd);
+        pid_t pid = fork();
+
+        if (pid == 0) {
+            // stdin from body pipe
+            close(body_pipefd[1]);
+            dup2(body_pipefd[0], STDIN_FILENO);
+            close(body_pipefd[0]);
+
+            // stdout to cgi pipe
+            close(cgi_pipefd[0]);
+            dup2(cgi_pipefd[1], STDOUT_FILENO);
+            close(cgi_pipefd[1]);
+
+            int len = client.getPath().length();
+            int pathLen = locPath->path.length();
+            const std::string fileName = fullPath + client.getPath().substr(pathLen);
+            
+            if (client.getPath().compare(len - 3, 3, ".py") == 0) {
+                std::vector<char*> argv_arr;
+                std::string cgiPath = locPath->cgi.at(".py");
+
+                argv_arr.push_back(const_cast<char*>(cgiPath.c_str()));
+                argv_arr.push_back(const_cast<char*>(fileName.c_str()));
+                argv_arr.push_back(NULL);
+                
+                // wasn't able to send the body to the cgi script
+                execve(cgiPath.c_str(), argv_arr.data(), nullptr);
+                exit(1);
+            }
+        }
+
+        close(body_pipefd[0]);
+        write(body_pipefd[1], client.getBody().c_str(), client.getBody().length());
+        close(body_pipefd[1]);
+
+        close(cgi_pipefd[1]);
+        char buffer[1024];
+        std::string cgiResponse;
+        ssize_t bytesRead = read(cgi_pipefd[0], buffer, sizeof(buffer));
+
+        if (bytesRead > 0) {
+            cgiResponse.append(buffer, bytesRead);
+        } 
+
+        // here haven't add -1 and 0 checks for read 
+        waitpid(pid, NULL, 0);
+        close(cgi_pipefd[0]);
+        
+        std::cout << YELLOW << "CGI Response: " << RESET << cgiResponse << std::endl;
+        return createResponseFromCGI(cgiResponse);
+    }
     else if (clientServer->isFile(fullPath + client.getPath())) {
         std::cout << GREEN << "Full path to resource: " << RESET << fullPath + client.getPath() << std::endl;
         return createResponse(fullPath + client.getPath(), 200);
@@ -110,6 +169,18 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
     }
 
     return "";
+}
+
+std::string createResponseFromCGI(const std::string& cgiResponse) {
+    std::stringstream response;
+    response << "HTTP/1.1 200 OK\r\n";
+    response << "Content-Length: " << cgiResponse.size() << "\r\n";
+    response << "Content-Type: text/html\r\n";
+    response << "Connection: close\r\n";
+    response << "\r\n";
+    response << cgiResponse;
+
+    return response.str();
 }
 
 std::string readFile(const std::string& filePath) {
@@ -163,7 +234,7 @@ std::string createResponse(std::string filePath, int statusCode) {
     response << "\r\n";
     response << body;
 
-    std::cout << GREEN << "Response: " << RESET << response.str() << std::endl; // DEBUG 
+    // std::cout << GREEN << "Response: " << RESET << response.str() << std::endl; // DEBUG 
     return response.str();
 }
 
