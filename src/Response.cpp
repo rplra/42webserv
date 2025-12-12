@@ -36,7 +36,7 @@ std::string	Response::buildResponse()
 		case (REDIRECT):	buildRedirect(); break;
 		case (STATIC):		buildStatic(); break;
 		case (AUTOINDEX):	buildAutoIndex(); break;
-		case (CGI):			// buildCgi(); break;
+		case (CGI):			buildCgi(); break;
 		case (ERROR):		buildError(); break;
 	}
 
@@ -207,10 +207,11 @@ void	Response::buildAutoIndex()
 	4. set other HTTP headers from CGI output
 	5. if CGI didnt provide content-type, call getMimeType
 */
-// void	Response::buildCgi()
-// {
-
-// }
+void	Response::buildCgi()
+{
+	/* debug */std::cout << PINK << "> building cgi" << RESET << std::endl;
+	
+}
 
 /* 
 	1. check if there's custom error config-ed for the status

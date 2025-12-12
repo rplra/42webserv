@@ -199,7 +199,7 @@ void	ServerManager::handleEventRead(int clientSocket)
 {
 	Client* client = _clients[clientSocket];
 	if (!client)
-		return;
+		return ;
 	
 	char	buffer[BUFFER_SIZE];
 	ssize_t	bytes = recv(clientSocket, buffer, sizeof(buffer), 0);
@@ -313,6 +313,11 @@ void	ServerManager::removeClient(int clientSocket)
 	}
 }
 
+/* 
+	Close all the client and server sockets i.e. all fds in _clients and _serverSockets
+	Delete all client objects in _clients map since we used new to create them
+	Empty pollFds vector
+*/
 void	ServerManager::cleanUp()
 {
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
