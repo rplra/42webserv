@@ -109,9 +109,8 @@ const Location* Server::getMatchingLocation(const std::string& requestPath) cons
 		const Location& loc = _locations[i];
 		// /* debug */std::cout << PINK << "> check location path: " << RESET << loc._path << "'" << std::endl;
 		size_t len = loc._path.length();
-		// if (requestPath.compare(0, len, loc._path) == 0 
-		// 	&& (requestPath.length() == len || requestPath[len] == '/')) {
-		if (requestPath.compare(0, len, loc._path) == 0) {
+		if (requestPath.compare(0, len, loc._path) == 0 
+			&& (requestPath.length() == len || requestPath[len] == '/')) {
 			if (len > best_len) {
 				best_len = len;
 				best_match = &_locations[i];
