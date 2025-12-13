@@ -4,7 +4,7 @@
 
 void	Server::getLocationDirective(std::size_t code, std::istringstream &iss, Location &data)
 {
-	std::string word;
+	// std::string word;
 
 	switch (code)
 	{
@@ -17,8 +17,8 @@ void	Server::getLocationDirective(std::size_t code, std::istringstream &iss, Loc
 			break;
 
 		case UPLOAD_STORE:
-			iss >> word;
-			data._upload_path = trimStringTail(word, ';');
+			iss >> data._upload_path;
+			// data._upload_path = trimStringTail(word, ';');
 			break;
 
 		case RETURN:
@@ -32,19 +32,19 @@ void	Server::getLocationDirective(std::size_t code, std::istringstream &iss, Loc
 
 bool	Server::handleLocationDirective(std::string str, std::istringstream &iss, Location& data)
 {
-	const char *arr[] =
+	const char *types[] =
 	{
 		"cgi_handler",
 		"allowed_methods",
 		"upload_store",
-		"return"
+		"return",
+        NULL
 	};
-	std::vector<std::string> types(arr, arr + 4);
-	for (std::size_t i=0; i < types.size(); i++)
+	// std::vector<std::string> types(arr, arr + 4);
+	for (std::size_t i=0; types[i]; i++)
 	{
 		if (types[i] == str)
 		{
-			std::cout << str << std::endl;
 			getLocationDirective(i, iss, data);
 			return (1);
 		}

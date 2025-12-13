@@ -61,7 +61,7 @@ void	Server::getListen(std::istringstream &iss)
 	if (iss >> word)
 	{
 		port = trimStringHead(word, ':');
-		port = trimStringTail(port, ';');
+		// port = trimStringTail(port, ';');
 		std::istringstream(port) >> this->_port;
 
 		this->_host = trimStringTail(word, ':');
@@ -76,7 +76,7 @@ void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &da
 	if (code != ERROR_PAGE)
 	{
 		iss >> word;
-		word = trimStringTail(word, ';');
+		// word = trimStringTail(word, ';');
 	}
 	switch (code)
 	{
@@ -139,10 +139,11 @@ void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 
 	initLocation(tmp);
 	iss >> tmp._path;
-	// /*debug*/std::cout << "path: " << tmp._path << std::endl;
 	while (std::getline(inFile, buffer))
 	{
+		buffer = trimStringTail(buffer, ';');
 		// /*debug*/ std::cout << PINK << buffer << RESET << std::endl;
+
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
@@ -150,8 +151,6 @@ void	Server::parseLocation(std::ifstream &inFile, std::istringstream &iss)
 		if (word == "}")
 		{
 			this->_locations.push_back(tmp);
-			std::cout << "locs: " << std::endl;
-			printLocations(this->_locations);
 			return ;
 		}
 		checkCommonDirective(word, iss, tmp);
@@ -163,30 +162,19 @@ void	Server::parseServer(std::ifstream &inFile)
 {
 	std::string			buffer, word;
 	std::istringstream	iss;
-	std::streampos		pos = inFile.tellg();
 
 	while (std::getline(inFile, buffer))
 	{
+		buffer = trimStringTail(buffer, ';');
 		// /*debug*/ std::cout << YELLOW << buffer << RESET << std::endl;
 		iss.clear();
 		iss.str(buffer);
 		if (!(iss >> word))
 			continue ;
-		if (word == "server")
-		{
-			inFile.seekg(pos);	//rewind back
-			break;
-		}
-		pos = inFile.tellg();
+		if (word == "}")
+			break ;
 		checkCommonDirective(word, iss, *this);
 		handleServerDirective(word, iss, inFile);
-
-		// if (checkCommonDirective(word, iss, *this))
-		// 	std::cout << RED << word << RESET << std::endl;
-		// else if (handleServerDirective(word, iss, inFile))
-		// 	std::cout << CYAN << word << RESET << std::endl;
-		// while (iss >> word)
-			// std::cout << word << std::endl;
 	}
 }
 
@@ -218,10 +206,7 @@ void	Config::startParser(std::ifstream &inFile)
 			this->_servers.push_back(tmp);
 		}
 		else
-		{
-			/*debug*/std::cout	<< RED
-								<< "invalid directives: " << word << RESET << std::endl;
-		}
+			throw (std::invalid_argument(ERR_DIRECTIVEINVALID));
 	}
 }
 
@@ -248,9 +233,11 @@ void	Config::parseConfig(char **av)
 	}
 	catch (std::exception &err)
 	{
-		std::cout	<< RED
-					<< "Exception: " << err.what()
-					<< this->_check.keyword << "\" [line " << this->_check.line_count << "]"
+		std::cout	<< RED << "Exception: " << err.what();
+		if (this->_check.keyword.length() > 0)
+			std::cout << " \"" << this->_check.keyword << "\"";
+
+		std::cout	<< " [line " << this->_check.line_count << "]"
 					<< RESET << std::endl;
 	}
 	exit(1);

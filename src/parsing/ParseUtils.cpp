@@ -48,7 +48,7 @@ void	Server::assignMapContainer(std::map<int, std::string> &data, std::istringst
 
 	iss >> err_code;
 	iss >> word;
-	word = trimStringTail(word, ';');
+	// word = trimStringTail(word, ';');
 	data[err_code] = word;
 }
 
@@ -83,7 +83,7 @@ void	Server::assignVecContainer(std::vector<std::string> &data, std::istringstre
 
 	while (iss >> word)
 	{
-		word = trimStringTail(word, ';');
+		// word = trimStringTail(word, ';');
 		data.push_back(word);
 	}
 }

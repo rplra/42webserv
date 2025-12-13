@@ -11,7 +11,7 @@ PARSE_DIR	=	$(SRC)/parsing
 
 # Sources
 PARSE_FILES	=	Config.cpp Server.cpp ParseConfig.cpp ParseLocation.cpp ParseUtils.cpp \
-				ParseErrorCheck.cpp ParseErrorCheckLoc.cpp
+				ParseErrorCheck.cpp ParseErrorCheckType.cpp ParseErrorCheckLoc.cpp
 SRC_FILES	=	main.cpp Utils.cpp
 
 # SRCS		=	src/main.cpp

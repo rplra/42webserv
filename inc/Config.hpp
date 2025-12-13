@@ -3,7 +3,8 @@
 
 #include "Webserv.hpp"
 #include <algorithm>
-
+#include <sys/stat.h>
+#include <unistd.h>
 
 # define CLIENT_MAX_BODY		1000
 
@@ -31,6 +32,7 @@ struct errCheckGroup
 	std::vector<std::string>	brace;
 	bool						b_openBrace;
 	bool						b_closeBrace;
+	std::string					root;
 };
 
 struct errCheck
@@ -149,21 +151,29 @@ private:
 	void		printAllServer();
 
 	// error check
+	bool		isDirective(const std::string &word);
 	int			countArgs(std::istringstream &iss);
 	bool		checkBraces(const std::string &to_find, std::vector<std::string> &data);
 	bool		noMoreBrace(std::istringstream &iss);
-	// bool		addCheckBrace(std::string &word, std::vector<std::string> &data);
+	bool		checkTrimSemicolon(std::string &buffer);
 	bool		ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data);
 	
 	bool		errorCheckConfig(std::ifstream &inFile);
 	void		errorCheckServer(std::istringstream &iss, std::ifstream &inFile);
 	void		errorCheckLocation(std::istringstream &iss, std::ifstream &inFile);
 	bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
-	bool		errorCommonDirective(std::string &str, std::istringstream &iss, std::vector<std::string> &data);
+	bool		errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data);
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
-	
-	void		checkValidType(size_t code, std::istringstream &iss);
+
+	void		checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data);
+	void		checkValidTypeLoc(size_t code, std::istringstream &iss);
+	void		checkValidTypeUpload(std::istringstream &iss);
 	void		checkValidTypeCgi(std::istringstream &iss);
+	void		checkValidTypeRoot(std::istringstream &iss, errCheckGroup &data);
+	void		checkValidTypeIndex(std::istringstream &iss, errCheckGroup &data);
+	void		checkValidTypeErrPage(std::istringstream &iss, errCheckGroup &data);
+	void		checkValidTypeMaxBodySize(std::istringstream &iss);
+	void		checkValidTypeAutoindex(std::istringstream &iss);
 	void		checkValidTypeAllowed(std::istringstream &iss);
 	
 	bool		checkMatch(const char* types[], std::string word, const std::string err_message);

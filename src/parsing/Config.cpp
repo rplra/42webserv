@@ -2,5 +2,5 @@
 
 Config::Config()
 {
-    this->_check.line_count = 0;
+    this->_check.line_count = -1;
 }
