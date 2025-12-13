@@ -1,25 +1,24 @@
 NAME		=	webserv
 
 CXX			=	c++
-CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98 -Iinc
-# CXXFLAGS	+=	-fsanitize=address -g3
+CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98 -Iinc #-fsanitize=address -g3
 RM			=	rm -rf
 
 # Directory
 SRC			=	src
 OBJ			=	obj
+PARSE_DIR	=	$(SRC)/parsing
 
 # Sources
-SRCS        =	src/main.cpp \
-				src/Config.cpp \
-				src/ConfigParser.cpp \
-				src/Utils.cpp \
-				src/Request.cpp \
-				src/Response.cpp \
-				src/ServerManager.cpp \
-				src/Client.cpp
+PARSE_FILES	=	ParseConfig.cpp ParseLocation.cpp ParseUtils.cpp \
+				ParseErrorCheck.cpp ParseErrorCheckType.cpp ParseErrorCheckLoc.cpp
+SRC_FILES	=	main.cpp Config.cpp Utils.cpp Request.cpp Response.cpp ServerManager.cpp Client.cpp
 
-OBJS        = 	$(SRCS:$(SRC)/%.cpp=$(OBJ)/%.o)
+SRCS		=	$(addprefix $(SRC)/, $(SRC_FILES))			\
+				$(addprefix $(PARSE_DIR)/, $(PARSE_FILES))
+
+OBJS		=	$(patsubst %.cpp, $(OBJ)/%.o, $(SRCS))
+
 
 all: $(NAME)
 
@@ -27,8 +26,8 @@ $(NAME): $(OBJS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 	@echo "Compile $(NAME)    : OK!"
 
-$(OBJ)/%.o: $(SRC)/%.cpp
-	@mkdir -p $(OBJ)
+$(OBJ)/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:

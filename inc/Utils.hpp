@@ -7,8 +7,8 @@
 void		checkArgument(int ac);
 
 // config parsing
-// std::string	trimStringTail(const std::string &str, char c);
-// std::string	trimStringHead(const std::string &str, char c);
+std::string	trimStringTail(const std::string &str, char c);
+std::string	trimStringHead(const std::string &str, char c);
 
 // http
 // std::string	normalizePath(const std::string& s);

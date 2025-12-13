@@ -7,24 +7,24 @@ void	checkArgument(int ac)
 }
 
 /* trims and discards string after symbol specified */
-// std::string	trimStringTail(const std::string &str, char c)
-// {
-// 	std::size_t i = str.find(c);
+std::string	trimStringTail(const std::string &str, char c)
+{
+	std::size_t i = str.find(c);
 
-// 	if (i != std::string::npos)
-// 		return (str.substr(0, i));
-// 	return (str);
-// }
+	if (i != std::string::npos)
+		return (str.substr(0, i));
+	return (str);
+}
 
 /* trims and discards string before symbol specified */
-// std::string	trimStringHead(const std::string &str, char c)
-// {
-// 	std::size_t i = str.find(c);
+std::string	trimStringHead(const std::string &str, char c)
+{
+	std::size_t i = str.find(c);
 
-// 	if (i != std::string::npos)
-// 		return (str.substr(i + 1, std::string::npos));
-// 	return (str);
-// }
+	if (i != std::string::npos)
+		return (str.substr(i + 1, std::string::npos));
+	return (str);
+}
 
 // // RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax
 // //std::string	normalizePath(const std::string& s);

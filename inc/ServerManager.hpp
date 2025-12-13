@@ -4,6 +4,7 @@
 #include "Webserv.hpp"
 
 class Client;
+class Config;
 
 class ServerManager
 {
