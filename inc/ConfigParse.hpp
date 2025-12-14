@@ -3,6 +3,7 @@
 
 # include <fstream> 
 # include <sstream> 
+# include "Config.hpp"
 
 enum e_common_directive
 {
@@ -43,5 +44,10 @@ enum e_location_scope
 	RETURN				// redirect path
 	/* ... plus common directives */
 };
+
+// class ConfigParser : public Config
+// {
+
+// };
 
 #endif

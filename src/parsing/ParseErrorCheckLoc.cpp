@@ -162,7 +162,9 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 	{
 		if (types[i] == str)
 		{
-			if (i != 0) //can have multiple cgi
+			if (i == 0)
+				checkDuplicateCgi(str, iss, this->_check.loc.cgi);
+			else
 				checkDuplicate(str, this->_check.loc.dup, ERR_DUPLICATE);
 			checkLocationArgCount(i, iss);
 			checkValidTypeLoc(i, iss);

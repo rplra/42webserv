@@ -27,19 +27,20 @@ struct Location
 
 struct errCheckGroup
 {
-	std::vector<std::string>	dup;
-	std::vector<std::string>	brace;
-	bool						b_openBrace;
-	bool						b_closeBrace;
-	std::string					root;
+	std::vector<std::string>			dup;
+	std::vector<std::string>			brace;
+	bool								b_openBrace;
+	bool								b_closeBrace;
+	std::map<std::string, std::string>	cgi;
+	std::string							root;
 };
 
 struct errCheck
 {
-	int							line_count;
-	std::string					keyword;
-	errCheckGroup				loc;
-	errCheckGroup				serv;
+	int									line_count;
+	std::string							keyword;
+	errCheckGroup						loc;
+	errCheckGroup						serv;
 };
 
 class Server
@@ -146,12 +147,11 @@ public:
 private: 
 	// error check use
 	errCheck								_check;
+	
 	std::vector<Server>						_servers;
 	std::map<int, std::vector<Server*> >	_port_map;
-
+	
 	// helper functions
-
-
 	void		printAllServer();
 
 	// parser: error checks
@@ -184,6 +184,7 @@ private:
 	
 	bool		checkMatch(const char* types[], std::string word, const std::string err_message);
 	bool		checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message);
+	bool		checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data);
 	void		checkServerArgCount(size_t code, std::istringstream &iss);
 	void		checkCommonArgCount(size_t code, std::istringstream &iss);
 	void		checkLocationArgCount(size_t code, std::istringstream &iss);

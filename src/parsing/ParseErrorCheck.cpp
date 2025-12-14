@@ -98,6 +98,31 @@ bool Config::checkDuplicate(std::string &str, std::vector<std::string> &data, co
 	return (1);
 }
 
+bool	Config::checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data)
+{
+	std::map<std::string, std::string>::iterator it = data.begin();
+	std::map<std::string, std::string>::iterator ite = data.end();
+
+	std::string			extension, path;
+	std::istringstream	tmp_iss(iss.str());
+	tmp_iss.seekg(iss.tellg());
+
+	tmp_iss >> extension;
+	tmp_iss >> path;
+
+	while (it != ite)
+	{
+		if (it->first == extension && it->second == path)
+		{
+			this->_check.keyword = str;
+			throw (std::invalid_argument(ERR_DUPLICATE));
+		}
+		it++;
+	}
+	data[extension] = path;
+	return (1);
+}
+
 /* checks for semicolon here */
 int	Config::countArgs(std::istringstream &iss)
 {
