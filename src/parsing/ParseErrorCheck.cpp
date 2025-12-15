@@ -243,7 +243,8 @@ bool	ConfigParser::errorCommonDirective(std::string &str, std::istringstream &is
 		if (types[i] == str)
 		{
 			// /*debug*/std::cout << "errorCommonDirective: " << str << std::endl;
-			checkDuplicate(str, data.dup, ERR_DUPLICATE);
+			if (i != 3)
+				checkDuplicate(str, data.dup, ERR_DUPLICATE);
 			checkCommonArgCount(i, iss);
 			checkValidTypeCommon(i, iss, data);
 			return (0);
