@@ -80,24 +80,42 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
     }
     else if (locPath->cgi.size() > 0) {
         std::cout << YELLOW << "Handling CGI for path: " << RESET << client.getPath() << std::endl;
-        int body_pipefd[2];
-        int cgi_pipefd[2];
 
-        // Must pipe first, then fork 
-        pipe(body_pipefd);
-        pipe(cgi_pipefd);
+        // 1. Setup environment variables
+        std::vector<std::string> env_variables;
+        env_variables.push_back("REQUEST_METHOD=" + client.getMethod());
+        env_variables.push_back("CONTENT_LENGTH=" + std::to_string(client.getBody().length()));
+        env_variables.push_back("CONTENT_TYPE=" + client.getHeaders().at("content-type"));
+        env_variables.push_back("SCRIPT_NAME=" + client.getPath());
+        env_variables.push_back("SERVER_NAME=" + clientServer->getHost());
+        env_variables.push_back("SERVER_PORT=" + std::to_string(clientServer->getPort()));
+        env_variables.push_back("SERVER_PROTOCOL=HTTP/1.1");
+
+        std::cout << YELLOW << "CGI Environment Variables: " << RESET << std::endl; //debug
+        for (std::vector<std::string>::const_iterator it = env_variables.begin(); it != env_variables.end(); ++it) {
+            std::cout << *it << std::endl;
+        }
+
+        // 2. create pipe 
+        int stdin_pipe[2]; // parent writes to child (body)
+        int stdout_pipe[2]; // child writes to parent (cgi response)
+
+        pipe(stdin_pipe);
+        pipe(stdout_pipe);
+
         pid_t pid = fork();
+        if(pid == 0) 
+        {
+            // CGI program know nothing about socket, HTTP connection and server 
+            // create two pipes so that stdin -> input (req) to cgi program, stdout -> output (res) from cgi program
+            dup2(stdin_pipe[0], STDIN_FILENO);
+            dup2(stdout_pipe[1], STDOUT_FILENO);
 
-        if (pid == 0) {
-            // stdin from body pipe
-            close(body_pipefd[1]);
-            dup2(body_pipefd[0], STDIN_FILENO);
-            close(body_pipefd[0]);
-
-            // stdout to cgi pipe
-            close(cgi_pipefd[0]);
-            dup2(cgi_pipefd[1], STDOUT_FILENO);
-            close(cgi_pipefd[1]);
+            std::vector<char*> cgi_args;
+            for (std::vector<std::string>::const_iterator it = env_variables.begin(); it != env_variables.end(); ++it) {
+                cgi_args.push_back(const_cast<char*>(it->c_str()));
+            }
+            cgi_args.push_back(nullptr);
 
             int len = client.getPath().length();
             int pathLen = locPath->path.length();
@@ -110,32 +128,41 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
                 argv_arr.push_back(const_cast<char*>(cgiPath.c_str()));
                 argv_arr.push_back(const_cast<char*>(fileName.c_str()));
                 argv_arr.push_back(NULL);
-                
-                // wasn't able to send the body to the cgi script
-                execve(cgiPath.c_str(), argv_arr.data(), nullptr);
-                exit(1);
+
+                if (execve(cgiPath.c_str(), argv_arr.data(), cgi_args.data()) == -1) {
+                    std::cerr << RED << "Error executing CGI script: " << strerror(errno) << RESET << std::endl;
+                    exit(1);
+                }             
             }
+
         }
 
-        close(body_pipefd[0]);
-        write(body_pipefd[1], client.getBody().c_str(), client.getBody().length());
-        close(body_pipefd[1]);
+        close(stdin_pipe[0]);
+        close(stdout_pipe[1]);
 
-        close(cgi_pipefd[1]);
-        char buffer[1024];
+        write(stdin_pipe[1], client.getBody().c_str(), client.getBody().length());
+
+        ssize_t nbytes;
+        char buffer[4096];
         std::string cgiResponse;
-        ssize_t bytesRead = read(cgi_pipefd[0], buffer, sizeof(buffer));
+        while ((nbytes = read(stdout_pipe[0], buffer, sizeof(buffer))) > 0) {
+            cgiResponse.append(buffer, nbytes);
+        }
 
-        if (bytesRead > 0) {
-            cgiResponse.append(buffer, bytesRead);
-        } 
+        std::cout << GREEN << "CGI Response: " << RESET << cgiResponse << std::endl;
+        close(stdout_pipe[0]);
+        close(stdin_pipe[1]);
 
-        // here haven't add -1 and 0 checks for read 
-        waitpid(pid, NULL, 0);
-        close(cgi_pipefd[0]);
-        
-        std::cout << YELLOW << "CGI Response: " << RESET << cgiResponse << std::endl;
-        return createResponseFromCGI(cgiResponse);
+        std::stringstream response;
+        response << "HTTP/1.1 200 OK" << "\r\n";
+        response << "Content-Length: " << cgiResponse.size() << "\r\n";
+        response << "Content-Type: text/html\r\n";
+        response << "Connection: close\r\n";
+        response << "\r\n";
+        response << cgiResponse;
+
+        // std::cout << GREEN << "Response: " << RESET << response.str() << std::endl; // DEBUG 
+        return response.str();
     }
     else if (clientServer->isFile(fullPath + client.getPath())) {
         std::cout << GREEN << "Full path to resource: " << RESET << fullPath + client.getPath() << std::endl;

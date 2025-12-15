@@ -10,28 +10,26 @@ email = form.getvalue("email", "Not provided")
 age = form.getvalue("age", "Unknown")
 
 # Save data to CSV file
-file_exists = os.path.isfile("/cgi/submissions.csv")
-if not file_exists:
-    with open("/cgi/submissions.csv", "w", newline='') as csvfile:
+csv_dir = "cgi" 
+csv_path = os.path.join(csv_dir, "submissions.csv")
+
+if not csv_path:
+    with open(csv_path, "w", newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Name", "Email", "Age"])
 
-with open("/cgi/submissions.csv", "a", newline='') as csvfile:
+with open(csv_path, "a", newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow([name, email, age])
 
 # Read all submissions
 submissions = []
-with open("/cgi/submissions.csv", "r") as csvfile:
+with open(csv_path, "r") as csvfile:
     reader = csv.reader(csvfile)
     next(reader)
     for row in reader:
         submissions.append(row)
-
-# Generate HTML response
-print("Content-Type: text/html")
-print()  # Blank line separates headers from body
-
+        
 print("<html><body>")
 print(f"<h1>Form submitted successfully</h1>")
 print(f"<h1>Thank you, {name}!</h1>")

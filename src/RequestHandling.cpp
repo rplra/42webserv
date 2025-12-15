@@ -2,7 +2,9 @@
 
 int handleRequest(int serverSocket, std::vector<pollfd>& fds, std::map<int, int>& clientServerMap) {
     // Accept a connection
-    int clientSocket = accept(serverSocket, nullptr, nullptr);
+    struct sockaddr_in clientAddr;
+    socklen_t clientAddrLen = sizeof(clientAddr);
+    int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
     if (clientSocket < 0) 
         return 0;
     
