@@ -94,7 +94,8 @@ void Client::buildResponse()
 		}
 	}
 
-	// 5. check for redirect
+	// 5. check for redirect (config redirect)
+	// if a redirect can be decided without touching the filesystem
 	/* routing */if (location && !location->_redirect.empty())
 	{
 		_response->setType(REDIRECT);

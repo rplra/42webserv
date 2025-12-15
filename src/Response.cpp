@@ -70,6 +70,7 @@ void	Response::setStatus(HttpStatus status)
 	switch (_status_code)
 	{
 		case (HTTP_OK):						_reason_phrase = "Ok"; break;
+		case (HTTP_MOVED_PERMANENTLY):		_reason_phrase = "Moved Permanently"; break;
 		case (HTTP_FOUND):					_reason_phrase = "Found"; break;
 		case (HTTP_BAD_REQUEST):			_reason_phrase = "Bad Request"; break;
 		case (HTTP_FORBIDDEN):				_reason_phrase = "Forbidden"; break;
@@ -130,17 +131,17 @@ void	Response::buildRedirect()
 		return ;
 	}
 	/* debug */std::cout << PINK << "> matching loc path: " << RESET << loc->_path << "'" << std::endl;
-	int				code = HTTP_FOUND;
-	std::string		url;
 
-	std::map<int, std::string>::const_iterator it = loc->_redirect.find(code);
-	if (it != loc->_redirect.end())
-		url = it->second;
-	else
+	// fix : get redirect code and url from config
+	std::map<int, std::string>::const_iterator it = loc->_redirect.begin();
+	if (it == loc->_redirect.end())
 	{
 		setError(HTTP_INTERNAL_SERVER_ERROR);
 		return ;
 	}
+	int code = it->first;
+	std::string url = it->second;
+	
 
 	setStatus(static_cast<HttpStatus>(code));
 	setHeader("Location", url);
@@ -149,10 +150,10 @@ void	Response::buildRedirect()
 }
 
 /* 
-	1. open file (file_path) > read
-	2. set content type (call getmimetype(file_path))
-	3. set content length (file_size)
-	4. set http status (200 success / 404 not found)
+	static response something directly from the filesystem without CGI. it can be;
+	- a file
+	- a directory (index / autoindex / redirect)
+	- or a forbidden target
 */
 void	Response::buildStatic()
 {
@@ -169,7 +170,7 @@ void	Response::buildStatic()
 		handleDirectory(full_path);
 		return;
 	}
-	// regular file?
+	// regular file? (non normal files - socket, device files, pipes etc)
 	if (!S_ISREG(file_stat.st_mode))
 		return (setError(HTTP_FORBIDDEN));
 
@@ -344,23 +345,40 @@ std::string Response::getFileBody(const std::string& path)
 	return (body);
 }
 
+/* 
+	if stat() says this is a directory;
+	- serve index?
+	- generate autoindex?
+	- redirect /asset > /assets/?
+	- deny access?
+*/
 void Response::handleDirectory(const std::string& dir_path)
 {
 	std::string request_path = _request->getPath();
 
-	// redirect if missing trailing slash
-	if (!request_path.empty() && request_path.back() != '/')
+	// if a redirect exists because of files/directories work (filesytem redirect)
+	// ensures URLs like "/asset" becomes "/asset/" for directories
+	// eg - /asset ; missing trailing slash
+	// without trailing slash, the browser treats a directory URL as file,
+	// breaking relative paths inside index pages
+	if (!request_path.empty() && request_path[request_path.length() - 1] != '/')
 	{
 		_type = REDIRECT;
+		// first time chrome request for /asset > move permanently to /asset/
+		// second time chrome request, chrome internally rewrites /asset > /asset/
+		setStatus(HTTP_MOVED_PERMANENTLY); // cache and auto-rewrite URL
 		setHeader("Location", request_path + "/");
 		setBody("");
 		setHeaders();
-		setStatus(HTTP_FOUND);
 		return;
 	}
+
+	const Location* location = _server.getMatchingLocation(request_path);
+	std::string index_file = _server.getIndex();	// server default
+	if (location && !location->_index.empty())		// location override
+		index_file = location->_index;
 	
-	// check if index.html exist inside directory
-	std::string index_path = dir_path + "/index.html";
+	std::string index_path = dir_path + "/" + index_file;
 	struct stat index_stat;
 	if (stat(index_path.c_str(), &index_stat) == 0 && S_ISREG(index_stat.st_mode))
 	{
@@ -370,7 +388,6 @@ void Response::handleDirectory(const std::string& dir_path)
 	}
 
 	// else, generate index file
-	const Location* location = _server.getMatchingLocation(request_path);
 	bool autoindex = _server.getAutoindex();	// server default
 	if (location)
 		autoindex = location->_autoindex;		// location override
@@ -381,7 +398,7 @@ void Response::handleDirectory(const std::string& dir_path)
 		buildAutoIndex();
 		return;
 	}
-	
+
 	// no index.html && autoindex > forbidden
 	setError(HTTP_FORBIDDEN);
 }
@@ -421,6 +438,12 @@ std::string	Response::generateAutoIndexBody(const std::string& file_path)
 		struct stat st;
 		if (stat(full_path.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
 			name += "/";
+
+		std::string url = _request->getPath();	// in handledir, we already added trailign slash
+		// ensure no double slash
+		if (!url.empty() && url[url.length() - 1] == '/' && !name.empty() && name[0] == '/')
+			url = url.substr(0, url.length() - 1);
+		url += name;
 		// make url relative to request path, not filesystem path
 		html += "      <li><a href=\"" + _request->getPath() + name + "\">" + name + "</a></li>\n";
 	}

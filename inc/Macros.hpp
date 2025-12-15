@@ -53,6 +53,7 @@ const std::string ERR_SENDCONNCLOSED	= "Connection closed while sending on fd ";
 enum HttpStatus
 {
 	HTTP_OK	= 200,
+	HTTP_MOVED_PERMANENTLY = 301,
 	HTTP_FOUND = 302,
 	HTTP_BAD_REQUEST = 400,
 	HTTP_FORBIDDEN = 403,

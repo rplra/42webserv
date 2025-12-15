@@ -77,6 +77,7 @@ private:
 	void	parseBody(const std::string& raw, size_t &pos, size_t limit);
 	void	parseContentLengthBody(const std::string& raw, size_t &pos, size_t limit);
 	void	parseChunkedBody(const std::string& raw, size_t &pos, size_t limit);
+	// void	parseMultipart(const std::string& raw, size_t &pos, size_t limit);
 
 	// 		helpers
 	bool	isValidPath();

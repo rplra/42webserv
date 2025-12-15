@@ -354,6 +354,11 @@ void	Request::parseContentLengthBody(const std::string& raw, size_t &pos, size_t
 	_state = PARSE_COMPLETE;
 }
 
+// void	Request::parseMultipart(const std::string& raw, size_t &pos, size_t limit)
+// {
+
+// }
+
 /* 
 	check for c <= 31 || c == 127 is to abide RFC 9112 (HTTP/1.1)
 		- HTTP messages must consist of printable ASCII characters (0x20–0x7E) plus CRLF.
