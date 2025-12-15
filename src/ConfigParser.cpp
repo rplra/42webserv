@@ -141,7 +141,7 @@ ConfigParser::ConfigParser(Config& config)
 // 	{
 // 		if (types[i] == str)
 // 		{
-// 			getCommonDirective(i, iss, data);
+// 			parseCommonDirective(i, iss, data);
 // 			return (1);	//save data
 // 		}
 // 	}
@@ -161,7 +161,7 @@ ConfigParser::ConfigParser(Config& config)
 // 	{
 // 		if (types[i] == str)
 // 		{
-// 			getServerDirective(i, iss, inFile);
+// 			parseServerDirective(i, iss, inFile);
 // 			return (1);
 // 		}
 // 	}
@@ -182,14 +182,14 @@ ConfigParser::ConfigParser(Config& config)
 // 	{
 // 		if (types[i] == str)
 // 		{
-// 			getLocationDirective(i, iss, data);
+// 			parseLocationDirective(i, iss, data);
 // 			return (1);
 // 		}
 // 	}
 // 	return (0);
 // }
 
-// void	ConfigParser::getListen(std::istringstream &iss)
+// void	ConfigParser::parseListen(std::istringstream &iss)
 // {
 // 	std::string word, port;
 
@@ -204,7 +204,7 @@ ConfigParser::ConfigParser(Config& config)
 // }
 
 // template <typename T>
-// void	ConfigParser::getCommonDirective(std::size_t code, std::istringstream &iss, T &data)
+// void	ConfigParser::parseCommonDirective(std::size_t code, std::istringstream &iss, T &data)
 // {
 // 	std::string word;
 
@@ -247,12 +247,12 @@ ConfigParser::ConfigParser(Config& config)
 // 	}
 // }
 
-// void	ConfigParser::getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile)
+// void	ConfigParser::parseServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile)
 // {
 // 	switch (code)
 // 	{
 // 		case LISTEN:
-// 			getListen(iss);
+// 			parseListen(iss);
 // 			break;
 
 // 		case SERVER_NAME:
@@ -267,7 +267,7 @@ ConfigParser::ConfigParser(Config& config)
 // 	}
 // }
 
-// void	ConfigParser::getLocationDirective(std::size_t code, std::istringstream &iss, Location &data)
+// void	ConfigParser::parseLocationDirective(std::size_t code, std::istringstream &iss, Location &data)
 // {
 // 	std::string word;
 

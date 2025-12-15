@@ -2,7 +2,7 @@
 #include "Config.hpp"
 #include "ConfigParse.hpp"
 
-void	Server::getLocationDirective(std::size_t code, std::istringstream &iss, Location &data)
+void	Server::parseLocationDirective(std::size_t code, std::istringstream &iss, Location &data)
 {
 	// std::string word;
 
@@ -45,7 +45,7 @@ bool	Server::handleLocationDirective(std::string str, std::istringstream &iss, L
 	{
 		if (types[i] == str)
 		{
-			getLocationDirective(i, iss, data);
+			parseLocationDirective(i, iss, data);
 			return (1);
 		}
 	}

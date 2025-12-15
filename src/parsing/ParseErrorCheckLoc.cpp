@@ -3,7 +3,7 @@
 #include "ConfigParse.hpp"
 
 /* checks argcount for location /path */
-void	Config::errorLocationBase(std::istringstream &iss)
+void	ConfigParser::errorLocationBase(std::istringstream &iss)
 {
 	std::string word;
 	int			count = 0;
@@ -20,21 +20,18 @@ void	Config::errorLocationBase(std::istringstream &iss)
 }
 
 /* returns 1 if match found */
-bool	Config::checkMatch(const char* types[], std::string word, const std::string err_message)
+bool	ConfigParser::checkMatch(const char* types[], std::string word, const std::string err_message)
 {
 	for (size_t i=0;  types[i];  i++)
 	{
 		if (types[i] == word)
-		{
-			checkDuplicate(word, this->_check.loc.dup, ERR_DUPLICATE);
 			return (1) ;
-		}
 	}
 	this->_check.keyword = word;
 	throw (std::invalid_argument(err_message));
 }
 
-void	Config::checkValidTypeUpload(std::istringstream &iss)
+void	ConfigParser::checkValidTypeUpload(std::istringstream &iss)
 {
 	struct stat			sb;
 	std::string			word, path;
@@ -50,7 +47,7 @@ void	Config::checkValidTypeUpload(std::istringstream &iss)
 }
 
 /* check if input is valid for allowed_methods */
-void	Config::checkValidTypeAllowed(std::istringstream &iss)
+void	ConfigParser::checkValidTypeAllowed(std::istringstream &iss)
 {
 	std::string			word;
 	std::istringstream	tmp_iss(iss.str());
@@ -66,11 +63,12 @@ void	Config::checkValidTypeAllowed(std::istringstream &iss)
 	while (tmp_iss >> word)
 	{
 		word = trimStringTail(word, ';');
-		checkMatch(types, word, ERR_TYPEUNSUPPORTED);
+		if (checkMatch(types, word, ERR_TYPEUNSUPPORTED))
+			checkDuplicate(word, this->_check.loc.dup, ERR_DUPLICATE);
 	}
 }
 
-void	Config::checkValidTypeCgi(std::istringstream &iss)
+void	ConfigParser::checkValidTypeCgi(std::istringstream &iss)
 {
 	std::string word;
 	struct stat	sb;
@@ -106,7 +104,7 @@ void	Config::checkValidTypeCgi(std::istringstream &iss)
 	throw (std::invalid_argument(ERR_CGIUNSUPPORTED));
 }
 
-void	Config::checkValidTypeLoc(size_t code, std::istringstream &iss)
+void	ConfigParser::checkValidTypeLoc(size_t code, std::istringstream &iss)
 {
 	switch (code)
 	{
@@ -122,7 +120,7 @@ void	Config::checkValidTypeLoc(size_t code, std::istringstream &iss)
 	}
 }
 
-void	Config::checkLocationArgCount(size_t code, std::istringstream &iss)
+void	ConfigParser::checkLocationArgCount(size_t code, std::istringstream &iss)
 {
 	std::string word;
 	int			count = countArgs(iss);
@@ -148,7 +146,7 @@ void	Config::checkLocationArgCount(size_t code, std::istringstream &iss)
 }
 
 /* return (0) == no error */
-bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
+bool	ConfigParser::errorLocationDirective(std::string str, std::istringstream &iss)
 {
 	const char *arr[] =
 	{
@@ -165,7 +163,10 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
 			if (i == 0)
 				checkDuplicateCgi(str, iss, this->_check.loc.cgi);
 			else
+			{
+				// /*debug*/std::cout << "errorLocationDirective" << std::endl;
 				checkDuplicate(str, this->_check.loc.dup, ERR_DUPLICATE);
+			}
 			checkLocationArgCount(i, iss);
 			checkValidTypeLoc(i, iss);
 			return (0);
@@ -175,11 +176,12 @@ bool	Config::errorLocationDirective(std::string str, std::istringstream &iss)
     return (1);
 }
 
-void	Config::errorCheckLocation(std::istringstream &iss, std::ifstream &inFile)
+void	ConfigParser::errorCheckLocation(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string buffer, word;
 
 	this->_check.loc.dup.clear();
+	this->_check.loc.cgi.clear();
 	this->_check.loc.brace.clear();
 	this->_check.loc.b_openBrace = 0;
 	this->_check.loc.b_closeBrace = 0;

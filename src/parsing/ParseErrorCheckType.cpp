@@ -3,7 +3,7 @@
 #include "ConfigParse.hpp"
 #include <limits.h>
 
-void	Config::checkValidTypeRoot(std::istringstream &iss, errCheckGroup &data)
+void	ConfigParser::checkValidTypeRoot(std::istringstream &iss, errCheckGroup &data)
 {
 	struct stat			sb;
 	std::string			word;
@@ -20,7 +20,7 @@ void	Config::checkValidTypeRoot(std::istringstream &iss, errCheckGroup &data)
 	throw (std::invalid_argument(ERR_INVALIDPATH));
 }
 
-void	Config::checkValidTypeIndex(std::istringstream &iss, errCheckGroup &data)
+void	ConfigParser::checkValidTypeIndex(std::istringstream &iss, errCheckGroup &data)
 {
 	struct stat			sb;
 	std::string			word, path;
@@ -34,10 +34,10 @@ void	Config::checkValidTypeIndex(std::istringstream &iss, errCheckGroup &data)
 		return ;
 
 	this->_check.keyword = word;
-	throw (std::invalid_argument(ERR_FILEINVALID));
+	throw (std::invalid_argument(ERR_FILENOTFOUND));
 }
 
-void	Config::checkValidTypeErrPage(std::istringstream &iss, errCheckGroup &data)
+void	ConfigParser::checkValidTypeErrPage(std::istringstream &iss, errCheckGroup &data)
 {
 	struct stat			sb;
 	std::string			path, word;
@@ -59,11 +59,11 @@ void	Config::checkValidTypeErrPage(std::istringstream &iss, errCheckGroup &data)
 	else if (stat(path.c_str(), &sb) != 0 || !S_ISREG(sb.st_mode))
 	{
 		this->_check.keyword = word;
-		throw (std::invalid_argument(ERR_FILEINVALID));
+		throw (std::invalid_argument(ERR_FILENOTFOUND));
 	}
 }
 
-void	Config::checkValidTypeMaxBodySize(std::istringstream &iss)
+void	ConfigParser::checkValidTypeMaxBodySize(std::istringstream &iss)
 {
 	std::string			word;
 	int					num;
@@ -80,7 +80,7 @@ void	Config::checkValidTypeMaxBodySize(std::istringstream &iss)
 	throw (std::invalid_argument(ERR_BODYSIZEINVALID));
 }
 
-void	Config::checkValidTypeAutoindex(std::istringstream &iss)
+void	ConfigParser::checkValidTypeAutoindex(std::istringstream &iss)
 {
 	std::string			word;
 	std::istringstream	tmp_iss(iss.str());
@@ -101,7 +101,7 @@ void	Config::checkValidTypeAutoindex(std::istringstream &iss)
 	}
 }
 
-void	Config::checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data)
+void	ConfigParser::checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data)
 {
 	switch (code)
 	{

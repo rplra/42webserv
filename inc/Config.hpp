@@ -25,24 +25,6 @@ struct Location
 	std::map<int, std::string>	_redirect;
 };
 
-struct errCheckGroup
-{
-	std::vector<std::string>			dup;
-	std::vector<std::string>			brace;
-	bool								b_openBrace;
-	bool								b_closeBrace;
-	std::map<std::string, std::string>	cgi;
-	std::string							root;
-};
-
-struct errCheck
-{
-	int									line_count;
-	std::string							keyword;
-	errCheckGroup						loc;
-	errCheckGroup						serv;
-};
-
 class Server
 {
 public:
@@ -50,9 +32,8 @@ public:
 	~Server() {};
 
 	void		parseServer(std::ifstream &inFile);
-
-	void		printErrorPage();
 	void		printServer();
+	void		printErrorPage();
 	void		assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
 	void		assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
 	void		assignCgiContainer(std::map<int, std::string> &data, std::istringstream &iss);
@@ -114,13 +95,13 @@ private:
 	template <typename T>
 	bool		checkCommonDirective(std::string str, std::istringstream &iss, T &data);
 	template <typename T>
-	void		getCommonDirective(std::size_t code, std::istringstream &iss, T &data);
+	void		parseCommonDirective(std::size_t code, std::istringstream &iss, T &data);
 
-	void		getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
-	void		getLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
+	void		parseServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
+	void		parseLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
 	bool		handleServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile);
 	bool		handleLocationDirective(std::string str, std::istringstream &iss, Location& data);
-	void		getListen(std::istringstream &iss);
+	void		parseListen(std::istringstream &iss);
 	void		initLocation(Location &obj);
 	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
 };
@@ -135,9 +116,11 @@ public:
 	Config();
 	~Config() {};
 
-	void	parseConfig(char **av);
+	// void	parseConfig(char **av);
 
 	// NON CONST for parser to update this class while parsing
+	void		printAllServer();
+
 	std::vector<Server>& 			getServers();
 	std::vector<Server*>&			getServerOnPort(int port);
 
@@ -146,50 +129,49 @@ public:
 
 private: 
 	// error check use
-	errCheck								_check;
+	// errCheck								_check;
 	
 	std::vector<Server>						_servers;
 	std::map<int, std::vector<Server*> >	_port_map;
 	
-	// helper functions
-	void		printAllServer();
+	// // helper functions
 
-	// parser: error checks
-	void		startParser(std::ifstream &inFile);
+	// // parser: error checks
+	// void		startParser(std::ifstream &inFile);
 
-	bool		isDirective(const std::string &word);
-	int			countArgs(std::istringstream &iss);
-	bool		checkBraces(const std::string &to_find, std::vector<std::string> &data);
-	bool		noMoreBrace(std::istringstream &iss);
-	bool		checkTrimSemicolon(std::string &buffer);
-	bool		ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data);
+	// bool		isDirective(const std::string &word);
+	// int			countArgs(std::istringstream &iss);
+	// bool		checkBraces(const std::string &to_find, std::vector<std::string> &data);
+	// bool		noMoreBrace(std::istringstream &iss);
+	// bool		checkTrimSemicolon(std::string &buffer);
+	// bool		ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data);
 	
-	bool		errorCheckConfig(std::ifstream &inFile);
-	void		errorCheckServer(std::istringstream &iss, std::ifstream &inFile);
-	void		errorCheckLocation(std::istringstream &iss, std::ifstream &inFile);
-	bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
-	bool		errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data);
-	bool		errorLocationDirective(std::string str, std::istringstream &iss);
+	// bool		errorCheckConfig(std::ifstream &inFile);
+	// void		errorCheckServer(std::istringstream &iss, std::ifstream &inFile);
+	// void		errorCheckLocation(std::istringstream &iss, std::ifstream &inFile);
+	// bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
+	// bool		errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data);
+	// bool		errorLocationDirective(std::string str, std::istringstream &iss);
 
-	void		checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data);
-	void		checkValidTypeLoc(size_t code, std::istringstream &iss);
-	void		checkValidTypeUpload(std::istringstream &iss);
-	void		checkValidTypeCgi(std::istringstream &iss);
-	void		checkValidTypeRoot(std::istringstream &iss, errCheckGroup &data);
-	void		checkValidTypeIndex(std::istringstream &iss, errCheckGroup &data);
-	void		checkValidTypeErrPage(std::istringstream &iss, errCheckGroup &data);
-	void		checkValidTypeMaxBodySize(std::istringstream &iss);
-	void		checkValidTypeAutoindex(std::istringstream &iss);
-	void		checkValidTypeAllowed(std::istringstream &iss);
+	// void		checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data);
+	// void		checkValidTypeLoc(size_t code, std::istringstream &iss);
+	// void		checkValidTypeUpload(std::istringstream &iss);
+	// void		checkValidTypeCgi(std::istringstream &iss);
+	// void		checkValidTypeRoot(std::istringstream &iss, errCheckGroup &data);
+	// void		checkValidTypeIndex(std::istringstream &iss, errCheckGroup &data);
+	// void		checkValidTypeErrPage(std::istringstream &iss, errCheckGroup &data);
+	// void		checkValidTypeMaxBodySize(std::istringstream &iss);
+	// void		checkValidTypeAutoindex(std::istringstream &iss);
+	// void		checkValidTypeAllowed(std::istringstream &iss);
 	
-	bool		checkMatch(const char* types[], std::string word, const std::string err_message);
-	bool		checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message);
-	bool		checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data);
-	void		checkServerArgCount(size_t code, std::istringstream &iss);
-	void		checkCommonArgCount(size_t code, std::istringstream &iss);
-	void		checkLocationArgCount(size_t code, std::istringstream &iss);
-	void		errorLocationBase(std::istringstream &iss);
-	bool		errorServerBase(std::istringstream &iss);
+	// bool		checkMatch(const char* types[], std::string word, const std::string err_message);
+	// bool		checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message);
+	// bool		checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data);
+	// void		checkServerArgCount(size_t code, std::istringstream &iss);
+	// void		checkCommonArgCount(size_t code, std::istringstream &iss);
+	// void		checkLocationArgCount(size_t code, std::istringstream &iss);
+	// void		errorLocationBase(std::istringstream &iss);
+	// bool		errorServerBase(std::istringstream &iss);
 };
 
 #endif

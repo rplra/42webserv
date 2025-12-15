@@ -94,14 +94,14 @@
 // 	// template <typename T>
 // 	// bool	checkCommonDirective(std::string str, std::istringstream &iss, T &data);
 // 	// template <typename T>
-// 	// void	getCommonDirective(std::size_t code, std::istringstream &iss, T &data);
+// 	// void	parseCommonDirective(std::size_t code, std::istringstream &iss, T &data);
 
 // 	// bool	checkServerDirective(std::string str, std::istringstream &iss, std::ifstream &inFile);
 // 	// bool	checkLocationDirective(std::string str, std::istringstream &iss, Location& data);
 	
-// 	// void	getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
-// 	// void	getLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
-// 	// void	getListen(std::istringstream &iss);
+// 	// void	parseServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile);
+// 	// void	parseLocationDirective(std::size_t code, std::istringstream &iss, Location &data);
+// 	// void	parseListen(std::istringstream &iss);
 // 	// void	initLocation(Location &obj);
 
 // 	// void	parseLocation(std::ifstream &inFile, std::istringstream &iss);

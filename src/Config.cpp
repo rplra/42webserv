@@ -163,7 +163,6 @@ void Server::addLocation(const Location& location) {
 
 Config::Config() : _servers(), _port_map()
 {
-	this->_check.line_count = -1;
 }
 
 std::vector<Server>& Config::getServers()

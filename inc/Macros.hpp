@@ -30,10 +30,11 @@ const std::string RESET  = "\033[0m";
 const size_t BUFFER_SIZE = 8192;
 
 // error - args
-const std::string ERR_ARGFORMAT			        = "Invalid argument. Usage: ./webserv [configuration file]";
-const std::string ERR_FILEINVALID		      = "Invalid file:";
-const std::string ERR_FILEEMPTY			        = "Empty file!";
+const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configuration file]";
+const std::string ERR_FILEINVALID	    = "Invalid file:";
+const std::string ERR_FILEEMPTY			= "Empty file!";
 // errors config
+const std::string ERR_FILENOTFOUND	    = "File not found:";
 const std::string ERR_BODYSIZEINVALID   = "Body size has to be greater than 0. Current size:";
 const std::string ERR_DIRECTIVEINVALID  = "Unknown directive:";
 const std::string ERR_CODEINVALID       = "Invalid HTTP error code:";

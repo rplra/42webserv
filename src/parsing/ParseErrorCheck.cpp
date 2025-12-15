@@ -2,7 +2,7 @@
 #include "Config.hpp"
 #include "ConfigParse.hpp"
 
-bool	Config::isDirective(const std::string &word)
+bool	ConfigParser::isDirective(const std::string &word)
 {
 	const char *type[] =
 	{
@@ -29,7 +29,7 @@ bool	Config::isDirective(const std::string &word)
 }
 
 
-bool	Config::checkBraces(const std::string &to_find, std::vector<std::string> &data)
+bool	ConfigParser::checkBraces(const std::string &to_find, std::vector<std::string> &data)
 {
 	std::vector<std::string>::iterator it = std::find(data.begin(), data.end(), to_find);
 	if (it == data.end()) // if brace_not_found
@@ -43,7 +43,7 @@ bool	Config::checkBraces(const std::string &to_find, std::vector<std::string> &d
 }
 
 /* checks if line has only 1 brace, else throw error */
-bool	Config::noMoreBrace(std::istringstream &iss)
+bool	ConfigParser::noMoreBrace(std::istringstream &iss)
 {
 	std::string word;
 	int			count = 0;
@@ -57,7 +57,7 @@ bool	Config::noMoreBrace(std::istringstream &iss)
 	return (1);
 }
 
-bool Config::ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data)
+bool ConfigParser::ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data)
 {
 	const char *arr[] =
 	{
@@ -80,7 +80,7 @@ bool Config::ignoreKeyword(std::string &word, std::istringstream &iss, errCheckG
 }
 
 /* checks for duplicate directives in config file */
-bool Config::checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message)
+bool ConfigParser::checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message)
 {
 	std::vector<std::string>::iterator it = data.begin();
 	std::vector<std::string>::iterator ite = data.end();
@@ -98,7 +98,7 @@ bool Config::checkDuplicate(std::string &str, std::vector<std::string> &data, co
 	return (1);
 }
 
-bool	Config::checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data)
+bool	ConfigParser::checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data)
 {
 	std::map<std::string, std::string>::iterator it = data.begin();
 	std::map<std::string, std::string>::iterator ite = data.end();
@@ -115,6 +115,7 @@ bool	Config::checkDuplicateCgi(std::string &str, std::istringstream &iss, std::m
 		if (it->first == extension && it->second == path)
 		{
 			this->_check.keyword = str;
+			/*debug*/std::cout << "checkDuplicateCgi" << std::endl;
 			throw (std::invalid_argument(ERR_DUPLICATE));
 		}
 		it++;
@@ -124,7 +125,7 @@ bool	Config::checkDuplicateCgi(std::string &str, std::istringstream &iss, std::m
 }
 
 /* checks for semicolon here */
-int	Config::countArgs(std::istringstream &iss)
+int	ConfigParser::countArgs(std::istringstream &iss)
 {
 	std::string			word;
 	int					count = 0;
@@ -141,7 +142,7 @@ int	Config::countArgs(std::istringstream &iss)
 	// throw (std::invalid_argument(ERR_SEMICOLONMISSING));
 }
 
-void	Config::checkCommonArgCount(size_t code, std::istringstream &iss)
+void	ConfigParser::checkCommonArgCount(size_t code, std::istringstream &iss)
 {
 	std::string word;
 	int			count = countArgs(iss);
@@ -164,7 +165,7 @@ void	Config::checkCommonArgCount(size_t code, std::istringstream &iss)
 	throw (std::invalid_argument(ERR_ARGCOUNTINVALID));
 }
 
-void	Config::checkServerArgCount(size_t code, std::istringstream &iss)
+void	ConfigParser::checkServerArgCount(size_t code, std::istringstream &iss)
 {
 	std::string word;
 	int			count = 0;
@@ -189,7 +190,7 @@ void	Config::checkServerArgCount(size_t code, std::istringstream &iss)
 }
 
 /* return (0) == no error */
-bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile)
+bool	ConfigParser::errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile)
 {
 	(void) inFile;
 
@@ -211,6 +212,7 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 				errorCheckLocation(iss, inFile);
 			else //errorCheckServer
 			{
+				// /*debug*/std::cout << "errorServerDirective" << std::endl;
 				checkDuplicate(str, this->_check.serv.dup, ERR_DUPLICATE);
 				checkServerArgCount(i, iss);
 			}
@@ -222,10 +224,9 @@ bool	Config::errorServerDirective(std::string &str, std::istringstream &iss, std
 }
 
 /* return (0) == no error */
-bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data)
+bool	ConfigParser::errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data)
 {
-	// if (str == "}")
-		// return (0);
+	(void) iss;
 
 	const char *arr[] =
 	{
@@ -241,6 +242,7 @@ bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, err
 	{
 		if (types[i] == str)
 		{
+			// /*debug*/std::cout << "errorCommonDirective: " << str << std::endl;
 			checkDuplicate(str, data.dup, ERR_DUPLICATE);
 			checkCommonArgCount(i, iss);
 			checkValidTypeCommon(i, iss, data);
@@ -251,7 +253,7 @@ bool	Config::errorCommonDirective(std::string &str, std::istringstream &iss, err
 	return (1); //type_not_found
 }
 
-bool	Config::checkTrimSemicolon(std::string &buffer)
+bool	ConfigParser::checkTrimSemicolon(std::string &buffer)
 {
 	std::string			tmp;
 	std::istringstream	iss(buffer);
@@ -276,11 +278,12 @@ bool	Config::checkTrimSemicolon(std::string &buffer)
 }
 
 /* checks the server scope */
-void	Config::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
+void	ConfigParser::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
 {
 	std::string			word, buffer;
 
 	this->_check.serv.dup.clear();
+	this->_check.serv.cgi.clear();
 	this->_check.serv.brace.clear();
 	this->_check.serv.b_openBrace = 0;
 	this->_check.serv.b_closeBrace = 0;
@@ -316,7 +319,7 @@ void	Config::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
 }
 
 /* return 0 == no error */
-bool	Config::errorServerBase(std::istringstream &iss)
+bool	ConfigParser::errorServerBase(std::istringstream &iss)
 {
 	std::string word;
 	int			count = 0;
@@ -337,7 +340,7 @@ bool	Config::errorServerBase(std::istringstream &iss)
 	throw (std::invalid_argument(ERR_UNEXPECTSIGN));
 }
 
-bool	Config::errorCheckConfig(std::ifstream &inFile)
+bool	ConfigParser::errorCheckConfig(std::ifstream &inFile)
 {
 	std::streampos		ori_pos = inFile.tellg();
 	std::string			word, buffer;

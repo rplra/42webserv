@@ -27,7 +27,7 @@ bool	Server::checkCommonDirective(std::string str, std::istringstream &iss, T &d
 		if (types[i] == str)
 		{
 			// /*debug*/ std::cout << str << std::endl;
-			getCommonDirective(i, iss, data);
+			parseCommonDirective(i, iss, data);
 			return (1);	//save data
 		}
 	}
@@ -47,14 +47,14 @@ bool	Server::handleServerDirective(std::string str, std::istringstream &iss, std
 	{
 		if (types[i] == str)
 		{
-			getServerDirective(i, iss, inFile);
+			parseServerDirective(i, iss, inFile);
 			return (1);
 		}
 	}
 	return (0);
 }
 
-void	Server::getListen(std::istringstream &iss)
+void	Server::parseListen(std::istringstream &iss)
 {
 	std::string word, port;
 
@@ -69,7 +69,7 @@ void	Server::getListen(std::istringstream &iss)
 }
 
 template <typename T>
-void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &data)
+void	Server::parseCommonDirective(std::size_t code, std::istringstream &iss, T &data)
 {
 	std::string word;
 
@@ -82,11 +82,13 @@ void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &da
 	{
 		case ROOT:
 			data._root = word;
+			// data.setRoot(word);
 			// /*debug*/ std::cout << data._root << std::endl;
 			break;
 
 		case INDEX:
 			data._index = word;
+			// data.setIndex(word);
 			// /*debug*/ std::cout << data._index << std::endl;
 			break;
 
@@ -112,12 +114,12 @@ void	Server::getCommonDirective(std::size_t code, std::istringstream &iss, T &da
 	}
 }
 
-void	Server::getServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile)
+void	Server::parseServerDirective(std::size_t code, std::istringstream &iss, std::ifstream &inFile)
 {
 	switch (code)
 	{
 		case LISTEN:
-			getListen(iss);
+			parseListen(iss);
 			break;
 
 		case SERVER_NAME:
@@ -186,7 +188,7 @@ void	Server::parseServer(std::ifstream &inFile)
 			- check if is common_directives or location_dir
  */
 
-void	Config::startParser(std::ifstream &inFile)
+void	ConfigParser::startParser(std::ifstream &inFile)
 {
 	/* get tokens */
 	std::string				buffer, word;
@@ -201,16 +203,16 @@ void	Config::startParser(std::ifstream &inFile)
 		if (word == "server")
 		{
 			Server tmp;
-			/*debug*/std::cout << PINK << word << RESET << std::endl;
+			// /*debug*/std::cout << PINK << word << RESET << std::endl;
 			tmp.parseServer(inFile);
-			this->_servers.push_back(tmp);
+			this->_config.getServers().push_back(tmp);
 		}
 		else
 			throw (std::invalid_argument(ERR_DIRECTIVEINVALID));
 	}
 }
 
-void	Config::parseConfig(char **av)
+void	ConfigParser::parseConfig(char **av)
 {
 	std::ifstream inFile(av[1]);
 
@@ -225,7 +227,7 @@ void	Config::parseConfig(char **av)
 
 		/* else, start parsing */
 		this->startParser(inFile);
-		// /*debug*/ this->printAllServer();
+		// /*debug*/ this->_config.printAllServer();
 
 		/* close after reading */
 		inFile.close();
@@ -241,4 +243,9 @@ void	Config::parseConfig(char **av)
 					<< RESET << std::endl;
 	}
 	exit(1);
+}
+
+ConfigParser::ConfigParser(Config& target) : _config(target)
+{
+	this->_check.line_count = -1;
 }
