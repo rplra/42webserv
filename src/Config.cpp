@@ -78,6 +78,8 @@ std::string	Server::getFullPath(const Request& request) const
 	}
 	else
 		/* debug */std::cout << PINK << "> SVR: using server root, keeping full path" << RESET << std::endl;
+
+	std::cout << PINK << "> SVR: full path resolved to: " << RESET << root + path << std::endl;
 	return root + path;
 }
 

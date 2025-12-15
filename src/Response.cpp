@@ -157,11 +157,15 @@ void	Response::buildRedirect()
 void	Response::buildStatic()
 {
 	std::string full_path = _server.getFullPath(*_request);
+	std::cout << PINK << "> build static for path: " << RESET << full_path << "'" << std::endl;
 
 	struct stat file_stat;
 	// file exist?
 	if (stat(full_path.c_str(), &file_stat) != 0)
+	{
+		std::cout << PINK << "> build static: file not found" << RESET << std::endl;
 		return (setError(HTTP_NOT_FOUND));
+	}
 	// is directory?
 	if (S_ISDIR(file_stat.st_mode))
 	{
@@ -210,7 +214,6 @@ void	Response::buildAutoIndex()
 void	Response::buildCgi()
 {
 	/* debug */std::cout << PINK << "> building cgi" << RESET << std::endl;
-	
 }
 
 /* 
@@ -352,6 +355,7 @@ void Response::handleDirectory(const std::string& dir_path)
 	// redirect if missing trailing slash
 	if (!request_path.empty() && request_path.back() != '/')
 	{
+		std::cout << PINK << "> handle directory: missing trailing slash, redirecting..." << RESET << std::endl;
 		_type = REDIRECT;
 		setHeader("Location", request_path + "/");
 		setBody("");

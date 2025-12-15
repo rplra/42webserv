@@ -610,6 +610,18 @@ void	ConfigParser::parseConfig(std::string &filename)
 						std::cout << GREEN << "Added error page for code " << errorCode << " with path: " << path << RESET << std::endl;
 					}
 				}
+				else if (trim(buffer).compare(0, 3, "cgi") == 0)
+				{
+					std::istringstream	iss(buffer);
+					std::string			directive;
+					std::string			extension;
+					std::string			cgiPath;
+
+					iss >> directive >> extension >> cgiPath;
+					cgiPath = removeSemicolon(cgiPath);
+					currentLocation._cgi[extension] = cgiPath;
+					std::cout << GREEN << "Added CGI handler: " << extension << " -> " << cgiPath << RESET << std::endl;
+				}
 			}
 		}	
 		// std::cout << GREEN << getServers().size() << " server(s) parsed successfully." << RESET << std::endl;

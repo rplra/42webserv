@@ -15,7 +15,7 @@ struct Location
 	std::vector<std::string> 	_allowed_methods;
 
 	std::string					_upload_path;
-	std::map<int, std::string>	_cgi;			//cgi extension type, cgi path
+	std::map<std::string, std::string>	_cgi;			//cgi extension type, cgi path
 	std::map<int, std::string>	_redirect;		//return code, redirect path
 };
 
