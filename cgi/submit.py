@@ -10,7 +10,7 @@ email = form.getvalue("email", "Not provided")
 age = form.getvalue("age", "Unknown")
 
 # Save data to CSV file
-csv_dir = "cgi" 
+csv_dir = "csv" 
 csv_path = os.path.join(csv_dir, "submissions.csv")
 
 if not csv_path:

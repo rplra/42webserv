@@ -1,0 +1,8 @@
+id, description, done, priority
+1, Finish Express.js tutorial, false, high
+2, Go grocery shopping, false, medium
+3, Prepare for exams, true, high
+4, Book dentist appointment, false, low
+5, Water the plants, true, low
+6, Call the bank, false, medium
+

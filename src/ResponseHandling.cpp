@@ -85,7 +85,10 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
         std::vector<std::string> env_variables;
         env_variables.push_back("REQUEST_METHOD=" + client.getMethod());
         env_variables.push_back("CONTENT_LENGTH=" + std::to_string(client.getBody().length()));
-        env_variables.push_back("CONTENT_TYPE=" + client.getHeaders().at("content-type"));
+        if (client.getMethod() == "POST")
+            env_variables.push_back("CONTENT_TYPE=" + client.getHeaders().at("content-type"));
+        // if (client.getMethod() == "GET")
+            // env_variables.push_back("QUERY_STRING=" + client.getQuery());
         env_variables.push_back("SCRIPT_NAME=" + client.getPath());
         env_variables.push_back("SERVER_NAME=" + clientServer->getHost());
         env_variables.push_back("SERVER_PORT=" + std::to_string(clientServer->getPort()));
