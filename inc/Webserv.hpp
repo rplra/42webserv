@@ -44,6 +44,7 @@
 #include "ServerManager.hpp"
 #include "Client.hpp"
 #include "Utils.hpp"
+#include "Cookie.hpp"
 // #include "Debug.hpp"
 
 // class Config;

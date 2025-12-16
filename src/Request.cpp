@@ -18,7 +18,9 @@ Request::Request()
 	_status(HTTP_OK),
 	_isChunked(false),
 	_current_chunk_size(0)
-{}
+{
+	this->_session_id = Cookie::setRandCookie();
+}
 
 void	Request::handleRequest(const char* data, size_t size, size_t limit)
 {

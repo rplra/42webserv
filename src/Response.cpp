@@ -89,6 +89,12 @@ void	Response::setHeader(const std::string& key, const std::string& value)
 	_headers[key] = value;
 }
 
+/*
+	about sessionId header:
+	- HttpOnly prevents JavaScript access (XSS)
+	  (check by typing document.cookie in browser console)
+	- Secure makes HTTPS connection mandatory
+ */
 void	Response::setHeaders()
 {
 	_headers["Date"] = getDate();
@@ -103,7 +109,8 @@ void	Response::setHeaders()
 	if (!_content_type.empty())
 		_headers["Content-Type"] = _content_type;
 	if (_request->hasSessionId())
-		_headers["Set-Cookie"] = "session_id=" + _request->getSessionID() + "; Path=/";
+		_headers["Set-Cookie"] = "session_id=" + _request->getSessionID() + \
+		"; Path=/ ; HttpOnly; Secure";
 	if (_type == STATIC)
 		_headers["Last-Modified"] = getLastModified();
 }
