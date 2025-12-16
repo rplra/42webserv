@@ -45,14 +45,14 @@ std::string	Server::getFullPath(const Request& request) const
 {
 	const Location* location = getMatchingLocation(request.getPath());
 
-	// /* debug */std::cout << PINK << "> SVR: req path: " << RESET << request.getPath() << std::endl;
-	// /* debug */std::cout << PINK << "> SVR: location found: " << RESET << (location ? "YES" : "NO") << std::endl;
-	// /* debug */if (location)
-	// /* debug */{
-	// /* debug */		std::cout << PINK << "> SVR: location path: " << RESET << location->_path << std::endl;
-	// /* debug */		std::cout << PINK << "> SVR: location root: " << RESET << location->_root << std::endl;
-	// /* debug */}
-	// /* debug */std::cout << PINK << "> SVR: server root: " << RESET << _root << std::endl;
+	/* debug */std::cout << PINK << "> SVR: req path: " << RESET << request.getPath() << std::endl;
+	/* debug */std::cout << PINK << "> SVR: location found: " << RESET << (location ? "YES" : "NO") << std::endl;
+	/* debug */if (location)
+	/* debug */{
+	/* debug */		std::cout << PINK << "> SVR: location path: " << RESET << location->_path << std::endl;
+	/* debug */		std::cout << PINK << "> SVR: location root: " << RESET << location->_root << std::endl;
+	/* debug */}
+	/* debug */std::cout << PINK << "> SVR: server root: " << RESET << _root << std::endl;
 
 	std::string path = request.getPath();
 	std::cout << YELLOW << "> SVR: initial req path: " << RESET << path << std::endl;

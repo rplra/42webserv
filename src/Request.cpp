@@ -196,7 +196,7 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	}
 
 	_method = std::string(&raw[pos], method_end - pos);
-	/* debug */std::cout << PINK << "> REQ parsed method: " << RESET << _method << std::endl;
+	// /* debug */std::cout << PINK << "> REQ parsed method: " << RESET << _method << std::endl;
 	
 	std::string full_path = std::string(&raw[method_end + 1], path_end - method_end - 1);
 
@@ -207,16 +207,16 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	{
 		_path = std::string(&full_path[0], question_mark);
 		_query = std::string(&full_path[question_mark + 1]);
-		/* debug */std::cout << PINK << "> REQ parsed path: " << RESET << _path << std::endl;
-		/* debug */std::cout << PINK << "> REQ parsed query: " << RESET << _query << std::endl;
+		// /* debug */std::cout << PINK << "> REQ parsed path: " << RESET << _path << std::endl;
+		// /* debug */std::cout << PINK << "> REQ parsed query: " << RESET << _query << std::endl;
 		parseQuery(_query);
 	}
 	else
 		_path = full_path;
-	/* debug */std::cout << PINK << "> REQ parsed path: " << RESET << _path << std::endl;
+	// /* debug */std::cout << PINK << "> REQ parsed path: " << RESET << _path << std::endl;
 	
 	_http_version = std::string(&raw[path_end + 1], line_end - path_end - 1);
-	/* debug */std::cout << PINK << "> REQ parsed version: " << RESET << _http_version << std::endl;
+	// /* debug */std::cout << PINK << "> REQ parsed version: " << RESET << _http_version << std::endl;
 
 	validateRequestLine();
 	if (_state != PARSE_ERROR)

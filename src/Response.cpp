@@ -30,7 +30,7 @@ std::string	Response::buildResponse()
 	// if (_isBuilt)
 	// 	return getRawResponse(); // return cached response
 	
-	/* debug */std::cout << PINK << "> building response" << RESET << std::endl;
+	/* debug */std::cout << PINK << "> building response: " << RESET << _type << std::endl;
 	switch(_type)
 	{
 		case (REDIRECT):	buildRedirect(); break;
@@ -224,6 +224,7 @@ void	Response::buildError()
 	// std::map<HttpStatus, std::string>::const_iterator it = _server.getErrorPagePath(_status_code).find(_status_code);
 	// if (it != _server.getErrorPagePath().end())
 	std::string error_file = _server.getErrorPagePath(_status_code);
+	std::cout << PINK << "> error file from config: " << RESET << error_file << std::endl;
 	if (!error_file.empty())
 	{
 		// resolve relative to server root
