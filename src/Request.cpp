@@ -20,6 +20,7 @@ Request::Request()
 	_current_chunk_size(0)
 {
 	this->_session_id = Cookie::setRandCookie();
+	/*debug*/std::cout << "ori_session_id: " << _session_id << std::endl;
 }
 
 void	Request::handleRequest(const char* data, size_t size, size_t limit)
@@ -231,6 +232,8 @@ void	Request::parseCookies(const std::string& value)
 
 	start += key.length();
 	size_t end = value.find(';', start);
+	/* debug */std::cout << "> session_id : " << _session_id << "\n" << std::endl;
+
 	if (end == std::string::npos)
 		_session_id = std::string(&value[start], value.size() - start);
 	else
@@ -238,7 +241,7 @@ void	Request::parseCookies(const std::string& value)
 
 	_cookies["session_id"] = _session_id;
 
-	// /* debug */std::cout << "> session_id : " << _session_id << "\n" << std::endl;
+	/* debug */std::cout << "> session_id_2 : " << _session_id << "\n" << std::endl;
 }
 
 void	Request::parseBody(const std::string& raw, size_t &pos, size_t limit)

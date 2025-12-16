@@ -62,7 +62,7 @@ private:
 	void	buildRedirect();
 	void	buildStatic();
 	void	buildAutoIndex();
-	// void	buildCgi();
+	void	buildCgi();
 	void	buildError(); 
 
 	// helpers
