@@ -6,6 +6,8 @@ Request::Request()
 	_raw(),
 	_method(),
 	_path(),
+	_query(),
+	_query_entries(),
 	_http_version(),
 	_headers(),
 	_content_length(0),
