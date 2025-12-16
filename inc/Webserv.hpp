@@ -34,6 +34,7 @@
 #include <netinet/in.h>		// struct sockaddr_in, htons, htonl
 #include <netdb.h>			// gethostbyname, getaddrinfo, struct addrinfo
 #include <poll.h>			// poll, struct pollfd
+# include <limits.h>		// PATH_MAX
 
 // headers or forward declaration?
 #include "Macros.hpp"

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Tasks</title>
+</head>
+<body>
+    <h1>Filter Tasks</h1>
+    <form action="/cgi-bin/filterTask.py" method="GET">
+        <label for="id">ID:</label>
+        <input type="text" id="id" name="id"><br>
+
+        <select id="description" name="description">
+            <option value="">--Select Description--</option>
+            <option value="Finish Express.js tutorial">Finish Express.js tutorial</option>
+            <option value="Go grocery shopping">Go grocery shopping</option>
+            <option value="Prepare for exams">Prepare for exams</option>
+            <option value="Book dentist appointment">Book dentist appointment</option>
+            <option value="Water the plants">Water the plants</option>
+            <option value="Call the bank">Call the bank</option>
+        </select><br>
+
+        <select id="done" name="done">
+            <option value="">--Select Status--</option>
+            <option value="true">Done</option>
+            <option value="false">Not Done</option>
+        </select><br>
+
+        <select id="priority" name="priority">
+            <option value="">--Select Priority--</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+        </select><br>
+
+        <button type="submit">Filter</button>
+    </form>
+</body>
+</html>
