@@ -101,6 +101,40 @@ void	ConfigParser::checkValidTypeAutoindex(std::istringstream &iss)
 	}
 }
 
+void	ConfigParser::checkValidTypeListen(std::istringstream &iss)
+{
+	std::string			word;
+	int					count = 0;
+	size_t				pos = 0;
+	std::istringstream	tmp_iss(iss.str());
+	tmp_iss.seekg(iss.tellg());
+
+	tmp_iss >> word;
+	pos = word.find(':');
+	while (pos != std::string::npos)
+	{
+		pos = word.find(':', pos + 1);
+		count++;
+	}
+	if (count > 1)
+	{
+		this->_check.keyword = ':';
+		throw (std::invalid_argument(ERR_UNEXPECTSIGN));
+	}
+}
+
+void	ConfigParser::checkValidTypeServer(size_t code, std::istringstream &iss)
+{
+	switch (code)
+	{
+		case LISTEN:
+			checkValidTypeListen(iss);
+			break ;
+		case SERVER_NAME:
+			break ;
+	}
+}
+
 void	ConfigParser::checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data)
 {
 	switch (code)

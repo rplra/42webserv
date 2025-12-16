@@ -94,8 +94,10 @@ private:
 	bool		errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data);
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
 
+	void		checkValidTypeServer(size_t code, std::istringstream &iss);
 	void		checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data);
 	void		checkValidTypeLoc(size_t code, std::istringstream &iss);
+	void		checkValidTypeListen(std::istringstream &iss);
 	void		checkValidTypeAlias(std::istringstream &iss);
 	void		checkValidTypeUpload(std::istringstream &iss);
 	void		checkValidTypeCgi(std::istringstream &iss);
