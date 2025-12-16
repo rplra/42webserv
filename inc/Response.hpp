@@ -6,6 +6,7 @@
 
 class Request;
 class Server;
+struct Location;
 
 enum	ResponseType
 {
@@ -71,9 +72,11 @@ private:
 	std::string getMimeType(const std::string& path);
 
 	// static
-	std::string	getFileBody(const std::string& file_path);
-	void		handleDirectory(const std::string& dir_path);
-	void		serveFile(const std::string& file_path, HttpStatus status);
+	std::string					getFileBody(const std::string& file_path);
+	void						handleDirectory(const std::string& dir_path);
+	void						serveFile(const std::string& file_path, HttpStatus status);
+	std::vector<std::string>	setEnvVariables(std::string file_path);
+	std::string					executeCgi(const std::vector<std::string>& env_variables, std::string file_path, const Location* location, int len);
 
 	// page generators
 	std::string	generateAutoIndexBody(const std::string& file_path);
