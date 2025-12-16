@@ -40,6 +40,7 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <limits.h>
 
 class Request; // forward declaration
 

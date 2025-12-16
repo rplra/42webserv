@@ -81,6 +81,19 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
     else if (locPath->cgi.size() > 0) {
         std::cout << YELLOW << "Handling CGI for path: " << RESET << client.getPath() << std::endl;
 
+        int len = client.getPath().length();
+        int pathLen = locPath->path.length();
+        const std::string fileName = fullPath + client.getPath().substr(pathLen);
+
+        std::string currentDir; 
+        char cwd[PATH_MAX];
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+             currentDir = cwd;
+            std::cout << PINK << "Current working directory: " << currentDir << RESET << std::endl;
+        } else {
+            perror("getcwd() error");
+        }
+
         // 1. Setup environment variables
         std::vector<std::string> env_variables;
         env_variables.push_back("REQUEST_METHOD=" + client.getMethod());
@@ -92,6 +105,8 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
         env_variables.push_back("SCRIPT_NAME=" + client.getPath());
         env_variables.push_back("SERVER_NAME=" + clientServer->getHost());
         env_variables.push_back("SERVER_PORT=" + std::to_string(clientServer->getPort()));
+        env_variables.push_back("SCRIPT_FILENAME=" + currentDir + "/" + fileName); // for PHP
+        env_variables.push_back("REDIRECT_STATUS=200"); // for PHP
         env_variables.push_back("SERVER_PROTOCOL=HTTP/1.1");
 
         std::cout << YELLOW << "CGI Environment Variables: " << RESET << std::endl; //debug
@@ -119,10 +134,6 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
                 cgi_args.push_back(const_cast<char*>(it->c_str()));
             }
             cgi_args.push_back(nullptr);
-
-            int len = client.getPath().length();
-            int pathLen = locPath->path.length();
-            const std::string fileName = fullPath + client.getPath().substr(pathLen);
             
             if (client.getPath().compare(len - 3, 3, ".py") == 0) {
                 std::vector<char*> argv_arr;
@@ -133,11 +144,23 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
                 argv_arr.push_back(NULL);
 
                 if (execve(cgiPath.c_str(), argv_arr.data(), cgi_args.data()) == -1) {
-                    std::cerr << RED << "Error executing CGI script: " << strerror(errno) << RESET << std::endl;
+                    std::cerr << RED << "[PYTHON] Error executing CGI script: " << strerror(errno) << RESET << std::endl;
                     exit(1);
                 }             
             }
+            else if (client.getPath().compare(len - 4, 4, ".php") == 0) {
+                std::vector<char*> argv_arr;
+                std::string cgiPath = locPath->cgi.at(".php");
 
+                argv_arr.push_back(const_cast<char*>(cgiPath.c_str()));
+                argv_arr.push_back(const_cast<char*>(fileName.c_str()));
+                argv_arr.push_back(NULL);
+
+                if (execve(cgiPath.c_str(), argv_arr.data(), cgi_args.data()) == -1) {
+                    std::cerr << RED << "[PHP] Error executing CGI script: " << strerror(errno) << RESET << std::endl;
+                    exit(1);
+                } 
+            }
         }
 
         close(stdin_pipe[0]);
@@ -152,17 +175,26 @@ std::string sendData(const Server* clientServer, const Request& client, const Lo
             cgiResponse.append(buffer, nbytes);
         }
 
-        std::cout << GREEN << "CGI Response: " << RESET << cgiResponse << std::endl;
+        std::string modifiedCgiResponse;
+        if (client.getPath().compare(len - 4, 4, ".php") == 0) {
+            size_t start = cgiResponse.find("<html>");
+            modifiedCgiResponse = cgiResponse.substr(start);
+        }
+        else {
+            modifiedCgiResponse = cgiResponse;
+        }   
+        std::cout << GREEN << "CGI Response: " << RESET << modifiedCgiResponse << std::endl;
+
         close(stdout_pipe[0]);
         close(stdin_pipe[1]);
 
         std::stringstream response;
         response << "HTTP/1.1 200 OK" << "\r\n";
-        response << "Content-Length: " << cgiResponse.size() << "\r\n";
+        response << "Content-Length: " << modifiedCgiResponse.size() << "\r\n";
         response << "Content-Type: text/html\r\n";
         response << "Connection: close\r\n";
         response << "\r\n";
-        response << cgiResponse;
+        response << modifiedCgiResponse;
 
         // std::cout << GREEN << "Response: " << RESET << response.str() << std::endl; // DEBUG 
         return response.str();
