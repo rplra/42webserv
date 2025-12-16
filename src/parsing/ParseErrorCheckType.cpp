@@ -109,7 +109,7 @@ void	ConfigParser::checkValidTypeCommon(size_t code, std::istringstream &iss, er
 			checkValidTypeRoot(iss, data);
 			break ;
 		case INDEX:
-			checkValidTypeIndex(iss, data);
+			// checkValidTypeIndex(iss, data);
 			break ;
 		case ERROR_PAGE:
 			checkValidTypeErrPage(iss, data);

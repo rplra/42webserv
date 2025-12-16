@@ -31,6 +31,20 @@ bool	ConfigParser::checkMatch(const char* types[], std::string word, const std::
 	throw (std::invalid_argument(err_message));
 }
 
+void	ConfigParser::checkValidTypeAlias(std::istringstream &iss)
+{
+	struct stat			sb;
+	std::string			word;
+	std::istringstream	tmp_iss(iss.str());
+	tmp_iss.seekg(iss.tellg());
+
+	tmp_iss >> word;
+	if (stat(word.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
+		return ;
+	this->_check.keyword = word;
+	throw (std::invalid_argument(ERR_INVALIDPATH));
+}
+
 void	ConfigParser::checkValidTypeUpload(std::istringstream &iss)
 {
 	struct stat			sb;
@@ -42,6 +56,9 @@ void	ConfigParser::checkValidTypeUpload(std::istringstream &iss)
 	path = this->_check.loc.root + "/" + word;
 	if (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
 		return ;
+	else if (stat(word.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
+		return ;
+
 	this->_check.keyword = word;
 	throw (std::invalid_argument(ERR_INVALIDPATH));
 }
@@ -111,6 +128,9 @@ void	ConfigParser::checkValidTypeLoc(size_t code, std::istringstream &iss)
 		case CGI_HANDLER:
 			checkValidTypeCgi(iss);
 			break ;
+		case ALIAS:
+			checkValidTypeAlias(iss);
+			break ;
 		case ALLOWED_METHODS:
 			checkValidTypeAllowed(iss);
 			break ;
@@ -138,6 +158,7 @@ void	ConfigParser::checkLocationArgCount(size_t code, std::istringstream &iss)
 			return;
 		break;
 
+		case ALIAS:
 		case UPLOAD_STORE:
 		if (count == 1)
 			return ;
@@ -148,15 +169,17 @@ void	ConfigParser::checkLocationArgCount(size_t code, std::istringstream &iss)
 /* return (0) == no error */
 bool	ConfigParser::errorLocationDirective(std::string str, std::istringstream &iss)
 {
-	const char *arr[] =
+	const char *types[] =
 	{
 		"cgi_handler",
 		"allowed_methods",
 		"upload_store",
-		"return"
+		"return",
+		"alias",
+		NULL
 	};
-	std::vector<std::string> types(arr, arr + 4);
-	for (std::size_t i=0; i < types.size(); i++)
+	// std::vector<std::string> types(arr, arr + 4);
+	for (std::size_t i=0; types[i]; i++)
 	{
 		if (types[i] == str)
 		{
@@ -183,6 +206,7 @@ void	ConfigParser::errorCheckLocation(std::istringstream &iss, std::ifstream &in
 	this->_check.loc.dup.clear();
 	this->_check.loc.cgi.clear();
 	this->_check.loc.brace.clear();
+	this->_check.loc.root = this->_check.serv.root;
 	this->_check.loc.b_openBrace = 0;
 	this->_check.loc.b_closeBrace = 0;
 
