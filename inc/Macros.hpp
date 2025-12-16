@@ -31,9 +31,23 @@ const size_t BUFFER_SIZE = 8192;
 
 // error - args
 const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configuration file]";
-const std::string ERR_FILEINVALID		= "Invalid file!";
+const std::string ERR_FILEINVALID	    = "Invalid file:";
 const std::string ERR_FILEEMPTY			= "Empty file!";
-
+// errors config
+const std::string ERR_FILENOTFOUND	    = "File not found:";
+const std::string ERR_BODYSIZEINVALID   = "Body size has to be greater than 0. Current size:";
+const std::string ERR_DIRECTIVEINVALID  = "Unknown directive:";
+const std::string ERR_CODEINVALID       = "Invalid HTTP error code:";
+const std::string ERR_DIRECTIVENOTALLOW = "Directive not allowed here:";
+const std::string ERR_ARGCOUNTINVALID   = "Invalid number of arguments:";
+const std::string ERR_SEMICOLONMISSING  = "Directive is not terminated by ';' :";
+const std::string ERR_OPENBRACEMISSING  = "Directive has no opening:";
+const std::string ERR_CLOSEBRACEMISSING = "Unexpected end of file, expecting:";
+const std::string ERR_UNEXPECTSIGN      = "Unexpected:";
+const std::string ERR_CGIUNSUPPORTED    = "Unsupported CGI extension:";
+const std::string ERR_TYPEUNSUPPORTED   = "Unsupported type:";
+const std::string ERR_DUPLICATE         = "Duplicate:";
+const std::string ERR_INVALIDPATH       = "Invalid path:";
 // error - servermanager
 const std::string ERR_POLL				= "Error in poll()";
 const std::string ERR_CLIENTDISCONECT 	= "Client disconnected at fd: ";

@@ -1,4 +1,5 @@
 #include "Webserv.hpp"
+#include "ConfigParse.hpp"
 
 int g_signal;
 void testConfigParser(const std::vector<Server>&servers);
@@ -34,10 +35,9 @@ int main(int ac, char **av)
     signal(SIGINT, handleSignal);
 
 	// create config + parser > parse the file
-	Config config;
-    ConfigParser parser(config);
-	parser.parseConfig(filename);
-
+    Config          config;
+	ConfigParser    parser(config);
+    parser.parseConfig(av);
 	// // print parsed servers
 	// const std::vector<Server>& servers = config.getServers();
 	// testConfigParser(servers); // tested with basic.conf

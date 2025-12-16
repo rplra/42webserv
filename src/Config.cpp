@@ -13,6 +13,8 @@ Server::Server()
 	_locations()
 {};
 
+// Server::~Server(){}
+
 const std::string& Server::getHost() const {
 	return _host;
 }
@@ -175,7 +177,9 @@ void Server::addLocation(const Location& location) {
 }
 
 
-Config::Config() : _servers(), _port_map() {}
+Config::Config() : _servers(), _port_map()
+{
+}
 
 std::vector<Server>& Config::getServers()
 {
