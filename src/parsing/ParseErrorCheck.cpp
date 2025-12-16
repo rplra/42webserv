@@ -215,6 +215,7 @@ bool	ConfigParser::errorServerDirective(std::string &str, std::istringstream &is
 				// /*debug*/std::cout << "errorServerDirective" << std::endl;
 				checkDuplicate(str, this->_check.serv.dup, ERR_DUPLICATE);
 				checkServerArgCount(i, iss);
+				checkValidTypeServer(i, iss);
 			}
 			return (0);
 		}

@@ -2,6 +2,7 @@
 // #include "Config.hpp"
 
 #include "Webserv.hpp"
+#include "ConfigParse.hpp"
 
 Response::Response(const Request* request, const Server& server, HttpStatus status) 
 :
@@ -36,7 +37,7 @@ std::string	Response::buildResponse()
 		case (REDIRECT):	buildRedirect(); break;
 		case (STATIC):		buildStatic(); break;
 		case (AUTOINDEX):	buildAutoIndex(); break;
-		case (CGI):			// buildCgi(); break;
+		case (CGI):			buildCgi(); break;
 		case (ERROR):		buildError(); break;
 	}
 
@@ -90,6 +91,12 @@ void	Response::setHeader(const std::string& key, const std::string& value)
 	_headers[key] = value;
 }
 
+/*
+	about sessionId header:
+	- HttpOnly prevents JavaScript access (XSS)
+	  (check by typing document.cookie in browser console)
+	- Secure makes HTTPS connection mandatory
+ */
 void	Response::setHeaders()
 {
 	_headers["Date"] = getDate();
@@ -104,7 +111,8 @@ void	Response::setHeaders()
 	if (!_content_type.empty())
 		_headers["Content-Type"] = _content_type;
 	if (_request->hasSessionId())
-		_headers["Set-Cookie"] = "session_id=" + _request->getSessionID() + "; Path=/";
+		_headers["Set-Cookie"] = "session_id=" + _request->getSessionID() + \
+		"; Path=/ ; HttpOnly; Secure";
 	if (_type == STATIC)
 		_headers["Last-Modified"] = getLastModified();
 }
@@ -208,10 +216,26 @@ void	Response::buildAutoIndex()
 	4. set other HTTP headers from CGI output
 	5. if CGI didnt provide content-type, call getMimeType
 */
-// void	Response::buildCgi()
-// {
+void	Response::buildCgi()
+{
+	const Location* location = _server.getMatchingLocation(_request->getPath());
+	std::string file_path = _server.getFullPath(*_request);
+	int len = _request->getPath().length();
 
-// }
+	// 1. Setup environment variables
+	std::vector<std::string> env_variables = setEnvVariables(file_path);
+
+	// 2. Create pipes for inter-process communication
+	std::string modifiedCgiResponse = executeCgi(env_variables, file_path, location, len);
+	if (modifiedCgiResponse.empty()) {
+		setError(HTTP_INTERNAL_SERVER_ERROR);
+		return;
+	}
+
+	setBody(modifiedCgiResponse);
+	setHeader("Content-Type", "text/html");
+	setHeaders();
+}
 
 /* 
 	1. check if there's custom error config-ed for the status
@@ -345,13 +369,127 @@ std::string Response::getFileBody(const std::string& path)
 	return (body);
 }
 
-/* 
-	if stat() says this is a directory;
-	- serve index?
-	- generate autoindex?
-	- redirect /asset > /assets/?
-	- deny access?
-*/
+std::vector<std::string>	Response::setEnvVariables(std::string file_path)
+{
+	// get absolute path for PHP-CGI script
+	std::string currentDir; 
+	char cwd[PATH_MAX];
+	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+			currentDir = cwd;
+	} else {
+		perror("getcwd() error");
+	}
+
+	std::vector<std::string> env_variables;
+	env_variables.push_back("REQUEST_METHOD=" + _request->getMethod());
+	env_variables.push_back("CONTENT_LENGTH=" + std::to_string(_request->getBody().length()));
+	if (_request->getMethod() == "POST")
+		env_variables.push_back("CONTENT_TYPE=" + _request->getHeaders().at("content-type"));
+	// if (_request->getMethod() == "GET")
+		// env_variables.push_back("QUERY_STRING=" + _request->getQuery());
+	env_variables.push_back("SCRIPT_NAME=" + _request->getPath());
+	env_variables.push_back("SERVER_NAME=" + _server.getHost());
+	env_variables.push_back("SERVER_PORT=" + std::to_string(_server.getPort()));
+	env_variables.push_back("SCRIPT_FILENAME=" + currentDir + "/" + file_path); // for PHP
+	env_variables.push_back("REDIRECT_STATUS=200"); // for PHP
+	env_variables.push_back("SERVER_PROTOCOL=HTTP/1.1");
+
+	std::cout << PURPLE << "CGI Environment Variables: " << RESET << std::endl; //debug
+	for (std::vector<std::string>::const_iterator it = env_variables.begin(); it != env_variables.end(); ++it) {
+		std::cout << *it << std::endl;
+	}
+
+	return (env_variables);
+}
+
+std::string	Response::executeCgi(const std::vector<std::string>& env_variables, std::string file_path, const Location* location, int len)
+{
+	int stdin_pipe[2]; // parent writes to child (body)
+	int stdout_pipe[2]; // child writes to parent (cgi response)
+
+	pipe(stdin_pipe);
+	pipe(stdout_pipe);
+
+	pid_t pid = fork();
+	if(pid == 0) 
+	{
+		// CGI program know nothing about socket, HTTP connection and server 
+		// create two pipes so that stdin -> input (req) to cgi program, stdout -> output (res) from cgi program
+		dup2(stdin_pipe[0], STDIN_FILENO);
+		dup2(stdout_pipe[1], STDOUT_FILENO);
+
+		std::vector<char*> cgi_args;
+		for (std::vector<std::string>::const_iterator it = env_variables.begin(); it != env_variables.end(); ++it) {
+			cgi_args.push_back(const_cast<char*>(it->c_str()));
+		}
+		cgi_args.push_back(nullptr);
+		
+		if (_request->getPath().compare(len - 3, 3, ".py") == 0) {
+			std::vector<char*> argv_arr;
+			std::string cgiPath = location->_cgi.at(PY);
+
+			argv_arr.push_back(const_cast<char*>(cgiPath.c_str()));
+			argv_arr.push_back(const_cast<char*>(file_path.c_str()));
+			argv_arr.push_back(NULL);
+
+			if (execve(cgiPath.c_str(), argv_arr.data(), cgi_args.data()) == -1) {
+				std::cerr << RED << "[PYTHON] Error executing CGI script: " << strerror(errno) << RESET << std::endl;
+				exit(1);
+			}             
+		}
+		else if (_request->getPath().compare(len - 4, 4, ".php") == 0) {
+			std::vector<char*> argv_arr;
+			std::string cgiPath = location->_cgi.at(PHP);
+
+			argv_arr.push_back(const_cast<char*>(cgiPath.c_str()));
+			argv_arr.push_back(const_cast<char*>(file_path.c_str()));
+			argv_arr.push_back(NULL);
+
+			if (execve(cgiPath.c_str(), argv_arr.data(), cgi_args.data()) == -1) {
+				std::cerr << RED << "[PHP] Error executing CGI script: " << strerror(errno) << RESET << std::endl;
+				exit(1);
+			} 
+		}
+	}
+
+	close(stdin_pipe[0]);
+	close(stdout_pipe[1]);
+
+	write(stdin_pipe[1], _request->getBody().c_str(), _request->getBody().length());
+
+	ssize_t nbytes;
+	char buffer[4096];
+	std::string cgiResponse;
+	while ((nbytes = read(stdout_pipe[0], buffer, sizeof(buffer))) > 0) {
+		cgiResponse.append(buffer, nbytes);
+	}
+
+	if (nbytes < 0) {
+		std::cerr << RED << "Error reading from CGI stdout: " << strerror(errno) << RESET << std::endl;
+		return ("");
+	} else {
+		std::cout << GREEN << "Successfully read CGI output." << RESET << std::endl;
+	}
+
+	std::string modifiedCgiResponse;
+	if (_request->getPath().compare(len - 4, 4, ".php") == 0) {
+		size_t start = cgiResponse.find("<html>");
+		modifiedCgiResponse = cgiResponse.substr(start);
+	}
+	else {
+		modifiedCgiResponse = cgiResponse;
+	}   
+	std::cout << GREEN << "CGI Response: " << RESET << modifiedCgiResponse << std::endl;
+
+	close(stdin_pipe[1]);
+	close(stdout_pipe[0]);
+
+	int status;
+	waitpid(pid, &status, 0);
+
+	return (modifiedCgiResponse);
+}
+
 void Response::handleDirectory(const std::string& dir_path)
 {
 	std::string request_path = _request->getPath();

@@ -79,7 +79,7 @@ void Client::buildResponse()
 		{
 			if (location->_allowed_methods[i] == _request.getMethod())
 			{
-				methodAllowed = true;
+				methodAllowed = true;					
 				break;
 			}
 	/* routing */	}
@@ -107,6 +107,10 @@ void Client::buildResponse()
 
 	// 6. else, serve static content
 	_response->setType(STATIC);
+
+	if (location && location->_cgi.size() > 0)
+		_response->setType(CGI);
+
 	_response->buildResponse();
 	markResponseReady();
 }

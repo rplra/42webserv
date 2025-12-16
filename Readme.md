@@ -35,3 +35,8 @@ This project covers low-level networking using **sockets**, **non-blocking I/O**
 
 #### Documentation
 [Notion : Webserv](https://www.notion.so/webserv-2a76434f644c80399b33c64b8c4dac1f) 
+
+#### References
+[About Cookie Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie) </br>
+https://www.alimnaqvi.com/blog/webserv
+

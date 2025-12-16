@@ -39,9 +39,10 @@ enum e_server_scope
 enum e_location_scope
 {
 	CGI_HANDLER,		// not for global scope
-	ALLOWED_METHODS,	//allowed_methods
+	ALLOWED_METHODS,	// allowed_methods
 	UPLOAD_STORE,		// upload path
-	RETURN				// redirect path
+	RETURN,				// redirect path
+	ALIAS				// alias to replace root
 	/* ... plus common directives */
 };
 
@@ -93,8 +94,11 @@ private:
 	bool		errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data);
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
 
+	void		checkValidTypeServer(size_t code, std::istringstream &iss);
 	void		checkValidTypeCommon(size_t code, std::istringstream &iss, errCheckGroup &data);
 	void		checkValidTypeLoc(size_t code, std::istringstream &iss);
+	void		checkValidTypeListen(std::istringstream &iss);
+	void		checkValidTypeAlias(std::istringstream &iss);
 	void		checkValidTypeUpload(std::istringstream &iss);
 	void		checkValidTypeCgi(std::istringstream &iss);
 	void		checkValidTypeRoot(std::istringstream &iss, errCheckGroup &data);

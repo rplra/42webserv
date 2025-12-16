@@ -92,6 +92,16 @@ std::string	Server::getFullPath(const Request& request) const
 				std::cout << PINK << "> SVR: appended index to path: " << RESET << path << std::endl;
 			}
 		}
+
+		if (location->_index != "")
+		{
+			// if path ends with /, append index
+			if (!path.empty() && path[path.length() - 1] == '/')
+			{
+				path += location->_index;
+				std::cout << PINK << "> SVR: appended index to path: " << RESET << path << std::endl;
+			}
+		}
 	}
 	else
 		/* debug */std::cout << PINK << "> SVR: using server root, keeping full path" << RESET << std::endl;
