@@ -28,6 +28,9 @@ public:
 	//		getters
 	const	std::string&						getMethod() const;
 	const	std::string&						getPath() const;
+	const	std::string&						getQuery() const;
+	const	std::string&						getQueryEntry(const std::string& key) const;
+	const	std::map<std::string, std::string>&	getQueryEntries() const;
 	const	std::string&						getHttpVersion() const;
 	const	std::string&						getHeader(const std::string& key) const;
 	const	std::map<std::string, std::string>&	getHeaders() const;
@@ -51,6 +54,8 @@ private:
 	std::string							_raw;
 	std::string							_method;
 	std::string							_path;
+	std::string							_query;
+	std::map<std::string, std::string>	_query_entries;				
 	std::string							_http_version;
 	std::map<std::string, std::string>	_headers;
 	size_t								_content_length;
@@ -72,11 +77,13 @@ private:
 	//		parser
 	void	parseByState(size_t limit);
 	void 	parseRequestLine(const std::string& raw, size_t &pos);
+	void	parseQuery(const std::string& query);
 	void 	parseHeaders(const std::string& raw, size_t &pos);
 	void	parseCookies(const std::string& value);
 	void	parseBody(const std::string& raw, size_t &pos, size_t limit);
 	void	parseContentLengthBody(const std::string& raw, size_t &pos, size_t limit);
 	void	parseChunkedBody(const std::string& raw, size_t &pos, size_t limit);
+	// void	parseMultipart(const std::string& raw, size_t &pos, size_t limit);
 
 	// 		helpers
 	bool	isValidPath();

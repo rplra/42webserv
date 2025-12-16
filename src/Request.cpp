@@ -39,6 +39,25 @@ const	std::string& Request::getPath() const
 	return (_path);
 }
 
+const	std::string& Request::getQuery() const
+{
+	return (_query);
+}
+
+const	std::map<std::string, std::string>&	Request::getQueryEntries() const
+{
+	return (_query_entries);
+}
+
+const	std::string& Request::getQueryEntry(const std::string& key) const
+{
+	static const std::string empty;
+	std::map<std::string, std::string>::const_iterator it = _query_entries.find(key);
+	if (it != _query_entries.end())
+		return (it->second);
+	return (empty);
+}
+
 const	std::string& Request::getHttpVersion() const
 {
 	return (_http_version);
@@ -181,8 +200,24 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 
 	_method = std::string(&raw[pos], method_end - pos);
 	/* debug */std::cout << PINK << "> REQ parsed method: " << RESET << _method << std::endl;
-	_path = std::string(&raw[method_end + 1], path_end - method_end - 1);
+	
+	std::string full_path = std::string(&raw[method_end + 1], path_end - method_end - 1);
+
+	// query (starts from '?')
+	// example.com/search?query=cat&sort=date&page=2
+	size_t question_mark = full_path.find('?');
+	if (question_mark != std::string::npos)
+	{
+		_path = std::string(&full_path[0], question_mark);
+		_query = std::string(&full_path[question_mark + 1]);
+		/* debug */std::cout << PINK << "> REQ parsed path: " << RESET << _path << std::endl;
+		/* debug */std::cout << PINK << "> REQ parsed query: " << RESET << _query << std::endl;
+		parseQuery(_query);
+	}
+	else
+		_path = full_path;
 	/* debug */std::cout << PINK << "> REQ parsed path: " << RESET << _path << std::endl;
+	
 	_http_version = std::string(&raw[path_end + 1], line_end - path_end - 1);
 	/* debug */std::cout << PINK << "> REQ parsed version: " << RESET << _http_version << std::endl;
 
@@ -191,6 +226,53 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	{
 		pos = line_end + 2; // move past "\r\n"
 		_state = PARSE_HEADERS;
+	}
+}
+
+/* 
+	query entries ('=' is key value, '&' is seperator)
+	eg : "user=John+Doe&file=report%202025.pdf&flag"
+	entry[1] : user=John+Doe
+	entry[2] : file=report%202025.pdf
+	entry[3] : flag (some query flags are just keys - no value)
+*/
+void	Request::parseQuery(const std::string& query)
+{
+	if (query.empty())
+		return ;
+
+	size_t start = 0;
+	while (start < query.length())
+	{
+		// find next entry (seperated by &)
+		size_t ampersand = query.find('&', start);
+		size_t end = (ampersand == std::string::npos) ? query.length() : ampersand;
+
+		// extract current entry (key=value)
+		std::string entry = std::string(&query[start], end - start);
+
+		// extract entry's key + value
+		size_t equals = entry.find('=');
+		if (equals != std::string::npos)
+		{
+			std::string key(&entry[0], equals);
+			std::string value(&entry[equals + 1], entry.length() - equals);
+
+			key = urlDecode(key);
+			value = urlDecode(value);
+
+			_query_entries[key] = value;
+			/* debug */std::cout << PINK << "> REQ query entry: " << RESET << key << " = " << value << std::endl;
+		}
+		else
+		{
+			std::string key = urlDecode(entry);
+			_query_entries[key] = "";
+		}
+
+		if (ampersand == std::string::npos)
+			break;
+		start = ampersand + 1;
 	}
 }
 
@@ -230,7 +312,7 @@ void	Request::parseCookies(const std::string& value)
 	if (start == std::string::npos)
 		return ;
 
-	start += key.length();
+	start += key.length() + 1;
 	size_t end = value.find(';', start);
 	/* debug */std::cout << "> session_id : " << _session_id << "\n" << std::endl;
 
@@ -359,6 +441,11 @@ void	Request::parseContentLengthBody(const std::string& raw, size_t &pos, size_t
 	_state = PARSE_COMPLETE;
 }
 
+// void	Request::parseMultipart(const std::string& raw, size_t &pos, size_t limit)
+// {
+
+// }
+
 /* 
 	check for c <= 31 || c == 127 is to abide RFC 9112 (HTTP/1.1)
 		- HTTP messages must consist of printable ASCII characters (0x20–0x7E) plus CRLF.
@@ -440,6 +527,8 @@ void	Request::clear()
 	_raw.clear();
 	_method.clear();
 	_path.clear();
+	_query.clear();
+	_query_entries.clear();
 	_http_version.clear();
 	_headers.clear();
 	_content_length = 0;

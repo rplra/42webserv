@@ -56,6 +56,48 @@ std::string toLower(const std::string& s)
 	return (res);
 }
 
+/* 
+	eg : GET /search/photos%20gallery?user=John+Doe&file=report%202025.pdf HTTP/1.1
+	_path = /search/photos%20gallery
+	_query = user=John+Doe&file=report%202025.pdf
+	John+Doe > John Doe
+	report%202025.pdf > report 2025.pdf
+
+	'+' 	; spaces are encoded as '+' with HTML form submission
+	'%20' 	; spaces are encoded as '%20' with URL (browser / manual encoding)
+*/
+std::string	urlDecode(const std::string& s)
+{
+	std::string result;
+	result.reserve(s.length());
+
+	for (size_t i = 0; i < s.length(); ++i)
+	{
+		if (s[i] == '%' && i + 2 < s.length())
+		{
+			// decode %XX hex encoding
+			char hex[3] = { s[i + 1], s[i + 2], 0};	// [hex digit, hex digit, null]
+			char *end;								// points to first char not used in conversion
+			long value = std::strtol(hex, &end, 16);
+
+			if (*end == 0)
+			{
+				result += static_cast<char>(value);
+				i += 2;
+				continue;
+			}
+		}
+		else if (s[i] == '+')
+		{
+			// '+' represents space in query strings
+			result += ' ';
+			continue;
+		}
+		result += s[i];
+	}
+	return (result);
+}
+
 void handleSignal(int signum)
 {
     g_signal = 0;

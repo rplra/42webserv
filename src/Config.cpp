@@ -47,23 +47,25 @@ std::string	Server::getFullPath(const Request& request) const
 {
 	const Location* location = getMatchingLocation(request.getPath());
 
-	/* debug */std::cout << PINK << "> SVR: req path: " << RESET << request.getPath() << std::endl;
-	/* debug */std::cout << PINK << "> SVR: location found: " << RESET << (location ? "YES" : "NO") << std::endl;
-	/* debug */if (location)
-	/* debug */{
-	/* debug */		std::cout << PINK << "> SVR: location path: " << RESET << location->_path << std::endl;
-	/* debug */		std::cout << PINK << "> SVR: location root: " << RESET << location->_root << std::endl;
-	/* debug */}
-	/* debug */std::cout << PINK << "> SVR: server root: " << RESET << _root << std::endl;
+	// /* debug */std::cout << PINK << "> SVR: req path: " << RESET << request.getPath() << std::endl;
+	// /* debug */std::cout << PINK << "> SVR: location found: " << RESET << (location ? "YES" : "NO") << std::endl;
+	// /* debug */if (location)
+	// /* debug */{
+	// /* debug */		std::cout << PINK << "> SVR: location path: " << RESET << location->_path << std::endl;
+	// /* debug */		std::cout << PINK << "> SVR: location root: " << RESET << location->_root << std::endl;
+	// /* debug */}
+	// /* debug */std::cout << PINK << "> SVR: server root: " << RESET << _root << std::endl;
 
 	std::string path = request.getPath();
+	std::cout << YELLOW << "> SVR: initial req path: " << RESET << path << std::endl;
 	std::string root = _root;
 
 	// if location has custom root, use it and strip the location prefix
 	if (location && !location->_root.empty())
 	{
-		/* debug */std::cout << PINK << "> SVR: using loc custom root" << RESET << std::endl;
+		// /* debug */std::cout << PINK << "> SVR: using loc custom root" << RESET << std::endl;
 		root = location->_root;
+		std::cout << YELLOW << "> SVR: adjusted root to: " << RESET << root << std::endl;
 
 		// strip location from prefix path
 		if (!location->_path.empty())
@@ -74,7 +76,20 @@ std::string	Server::getFullPath(const Request& request) const
 				path = path.substr(loc_len);
 				// ensure path starts with /
 				if (path.empty() || path[0] != '/')
+				{
 					path = "/" + path;
+					std::cout << PINK << "> SVR: adjusted path to have leading / : " << RESET << path << std::endl;
+				}
+			}
+		}
+
+		if (location->_index != "")
+		{
+			// if path ends with /, append index
+			if (!path.empty() && path[path.length() - 1] == '/')
+			{
+				path += location->_index;
+				std::cout << PINK << "> SVR: appended index to path: " << RESET << path << std::endl;
 			}
 		}
 
@@ -90,6 +105,7 @@ std::string	Server::getFullPath(const Request& request) const
 	}
 	else
 		/* debug */std::cout << PINK << "> SVR: using server root, keeping full path" << RESET << std::endl;
+	std::cout << PINK << "> SVR: full path resolved to: " << RESET << root + path << std::endl;
 	return root + path;
 }
 

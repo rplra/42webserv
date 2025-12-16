@@ -14,6 +14,7 @@ std::string	trimStringHead(const std::string &str, char c);
 // std::string	normalizePath(const std::string& s);
 std::string toLower(const std::string& s);
 std::string trim(const std::string& s);
+std::string	urlDecode(const std::string& s);
 
 // generic
 bool		isDirectory(const std::string& path);
