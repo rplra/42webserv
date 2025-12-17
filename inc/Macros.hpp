@@ -34,6 +34,7 @@ const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configu
 const std::string ERR_FILEINVALID	    = "Invalid file:";
 const std::string ERR_FILEEMPTY			= "Empty file!";
 // errors config
+const std::string ERR_ROOTCONFLICT	    = "Location using 'root' and 'alias' directives at the same time:";
 const std::string ERR_FILENOTFOUND	    = "File not found:";
 const std::string ERR_BODYSIZEINVALID   = "Body size has to be greater than 0. Current size:";
 const std::string ERR_DIRECTIVEINVALID  = "Unknown directive:";

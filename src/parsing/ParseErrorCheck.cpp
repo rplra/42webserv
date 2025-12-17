@@ -80,6 +80,16 @@ bool ConfigParser::ignoreKeyword(std::string &word, std::istringstream &iss, err
 }
 
 /* checks for duplicate directives in config file */
+bool ConfigParser::checkAliasRootConflict(std::vector<std::string> &data)
+{
+	std::string	to_find = "root";
+
+	std::vector<std::string>::iterator it = std::find(data.begin(), data.end(), to_find);
+	if (it != data.end()) //if found root when alias
+		throw (std::invalid_argument(ERR_ROOTCONFLICT));
+	return (1);
+}
+
 bool ConfigParser::checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message)
 {
 	std::vector<std::string>::iterator it = data.begin();

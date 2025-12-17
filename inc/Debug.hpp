@@ -40,6 +40,7 @@ void	printLocations(std::vector<T> &data)
 	{
 		std::cout << "  path            : " << it->_path << std::endl;
 		std::cout << "  root            : " << it->_root << std::endl;
+		std::cout << "  alias           : " << it->_alias << std::endl;
 		std::cout << "  index           : " << it->_index << std::endl;
 		std::cout << "  autoindex       : " << it->_autoindex << std::endl;
 		std::cout << "  client_body     : " << it->_client_max_body_size << std::endl;

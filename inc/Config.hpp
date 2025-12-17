@@ -14,6 +14,7 @@ struct Location
 {
 	std::string					_path;
 	std::string					_root;
+	std::string					_alias;
 	std::string					_index;
 	bool						_autoindex;
 	size_t						_client_max_body_size;
