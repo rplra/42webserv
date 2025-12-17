@@ -25,6 +25,11 @@ public:
 	
 	void	handleRequest(const char* data, size_t size, size_t limit);
 
+	//		setters
+	// void										setBodySizeLimit(size_t limit);
+	// void										setStatus(HttpStatus status);
+	// void										setState(ParserState state);
+
 	//		getters
 	const	std::string&						getMethod() const;
 	const	std::string&						getPath() const;
@@ -34,6 +39,7 @@ public:
 	const	std::string&						getHttpVersion() const;
 	const	std::string&						getHeader(const std::string& key) const;
 	const	std::map<std::string, std::string>&	getHeaders() const;
+	// const	std::string&						getBoundary() const;
 	const	std::string&						getContentType() const;
 	const	std::string&						getConnection() const;
 	const	std::string&						getSessionID() const;
@@ -43,6 +49,7 @@ public:
 	HttpStatus									getStatus() const;
 
 	bool	hasBody();
+	bool	hasMultipart() const;
 	bool 	hasSessionId() const;
 	bool	isParseComplete();
 	void	clear();
@@ -60,30 +67,29 @@ private:
 	std::map<std::string, std::string>	_headers;
 	size_t								_content_length;
 	std::string							_content_type;
+	// std::string							_boundary;
 	std::string							_body;
 	std::map<std::string, std::string>	_cookies; // may be redundant
 	std::string							_session_id;
 	std::string							_connection;
 	
 	ParserState							_state;
+	// size_t								_body_size_limit;
 	size_t								_parsed_pos;
 	HttpStatus							_status;
 	bool								_isChunked;
 	size_t								_current_chunk_size;
-
-	// post: multipart - content type
-	// bonus: cookies
 
 	//		parser
 	void	parseByState(size_t limit);
 	void 	parseRequestLine(const std::string& raw, size_t &pos);
 	void	parseQuery(const std::string& query);
 	void 	parseHeaders(const std::string& raw, size_t &pos);
+	void	parseBoundary();
 	void	parseCookies(const std::string& value);
 	void	parseBody(const std::string& raw, size_t &pos, size_t limit);
 	void	parseContentLengthBody(const std::string& raw, size_t &pos, size_t limit);
 	void	parseChunkedBody(const std::string& raw, size_t &pos, size_t limit);
-	// void	parseMultipart(const std::string& raw, size_t &pos, size_t limit);
 
 	// 		helpers
 	bool	isValidPath();

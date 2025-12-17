@@ -349,14 +349,14 @@ std::string	Response::getRawResponse()
 	// build headers
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		_raw_response += it->first + ": " + it->second + "\r\n";
-	// /* debug */std::cout << ORANGE << "> status line + header: \n" << RESET << _raw_response << std::endl;
+	/* debug */std::cout << ORANGE << "> status line + header: \n" << RESET << _raw_response << std::endl;
 	
 	// empty line
 	_raw_response += "\r\n";
 
 	// build body
 	_raw_response += _body;
-	/* debug */std::cout << ORANGE << "> full response: \n" << RESET << _raw_response << std::endl;
+	// /* debug */std::cout << ORANGE << "> full response: \n" << RESET << _raw_response << std::endl;
 	return (_raw_response);
 }
 
