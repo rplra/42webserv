@@ -184,7 +184,7 @@ bool	ConfigParser::errorLocationDirective(std::string str, std::istringstream &i
 		if (types[i] == str)
 		{
 			if (i == 4)
-				checkAliasRootConflict(this->_check.loc.dup);
+				checkAliasRootConflict(str, this->_check.loc.dup);
 			if (i == 0)
 				checkDuplicateCgi(str, iss, this->_check.loc.cgi);
 			else // alias need check dup as well

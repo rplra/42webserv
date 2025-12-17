@@ -110,7 +110,7 @@ private:
 	
 	bool		checkMatch(const char* types[], std::string word, const std::string err_message);
 	bool		checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message);
-	bool		checkAliasRootConflict(std::vector<std::string> &data);
+	bool		checkAliasRootConflict(std::string &str, std::vector<std::string> &data);
 	bool		checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data);
 	void		checkServerArgCount(size_t code, std::istringstream &iss);
 	void		checkCommonArgCount(size_t code, std::istringstream &iss);

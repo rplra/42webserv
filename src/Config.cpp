@@ -90,6 +90,7 @@ std::string	Server::getFullPath(const Request& request) const
 		/* debug */std::cout << PINK << "> SVR: using server root" << RESET << std::endl;
 		return root;
 	}
+	return (0);
 }
 
 std::vector<Location>& Server::getLocations() {
