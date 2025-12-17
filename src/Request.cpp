@@ -6,6 +6,8 @@ Request::Request()
 	_raw(),
 	_method(),
 	_path(),
+	_query(),
+	_query_entries(),
 	_http_version(),
 	_headers(),
 	_content_length(0),
@@ -19,8 +21,6 @@ Request::Request()
 	_isChunked(false),
 	_current_chunk_size(0)
 {
-	this->_session_id = Cookie::setRandCookie();
-	/*debug*/std::cout << "ori_session_id: " << _session_id << std::endl;
 }
 
 void	Request::handleRequest(const char* data, size_t size, size_t limit)

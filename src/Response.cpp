@@ -99,6 +99,8 @@ void	Response::setHeader(const std::string& key, const std::string& value)
  */
 void	Response::setHeaders()
 {
+	std::string	new_session_id;
+
 	_headers["Date"] = getDate();
 	_headers["Server"] = "Webserv/1.0";
 	_headers["Content-Length"] = std::to_string(_body.size());
@@ -110,9 +112,14 @@ void	Response::setHeaders()
 	
 	if (!_content_type.empty())
 		_headers["Content-Type"] = _content_type;
-	if (_request->hasSessionId())
-		_headers["Set-Cookie"] = "session_id=" + _request->getSessionID() + \
-		"; Path=/ ; HttpOnly; Secure";
+
+	if (!_request->hasSessionId())
+		new_session_id = Cookie::setRandCookie();
+	else
+		new_session_id = _request->getSessionID();
+	_headers["Set-Cookie"] = "session_id=" + new_session_id + \
+	"; Path=/ ; HttpOnly; Secure";
+
 	if (_type == STATIC)
 		_headers["Last-Modified"] = getLastModified();
 }
