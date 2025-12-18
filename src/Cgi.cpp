@@ -16,8 +16,8 @@ void	Response::setEnvVariables()
 	_env_variables.push_back("CONTENT_LENGTH=" + std::to_string(_request->getBody().length()));
 	if (_request->getMethod() == "POST")
 		_env_variables.push_back("CONTENT_TYPE=" + _request->getHeaders().at("content-type"));
-	// if (_request->getMethod() == "GET")
-		// _env_variables.push_back("QUERY_STRING=" + _request->getQuery());
+	if (_request->getMethod() == "GET")
+		_env_variables.push_back("QUERY_STRING=" + _request->getQuery());
 	_env_variables.push_back("SCRIPT_NAME=" + _request->getPath());
 	_env_variables.push_back("SERVER_NAME=" + _server.getHost());
 	_env_variables.push_back("SERVER_PORT=" + std::to_string(_server.getPort()));
