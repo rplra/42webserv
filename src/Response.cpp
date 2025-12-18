@@ -471,13 +471,6 @@ std::string	Response::executeCgi(const std::vector<std::string>& env_variables, 
 		cgiResponse.append(buffer, nbytes);
 	}
 
-	if (nbytes < 0) {
-		std::cerr << RED << "Error reading from CGI stdout: " << strerror(errno) << RESET << std::endl;
-		return ("");
-	} else {
-		std::cout << GREEN << "Successfully read CGI output." << RESET << std::endl;
-	}
-
 	std::string modifiedCgiResponse;
 	if (_request->getPath().compare(len - 4, 4, ".php") == 0) {
 		size_t start = cgiResponse.find("<html>");

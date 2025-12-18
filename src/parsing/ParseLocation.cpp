@@ -25,6 +25,10 @@ void	Server::parseLocationDirective(std::size_t code, std::istringstream &iss, L
 			assignMapContainer(data._redirect, iss);
 			break;
 
+		case ALIAS:
+			iss >> data._alias;
+			break;
+
 		default:
 			break;
 	}
@@ -38,6 +42,7 @@ bool	Server::handleLocationDirective(std::string str, std::istringstream &iss, L
 		"allowed_methods",
 		"upload_store",
 		"return",
+		"alias",
         NULL
 	};
 	// std::vector<std::string> types(arr, arr + 4);

@@ -39,6 +39,6 @@
         echo "</tr>";
     }
     echo "</table>";
-    echo "<br><a href=\"/\">Back to Home</a>";
+    echo "<br><a href=\"/index\">Back to Main</a>";
     echo "</body></html>";
 ?>

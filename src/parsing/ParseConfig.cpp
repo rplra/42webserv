@@ -83,7 +83,7 @@ void	Server::parseCommonDirective(std::size_t code, std::istringstream &iss, T &
 		case ROOT:
 			data._root = word;
 			// data.setRoot(word);
-			// /*debug*/ std::cout << data._root << std::endl;
+			// /*debug*/ std::cout << "root: " << data._root << std::endl;
 			break;
 
 		case INDEX:
@@ -227,7 +227,7 @@ void	ConfigParser::parseConfig(char **av)
 
 		/* else, start parsing */
 		this->startParser(inFile);
-		// /*debug*/ this->_config.printAllServer();
+		/*debug*/ this->_config.printAllServer();
 
 		/* close after reading */
 		inFile.close();

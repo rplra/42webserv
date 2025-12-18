@@ -83,30 +83,14 @@ std::string	Server::getFullPath(const Request& request) const
 			}
 		}
 
-		if (location->_index != "")
-		{
-			// if path ends with /, append index
-			if (!path.empty() && path[path.length() - 1] == '/')
-			{
-				path += location->_index;
-				std::cout << PINK << "> SVR: appended index to path: " << RESET << path << std::endl;
-			}
-		}
-
-		if (location->_index != "")
-		{
-			// if path ends with /, append index
-			if (!path.empty() && path[path.length() - 1] == '/')
-			{
-				path += location->_index;
-				std::cout << PINK << "> SVR: appended index to path: " << RESET << path << std::endl;
-			}
-		}
+		std::cout << PINK << "> SVR: full path resolved to: " << RESET << root + path << std::endl;
+		return root + path;
 	}
-	else
-		/* debug */std::cout << PINK << "> SVR: using server root, keeping full path" << RESET << std::endl;
-	std::cout << PINK << "> SVR: full path resolved to: " << RESET << root + path << std::endl;
-	return root + path;
+	else if (location) {
+		/* debug */std::cout << PINK << "> SVR: using server root" << RESET << std::endl;
+		return root;
+	}
+	return (0);
 }
 
 std::vector<Location>& Server::getLocations() {
