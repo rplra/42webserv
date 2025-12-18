@@ -61,10 +61,9 @@ std::string	Server::getFullPath(const Request& request) const
 	std::string root = _root;
 
 	// if location has custom root, use it and strip the location prefix
-	if (location && !location->_root.empty())
+	if (location && !location->_alias.empty())
 	{
-		// /* debug */std::cout << PINK << "> SVR: using loc custom root" << RESET << std::endl;
-		root = location->_root;
+		root = location->_alias;
 		std::cout << YELLOW << "> SVR: adjusted root to: " << RESET << root << std::endl;
 
 		// strip location from prefix path
@@ -84,6 +83,12 @@ std::string	Server::getFullPath(const Request& request) const
 		}
 
 		std::cout << PINK << "> SVR: full path resolved to: " << RESET << root + path << std::endl;
+		return root + path;
+	}
+	else if (location && !location->_root.empty()) 
+	{
+		root = location->_root;
+
 		return root + path;
 	}
 	else {
@@ -115,20 +120,29 @@ const Location* Server::getMatchingLocation(const std::string& requestPath) cons
 	const Location* best_match = nullptr;
 	size_t best_len = 0;
 
-	/* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << "'" << std::endl;
+	// /* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << "'" << std::endl;
 	for (size_t i = 0; i < _locations.size(); ++i) {
 		const Location& loc = _locations[i];
-		// /* debug */std::cout << PINK << "> check location path: " << RESET << loc._path << "'" << std::endl;
 		size_t len = loc._path.length();
-		if (requestPath.compare(0, len, loc._path) == 0 
-			&& (requestPath.length() == len || requestPath[len] == '/')) {
-			if (len > best_len) {
-				best_len = len;
-				best_match = &_locations[i];
-			}
+		bool match = false;
+		if (requestPath.compare(0, len, loc._path) == 0) {
+			if ((requestPath.length() == len || requestPath[len] == '/'))
+				match = true;
+			else if (requestPath[len - 1] == '/' && loc._path[len - 1] == '/')
+				match = true;
+		}
+
+		if (match && len > best_len) {
+			best_len = len;
+			best_match = &_locations[i];
 		}
 	}
 
+	// debug
+	if (best_match)
+		std::cout << YELLOW << "> SVR: best matching location: " << RESET << best_match->_path << std::endl;
+	else 
+		std::cout << YELLOW << "> SVR: no matching location found" << RESET << std::endl;
 	return best_match;
 }
 
