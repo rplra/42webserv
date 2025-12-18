@@ -12,7 +12,7 @@ PARSE_DIR	=	$(SRC)/parsing
 # Sources
 PARSE_FILES	=	ParseConfig.cpp ParseLocation.cpp ParseUtils.cpp \
 				ParseErrorCheck.cpp ParseErrorCheckType.cpp ParseErrorCheckLoc.cpp
-SRC_FILES	=	main.cpp Config.cpp Cookie.cpp Utils.cpp Request.cpp Response.cpp ServerManager.cpp Client.cpp
+SRC_FILES	=	main.cpp Cgi.cpp Config.cpp Cookie.cpp Utils.cpp Request.cpp Response.cpp ServerManager.cpp Client.cpp
 
 SRCS		=	$(addprefix $(SRC)/, $(SRC_FILES))			\
 				$(addprefix $(PARSE_DIR)/, $(PARSE_FILES))

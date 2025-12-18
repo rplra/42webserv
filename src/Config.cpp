@@ -86,11 +86,10 @@ std::string	Server::getFullPath(const Request& request) const
 		std::cout << PINK << "> SVR: full path resolved to: " << RESET << root + path << std::endl;
 		return root + path;
 	}
-	else if (location) {
+	else {
 		/* debug */std::cout << PINK << "> SVR: using server root" << RESET << std::endl;
 		return root;
 	}
-	return (0);
 }
 
 std::vector<Location>& Server::getLocations() {
