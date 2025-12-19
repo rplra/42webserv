@@ -7,7 +7,7 @@ Server::Server()
 	_server_names(),
 	_root(),
 	_index(),
-	_autoindex(true),
+	_autoindex(false),
 	_client_max_body_size(0),
 	_error_pages(),
 	_locations()

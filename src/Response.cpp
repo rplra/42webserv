@@ -421,8 +421,11 @@ void Response::handleDirectory(const std::string& dir_path)
 
 	// else, generate index file
 	bool autoindex = _server.getAutoindex();	// server default
-	if (location)
+	if (location && location->_autoindex)
+	{
 		autoindex = location->_autoindex;		// location override
+		std::cout << PURPLE << "> location autoindex: " << RESET <<  location->_autoindex << std::endl;
+	}
 	if (autoindex)
 	{
 		/* debug */std::cout << PINK << "> handle directory: autoindex ON" << RESET << std::endl;

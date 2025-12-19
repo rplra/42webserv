@@ -32,6 +32,7 @@ void ServerManager::run()
 		}
 
 		// b. loop over all pollfds
+		// ensure all the writing or reading fds go through poll()
 		for (size_t i = 0; i < _pollFds.size(); ++i)
 		{
 			int fd = _pollFds[i].fd;
