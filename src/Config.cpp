@@ -91,6 +91,10 @@ std::string	Server::getFullPath(const Request& request) const
 
 		return root + path;
 	}
+	else if (!location && request.getPath() != "/")
+	{
+		return root + path;
+	}
 	else {
 		/* debug */std::cout << PINK << "> SVR: using server root" << RESET << std::endl;
 		return root;
