@@ -44,6 +44,12 @@ private:
 	std::string							_body;
 	std::string							_content_type;
 
+	// Cgi
+	std::string							_cgi_path;
+	std::string							_file_path;
+	std::vector<std::string>			_env_variables;
+	std::string 						_cgiResponse;
+
 	ResponseType						_type;
 	std::map<std::string, std::string>	_mime;
 	std::string							_redirect;
@@ -75,8 +81,8 @@ private:
 	std::string					getFileBody(const std::string& file_path);
 	void						handleDirectory(const std::string& dir_path);
 	void						serveFile(const std::string& file_path, HttpStatus status);
-	std::vector<std::string>	setEnvVariables(std::string file_path);
-	std::string					executeCgi(const std::vector<std::string>& env_variables, std::string file_path, const Location* location, int len);
+	void						setEnvVariables();
+	void						executeCgi(const Location* location, int len);
 
 	// page generators
 	std::string	generateAutoIndexBody(const std::string& file_path);

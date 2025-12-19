@@ -9,7 +9,7 @@ description = form.getvalue("description", "")
 done = form.getvalue("done", "")
 priority = form.getvalue("priority", "")
 
-csv_dir = "cgi" 
+csv_dir = "www/csv" 
 csv_path = os.path.join(csv_dir, "task.csv")
 
 tasks = []
@@ -19,16 +19,28 @@ with open(csv_path, "r") as csvfile:
     for row in reader:
         tasks.append(row)
 
+done = done.strip().lower()
+priority = priority.strip().lower()
+description = description.strip().lower()
+id = id.strip()
+
 filtered_tasks = []
 for idx, desc, d, prio in tasks:
-    if idx == id:
-        filtered_tasks.append((idx, desc, d, prio))
-    if description.lower() == desc.lower():
-        filtered_tasks.append((idx, desc, d, prio))
-    if done == d:
-        filtered_tasks.append((idx, desc, d, prio))
-    if priority == prio:
-        filtered_tasks.append((idx, desc, d, prio))
+    desc = desc.strip()
+    d = d.strip()
+    prio = prio.strip()
+
+    if id and str(idx) != id:
+        continue
+    if description and desc.lower() != description.lower():
+        continue
+    if done and d != done:
+        print(f"done= {done}, d= {d}\n")
+        continue
+    if priority and prio != priority:
+        continue
+
+    filtered_tasks.append((idx, desc, d, prio))
     
 print("<html><body>")
 print(f"<h1>Filtered Tasks</h1>")
@@ -39,6 +51,6 @@ if not filtered_tasks:
 else: 
     for idx, desc, d, prio in filtered_tasks:
         print(f"<tr><td>{idx}</td><td>{desc}</td><td>{d}</td><td>{prio}</td></tr>")
-print('</table>')
-print('<a href="/filterForm">Back to Filter Form</a><br>')
+print('</table><br>')
+print('<a href="/filterTask">Back to Filter Form</a><br>')
 print("</body></html>")

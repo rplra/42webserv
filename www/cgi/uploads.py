@@ -44,11 +44,12 @@ else:
         print("<td>")
         print(f'<a href="/uploads/{safe_url}" target="_blank">View</a> ')
         print(
-            '<form action="/cgi-bin/delete.py" method="post" style="display:inline;">'
-            f'<input type="hidden" name="file" value="{safe_html}">'
-            '<button type="submit">Delete</button>'
-            '</form>'
-        )
+			'<form action="/cgi-bin/delete.py" method="post" style="display:inline;">'
+			f'<input type="hidden" name="file" value="{safe_html}">'
+			'<input type="hidden" name="_method" value="DELETE">'
+			'<button type="submit">Delete</button>'
+			'</form>'
+		)
         print("</td>")
         print("</tr>")
 
