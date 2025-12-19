@@ -1,6 +1,3 @@
-// #include "Response.hpp"
-// #include "Config.hpp"
-
 #include "Webserv.hpp"
 #include "ConfigParse.hpp"
 
@@ -106,7 +103,13 @@ void	Response::setHeaders()
 	std::string	new_session_id;
 
 	_headers["Date"] = getDate();
-	_headers["Server"] = "Webserv/1.0";
+	
+	const std::vector<std::string>& server_names = _server.getServerNames();
+	if (!_server.getServerNames().empty())
+		_headers["Server"] = server_names[0];
+	else 
+		_headers["Server"] = "Webserv/1.0";
+	
 	_headers["Content-Length"] = std::to_string(_body.size());
 	
 	if (_request)
