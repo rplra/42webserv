@@ -119,15 +119,15 @@ std::string	Server::getFullPath(const Request& request) const
 	const Location* location = getMatchingLocation(request.getPath());
 	std::string path = request.getPath();
 	std::string root = _root;
-	std::string index = _index;
+	// std::string index = _index;
 
 	/* debug */std::cout << YELLOW << "> ROUTING: initial req path: " << RESET << path << std::endl;
 
 	// check alias first (precedence) and then root
 	if (location)
 	{
-		if (!location->_index.empty())
-			index = location->_index;
+		// if (!location->_index.empty())
+		// 	index = location->_index;
 		if (!location->_alias.empty())
 		{
 			root = location->_alias;
@@ -149,14 +149,7 @@ std::string	Server::getFullPath(const Request& request) const
 	// if (!path.empty() && path.back() == '/')
 	// 	path += index;
 
-	// normalize path
-	// std::string full_path = normalizePath(root + path);
-	// if (!full_path.empty() && full_path[0] != '/')
-	// 	full_path = "/" + full_path;
-
 	return (normalizePath(root + path));
-
-	// return (full_path);
 }
 
 std::vector<Location>& Server::getLocations() {
@@ -208,6 +201,15 @@ const std::string Server::getErrorPagePath(int errorCode) const {
 // 	return best_match;
 // }
 
+/* 
+	match by longest prefix match (location blocks can have the same initial prefix)
+	location /images/
+	location /images/cat > this will be the best match
+
+	** always remove trailing slash for location prefix, 
+	as the location config doesnt consider strictly on trailing slash since this func will always trim it
+	** only alias need to strictly have trailing slash
+*/
 const Location* Server::getMatchingLocation(const std::string& requestPath) const {
 	const Location* best_match = nullptr;
 	size_t best_len = 0;
@@ -229,7 +231,6 @@ const Location* Server::getMatchingLocation(const std::string& requestPath) cons
 			}
 		}
 	}
-
 	return best_match;
 }
 
