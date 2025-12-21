@@ -19,11 +19,6 @@ with open(csv_path, "r") as csvfile:
     for row in reader:
         tasks.append(row)
 
-done = done.strip().lower()
-priority = priority.strip().lower()
-description = description.strip().lower()
-id = id.strip()
-
 filtered_tasks = []
 for idx, desc, d, prio in tasks:
     desc = desc.strip()
@@ -52,5 +47,5 @@ else:
     for idx, desc, d, prio in filtered_tasks:
         print(f"<tr><td>{idx}</td><td>{desc}</td><td>{d}</td><td>{prio}</td></tr>")
 print('</table><br>')
-print('<a href="/filterTask">Back to Filter Form</a><br>')
+print('<a href="/filterTaskPYTHON">Back to Filter Form</a><br>')
 print("</body></html>")

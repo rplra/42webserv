@@ -10,8 +10,6 @@
         if (($handle = fopen($csvPath, 'a')) !== FALSE) {
             fputcsv($handle, [$id, $sender, $weight], ',', '"', '\\');
             fclose($handle);
-        } else {
-            echo "Error: Unable to open the CSV file.";
         }
     }
 
