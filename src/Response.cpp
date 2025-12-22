@@ -1,6 +1,3 @@
-// #include "Response.hpp"
-// #include "Config.hpp"
-
 #include "Webserv.hpp"
 #include "ConfigParse.hpp"
 
@@ -106,7 +103,13 @@ void	Response::setHeaders()
 	std::string	new_session_id;
 
 	_headers["Date"] = getDate();
-	_headers["Server"] = "Webserv/1.0";
+	
+	const std::vector<std::string>& server_names = _server.getServerNames();
+	if (!_server.getServerNames().empty())
+		_headers["Server"] = server_names[0];
+	else 
+		_headers["Server"] = "Webserv/1.0";
+	
 	_headers["Content-Length"] = std::to_string(_body.size());
 	
 	if (_request)
@@ -357,14 +360,14 @@ std::string	Response::getRawResponse()
 	// build headers
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		_raw_response += it->first + ": " + it->second + "\r\n";
-	// /* debug */std::cout << ORANGE << "> status line + header: \n" << RESET << _raw_response << std::endl;
+	/* debug */std::cout << ORANGE << "> status line + header: \n" << RESET << _raw_response << std::endl;
 	
 	// empty line
 	_raw_response += "\r\n";
 
 	// build body
 	_raw_response += _body;
-	/* debug */std::cout << ORANGE << "> full response: \n" << RESET << _raw_response << std::endl;
+	// /* debug */std::cout << ORANGE << "> full response: \n" << RESET << _raw_response << std::endl;
 	return (_raw_response);
 }
 

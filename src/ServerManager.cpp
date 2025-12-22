@@ -218,11 +218,50 @@ void	ServerManager::handleEventRead(int clientSocket)
 		return ;
 	}
 
+	// Request& request = client->getRequest();
+	// ParserState prevState = request.getState();
+
+	// size_t limit = client->getServer()->getClientMaxBodySize();
+	// // /* debug */ std::cout << PINK << "SVR: server limit: " << RESET << limit << std::endl;
+	// client->getRequest().handleRequest(buffer, bytes, limit);
+	// // only after we parse request line, we know which req path > location block to check limit
+	// if (prevState == PARSE_REQUEST_LINE && request.getState() >= PARSE_HEADERS && !request.getPath().empty())
+	// {
+	// 	// /* debug */ std::cout << PINK << "SVR: loc path: " << RESET << request.getPath() << std::endl;
+	// 	const Location* loc = client->getServer()->getMatchingLocation(client->getRequest().getPath());
+	// 	if (loc && loc->_client_max_body_size > 0)
+	// 	{
+	// 		// /* debug */ std::cout << PINK << "SVR: location matched. limit : " << RESET << loc->_client_max_body_size << std::endl;
+	// 		limit = loc->_client_max_body_size;
+	// 	}
+		
+	// 	request.setBodySizeLimit(limit);
+	// 	// /* debug */ std::cout << PINK << "SVR: body size received : " << RESET << request.getBody().size() << std::endl;
+	// 	// /* debug */ std::cout << PINK << "SVR: location limit: " << RESET << limit << std::endl;
+
+	// 	if (request.getBody().size() > limit)
+	// 	{
+	// 		// /* debug */ std::cout << PINK << "body exceed limit" << RESET << std::endl;
+	// 		request.setStatus(HTTP_PAYLOAD_TOO_LARGE);
+	// 		request.setState(PARSE_ERROR);
+	// 	}
+	// }
+
+	size_t limit = client->getServer()->getClientMaxBodySize();
+	if (client->getRequest().getState() >= PARSE_HEADERS && !client->getRequest().getPath().empty())
+	{
+		const Location* location = client->getServer()->getMatchingLocation(client->getRequest().getPath());
+		if (location)
+			limit = location->_client_max_body_size;
+	}
+
 	// parse the received data
-	client->getRequest().handleRequest(buffer, bytes, client->getServer()->getClientMaxBodySize());
+	client->getRequest().handleRequest(buffer, bytes, limit);
 	// if parsing is complete or state is parse_error, generate response
 	if (client->getRequest().isParseComplete() || client->getRequest().getState() == PARSE_ERROR)
 	{
+		// /* debug */ std::cout << PINK << "SVR: building response: " << RESET << request.getStatus() << std::endl;
+		// /* debug */ std::cout << PINK << "SVR: final body size: " << RESET << request.getBody().size() << std::endl;
 		client->buildResponse();			// build response (routing handled by config > file_path)
 		enableWriteEvent(clientSocket);		// enable POLLOUT so we can send the data
 	}

@@ -6,12 +6,12 @@
 // main
 void		checkArgument(int ac);
 
-// config parsing
+// config
 std::string	trimStringTail(const std::string &str, char c);
 std::string	trimStringHead(const std::string &str, char c);
+std::string	normalizePath(const std::string& path);
 
 // http
-// std::string	normalizePath(const std::string& s);
 std::string toLower(const std::string& s);
 std::string trim(const std::string& s);
 std::string	urlDecode(const std::string& s);
