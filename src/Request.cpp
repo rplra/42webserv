@@ -543,8 +543,10 @@ void	Request::validateHeaders()
 
 void	Request::handleSpecialHeaders(const std::string& key, const std::string& value)
 {
+	unsigned long	ul_value;
+	std::istringstream(value) >> ul_value;
 	if (key == "content-length")
-		_content_length = std::stoul(value);
+		_content_length = ul_value;
 	else if (key == "transfer-encoding" && value == "chunked")
 		_isChunked = true; 
 	else if (key == "cookie")

@@ -4,6 +4,7 @@
 void	Response::setEnvVariables()
 {
 	// get absolute path for PHP-CGI script
+	std::ostringstream oss;
 	std::string currentDir; 
 	char cwd[PATH_MAX];
 	if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -13,14 +14,22 @@ void	Response::setEnvVariables()
 	}
 
 	_env_variables.push_back("REQUEST_METHOD=" + _request->getMethod());
-	_env_variables.push_back("CONTENT_LENGTH=" + std::to_string(_request->getBody().length()));
+	// _env_variables.push_back("CONTENT_LENGTH=" + std::to_string(_request->getBody().length()));
+	oss <<_request->getBody().length();
+	_env_variables.push_back("CONTENT_LENGTH=" + oss.str());
+	oss.str("");
+	oss.clear();
 	if (_request->getMethod() == "POST")
 		_env_variables.push_back("CONTENT_TYPE=" + _request->getHeaders().at("content-type"));
 	if (_request->getMethod() == "GET")
 		_env_variables.push_back("QUERY_STRING=" + _request->getQuery());
 	_env_variables.push_back("SCRIPT_NAME=" + _request->getPath());
 	_env_variables.push_back("SERVER_NAME=" + _server.getHost());
-	_env_variables.push_back("SERVER_PORT=" + std::to_string(_server.getPort()));
+	// _env_variables.push_back("SERVER_PORT=" + std::to_string(_server.getPort()));
+	oss << _server.getPort();
+	_env_variables.push_back("SERVER_PORT=" + oss.str());
+	oss.str("");
+	oss.clear();
 	_env_variables.push_back("SCRIPT_FILENAME=" + currentDir + "/" + _file_path); // for PHP
 	_env_variables.push_back("REDIRECT_STATUS=200"); // for PHP
 	_env_variables.push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -54,7 +63,7 @@ void	Response::executeCgi(const Location* location, int len)
 		for (std::vector<std::string>::const_iterator it = _env_variables.begin(); it != _env_variables.end(); ++it) {
 			cgi_args.push_back(const_cast<char*>(it->c_str()));
 		}
-		cgi_args.push_back(nullptr);
+		cgi_args.push_back(NULL);
 		
 		if (_request->getPath().compare(len - 3, 3, ".py") == 0) {
 			_cgi_path = location->_cgi.at(PY);          
@@ -114,11 +123,11 @@ void	Response::executeCgi(const Location* location, int len)
         }
     } else if (poll_result == 0) {
         kill(pid, SIGKILL);
-        waitpid(pid, nullptr, 0);  // clean up zombie
+        waitpid(pid, NULL, 0);  // clean up zombie
         std::cerr << RED << "CGI script timed out" << RESET << std::endl;
     } else {
         kill(pid, SIGKILL);
-        waitpid(pid, nullptr, 0);  // clean up zombie
+        waitpid(pid, NULL, 0);  // clean up zombie
         std::cerr << RED << ERR_POLL << RESET << std::endl;
     }
 

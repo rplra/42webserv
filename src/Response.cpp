@@ -101,6 +101,7 @@ void	Response::setHeader(const std::string& key, const std::string& value)
 void	Response::setHeaders()
 {
 	std::string	new_session_id;
+	std::ostringstream oss;
 
 	_headers["Date"] = getDate();
 	
@@ -110,7 +111,11 @@ void	Response::setHeaders()
 	else 
 		_headers["Server"] = "Webserv/1.0";
 	
-	_headers["Content-Length"] = std::to_string(_body.size());
+	oss << _body.size();
+	_headers["Content-Length"] = oss.str();
+	oss.str("");
+	oss.clear();
+	// _headers["Content-Length"] = std::to_string(_body.size());
 	
 	if (_request)
 		_headers["Connection"] = _request->getConnection();
@@ -349,14 +354,18 @@ std::string Response::getMimeType(const std::string& file_path)
 std::string	Response::getRawResponse()
 {
 	_raw_response.clear();
+
+	std::ostringstream oss;
 	
 	// build status line
 	/* debug */std::cout << ORANGE << "> getting raw response" << RESET << std::endl;
+	oss << _status_code;
 	_raw_response += _http_version + " "
-					+ std::to_string(_status_code) + " " 
+					+ oss.str() + " " 
 					+ _reason_phrase + "\r\n";
 	// /* debug */std::cout << ORANGE << "> status line: \n" << RESET << _raw_response << std::endl;
-	
+	oss.str("");
+	oss.clear();
 	// build headers
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		_raw_response += it->first + ": " + it->second + "\r\n";
@@ -373,7 +382,7 @@ std::string	Response::getRawResponse()
 
 std::string Response::getFileBody(const std::string& path)
 {
-	std::ifstream file(path, std::ios::binary);
+	std::ifstream file(path.c_str(), std::ios::binary);
 	if (!file.is_open())
 		return (setError(HTTP_INTERNAL_SERVER_ERROR), "");
 

@@ -1,6 +1,8 @@
 #ifndef __COOKIE_HPP__
 # define __COOKIE_HPP__
 
+#include <cstdlib>
+#include <ctime>
 #include <string>
 #include <iostream>
 

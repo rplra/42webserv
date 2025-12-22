@@ -172,7 +172,7 @@ const std::string Server::getErrorPagePath(int errorCode) const {
 }
 
 // const Location* Server::getMatchingLocation(const std::string& requestPath) const {
-// 	const Location* best_match = nullptr;
+// 	const Location* best_match = NULL;
 // 	size_t best_len = 0;
 
 // 	// /* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << "'" << std::endl;
@@ -211,7 +211,7 @@ const std::string Server::getErrorPagePath(int errorCode) const {
 	** only alias need to strictly have trailing slash
 */
 const Location* Server::getMatchingLocation(const std::string& requestPath) const {
-	const Location* best_match = nullptr;
+	const Location* best_match = NULL;
 	size_t best_len = 0;
 
 	/* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << "'" << std::endl;

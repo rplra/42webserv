@@ -12,7 +12,9 @@ void ServerManager::run()
 {
 	const std::vector<Server>& servers = _config.getServers();
     if (servers.empty())
+	{
         throw std::runtime_error(ERR_SERVERCONFIG);
+	}
 
 	createAllListeningSockets();
 	createPollFds();
@@ -52,14 +54,16 @@ void ServerManager::run()
 
 void ServerManager::createAllListeningSockets()
 {
+	std::ostringstream oss;
 	const std::vector<Server>& servers = _config.getServers();
 
     for (size_t i = 0; i < servers.size(); ++i) 
 	{
+		oss << servers[i].getPort();
         int serverSocket = createListeningSocket(servers[i].getHost(), servers[i].getPort());
         if (serverSocket < 0) 
-			throw std::runtime_error(ERR_CREATEALLSOCK + std::to_string(servers[i].getPort()));
-
+			throw std::runtime_error(ERR_CREATEALLSOCK + oss.str());
+		// how to clear oss after throw?
         _serverSockets.push_back(serverSocket);
 		// map serversocket to the server obj
 		_socketToServer[serverSocket] = &servers[i];
@@ -68,6 +72,7 @@ void ServerManager::createAllListeningSockets()
 
 int ServerManager::createListeningSocket(std::string host, int port)
 {
+	std::ostringstream oss;
 	// Attach the socket to the port 
     // struct addrinfo {
     //     int              ai_flags;       // Options for getaddrinfo (e.g., AI_PASSIVE)
@@ -87,7 +92,11 @@ int ServerManager::createListeningSocket(std::string host, int port)
     hints.ai_socktype = SOCK_STREAM;  // TCP
     std::cout << GREEN << "Creating listening socket on " << port << RESET << std::endl;
     
-	int status = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &res);
+	oss << port;
+	int status = getaddrinfo(host.c_str(), oss.str().c_str(), &hints, &res);
+	oss.str("");
+	oss.clear();
+	// int status = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &res);
     if ((status) != 0)
 		throw std::runtime_error(ERR_GETADDRINFO + gai_strerror(status));
 
@@ -168,7 +177,7 @@ void	ServerManager::acceptNewClient(int serverSocket)
 	// 1. accept a connection first
 	// accept() creates a new socket FD for client
 	// each client get its own socket seperate from listening socket
-    int clientSocket = accept(serverSocket, nullptr, nullptr);
+    int clientSocket = accept(serverSocket, NULL, NULL);
     if (clientSocket < 0)
         return ;
 
