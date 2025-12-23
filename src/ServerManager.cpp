@@ -12,7 +12,9 @@ void ServerManager::run()
 {
 	const std::vector<Server>& servers = _config.getServers();
     if (servers.empty())
+	{
         throw std::runtime_error(ERR_SERVERCONFIG);
+	}
 
 	createAllListeningSockets();
 	createPollFds();
@@ -32,6 +34,7 @@ void ServerManager::run()
 		}
 
 		// b. loop over all pollfds
+		// ensure all the writing or reading fds go through poll()
 		for (size_t i = 0; i < _pollFds.size(); ++i)
 		{
 			int fd = _pollFds[i].fd;
@@ -51,14 +54,16 @@ void ServerManager::run()
 
 void ServerManager::createAllListeningSockets()
 {
+	std::ostringstream oss;
 	const std::vector<Server>& servers = _config.getServers();
 
     for (size_t i = 0; i < servers.size(); ++i) 
 	{
+		oss << servers[i].getPort();
         int serverSocket = createListeningSocket(servers[i].getHost(), servers[i].getPort());
         if (serverSocket < 0) 
-			throw std::runtime_error(ERR_CREATEALLSOCK + std::to_string(servers[i].getPort()));
-
+			throw std::runtime_error(ERR_CREATEALLSOCK + oss.str());
+		// how to clear oss after throw?
         _serverSockets.push_back(serverSocket);
 		// map serversocket to the server obj
 		_socketToServer[serverSocket] = &servers[i];
@@ -67,6 +72,7 @@ void ServerManager::createAllListeningSockets()
 
 int ServerManager::createListeningSocket(std::string host, int port)
 {
+	std::ostringstream oss;
 	// Attach the socket to the port 
     // struct addrinfo {
     //     int              ai_flags;       // Options for getaddrinfo (e.g., AI_PASSIVE)
@@ -86,7 +92,11 @@ int ServerManager::createListeningSocket(std::string host, int port)
     hints.ai_socktype = SOCK_STREAM;  // TCP
     std::cout << GREEN << "Creating listening socket on " << port << RESET << std::endl;
     
-	int status = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &res);
+	oss << port;
+	int status = getaddrinfo(host.c_str(), oss.str().c_str(), &hints, &res);
+	oss.str("");
+	oss.clear();
+	// int status = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &res);
     if ((status) != 0)
 		throw std::runtime_error(ERR_GETADDRINFO + gai_strerror(status));
 
@@ -167,7 +177,7 @@ void	ServerManager::acceptNewClient(int serverSocket)
 	// 1. accept a connection first
 	// accept() creates a new socket FD for client
 	// each client get its own socket seperate from listening socket
-    int clientSocket = accept(serverSocket, nullptr, nullptr);
+    int clientSocket = accept(serverSocket, NULL, NULL);
     if (clientSocket < 0)
         return ;
 
@@ -217,11 +227,50 @@ void	ServerManager::handleEventRead(int clientSocket)
 		return ;
 	}
 
+	// Request& request = client->getRequest();
+	// ParserState prevState = request.getState();
+
+	// size_t limit = client->getServer()->getClientMaxBodySize();
+	// // /* debug */ std::cout << PINK << "SVR: server limit: " << RESET << limit << std::endl;
+	// client->getRequest().handleRequest(buffer, bytes, limit);
+	// // only after we parse request line, we know which req path > location block to check limit
+	// if (prevState == PARSE_REQUEST_LINE && request.getState() >= PARSE_HEADERS && !request.getPath().empty())
+	// {
+	// 	// /* debug */ std::cout << PINK << "SVR: loc path: " << RESET << request.getPath() << std::endl;
+	// 	const Location* loc = client->getServer()->getMatchingLocation(client->getRequest().getPath());
+	// 	if (loc && loc->_client_max_body_size > 0)
+	// 	{
+	// 		// /* debug */ std::cout << PINK << "SVR: location matched. limit : " << RESET << loc->_client_max_body_size << std::endl;
+	// 		limit = loc->_client_max_body_size;
+	// 	}
+		
+	// 	request.setBodySizeLimit(limit);
+	// 	// /* debug */ std::cout << PINK << "SVR: body size received : " << RESET << request.getBody().size() << std::endl;
+	// 	// /* debug */ std::cout << PINK << "SVR: location limit: " << RESET << limit << std::endl;
+
+	// 	if (request.getBody().size() > limit)
+	// 	{
+	// 		// /* debug */ std::cout << PINK << "body exceed limit" << RESET << std::endl;
+	// 		request.setStatus(HTTP_PAYLOAD_TOO_LARGE);
+	// 		request.setState(PARSE_ERROR);
+	// 	}
+	// }
+
+	size_t limit = client->getServer()->getClientMaxBodySize();
+	if (client->getRequest().getState() >= PARSE_HEADERS && !client->getRequest().getPath().empty())
+	{
+		const Location* location = client->getServer()->getMatchingLocation(client->getRequest().getPath());
+		if (location)
+			limit = location->_client_max_body_size;
+	}
+
 	// parse the received data
-	client->getRequest().handleRequest(buffer, bytes, client->getServer()->getClientMaxBodySize());
+	client->getRequest().handleRequest(buffer, bytes, limit);
 	// if parsing is complete or state is parse_error, generate response
 	if (client->getRequest().isParseComplete() || client->getRequest().getState() == PARSE_ERROR)
 	{
+		// /* debug */ std::cout << PINK << "SVR: building response: " << RESET << request.getStatus() << std::endl;
+		// /* debug */ std::cout << PINK << "SVR: final body size: " << RESET << request.getBody().size() << std::endl;
 		client->buildResponse();			// build response (routing handled by config > file_path)
 		enableWriteEvent(clientSocket);		// enable POLLOUT so we can send the data
 	}

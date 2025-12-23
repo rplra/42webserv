@@ -21,11 +21,6 @@ const std::string ORANGE = "\033[38;2;255;135;0m";
 const std::string GREY   = "\033[90m";
 const std::string RESET  = "\033[0m";
 
-// limits (should be from Config.client_max_xx_size - similar to NGINX)
-// put here first
-// const size_t client_max_header_size	= 8192;		// 8 KB (default = 4 buffers x 8 KB = 32 KB /request)
-// const size_t client_max_body_size	= 1048576;	// 1 MB (default, can be increased - 10 MB etc)
-
 // values
 const size_t BUFFER_SIZE = 8192;
 
@@ -33,7 +28,8 @@ const size_t BUFFER_SIZE = 8192;
 const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configuration file]";
 const std::string ERR_FILEINVALID	    = "Invalid file:";
 const std::string ERR_FILEEMPTY			= "Empty file!";
-// errors config
+
+// error - config
 const std::string ERR_ROOTCONFLICT	    = "Location using 'root' and 'alias' directives at the same time:";
 const std::string ERR_FILENOTFOUND	    = "File not found:";
 const std::string ERR_BODYSIZEINVALID   = "Body size has to be greater than 0. Current size:";
@@ -49,6 +45,7 @@ const std::string ERR_CGIUNSUPPORTED    = "Unsupported CGI extension:";
 const std::string ERR_TYPEUNSUPPORTED   = "Unsupported type:";
 const std::string ERR_DUPLICATE         = "Duplicate:";
 const std::string ERR_INVALIDPATH       = "Invalid path:";
+
 // error - servermanager
 const std::string ERR_POLL				= "Error in poll()";
 const std::string ERR_CLIENTDISCONECT 	= "Client disconnected at fd: ";

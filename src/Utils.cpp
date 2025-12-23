@@ -26,18 +26,56 @@ std::string	trimStringHead(const std::string &str, char c)
 	return (str);
 }
 
-// // RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax
-// //std::string	normalizePath(const std::string& s);
-// // {
-// 	// percent decoding - %xx (%20 == space, %2F == /, %2E == . , etc)
-// 	// split into segments (parts btw '/' - eg; /a/b/../c → segments: ["a", "b", "..", "c"])
-// 	// path traversal ("..", '.') (remove dot segments - eg; /a/b/../c/./d → /a/c/d)
-// 	// rebuild a canonical path (After normalization, join the segments back with /)
-// // }
+/* 
+	RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax
+	brief: takes a raw path string (URL/filesystem) and cleans it up by resolving
+	- extra slashes (//), current directory preferences(.), parent directory preferences(..)
+	- split into tokens (parts btw '/' - eg; /a/b/../c → segments: ["a", "b", "..", "c"])
+	- path traversal ("..", '.') (remove dot segments - eg; /a/b/../c/./d → /a/c/d)
+	- rebuild a canonical path (After normalization, join the segments back with /)
+
+	1. detect if path is absolute
+	2. read char from ss, stops and discards delimiter, store into token
+	3. check for multiple slash, leading slash or current dir
+	4. check for parent directory, move back a level and remove the prev level
+	5. build the normalized path
+	6. check if path is empty or only contained slashes/dots, return "/" (absolute) or ""(relative)
+*/
+std::string	normalizePath(const std::string& path)
+{
+	bool is_absolute = !path.empty() && path[0] == '/';
+	std::vector<std::string> parts;	// valid directories
+	std::stringstream ss(path);		// path string
+	std::string token;				// parsed string token
+
+	while (std::getline(ss, token, '/'))
+	{
+		if (token.empty() || token == ".")
+			continue;
+		if (token == "..")
+		{
+			if (!parts.empty())
+				parts.pop_back();
+			continue;
+		}
+		parts.push_back(token);
+	}
+
+	std::string normalized = is_absolute ? "/" : "";
+	for (size_t i = 0; i < parts.size(); ++i)
+	{
+		normalized += parts[i];
+		if (i != parts.size() - 1)
+			normalized += "/";
+	}
+	if (normalized.empty() && is_absolute)
+		return "/";
+	return (normalized);
+}
 
 
 // RFC 9112 §5.2 (Field Syntax) - leading/trailing OWS around the value is ignored
-// trims whitepsace
+// trims whitepsace (space and tab)
 std::string trim(const std::string& s)
 {
 	size_t start = s.find_first_not_of(" \t");

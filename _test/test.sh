@@ -19,8 +19,8 @@ send_request() {
 # curl --resolve webserv.example.com:8080:127.0.0.1 http://webserv.example.com/
 # echo ""
 
-# echo "TEST_2: Overflow Body Cap (max 2000 bytes, need to setup 8082 in config)."
-# echo "EXPECTED: 413 Payload Too Large"
-# echo "---------------------------------------------------------"
-# curl -X POST -H "Content-Type: text/plain" --data "$(printf '%2001s' | tr ' ' 'A')" http://127.0.0.1:8082/
-# echo ""
+echo "TEST_2: Overflow Body Cap (max 2000 bytes, need to setup 8082 in config)."
+echo "EXPECTED: 413 Payload Too Large"
+echo "---------------------------------------------------------"
+curl -X POST -H "Content-Type: text/plain" --data "$(printf '%2001s' | tr ' ' 'A')" http://127.0.0.1:8082/
+echo ""

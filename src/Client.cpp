@@ -49,7 +49,7 @@ void Client::markResponseReady()
 void Client::buildResponse()
 {
 	/* routing */const Location* location = _server->getMatchingLocation(_request.getPath());
-	
+
 	// clean up old response if exists
 	if (_response)
 	{

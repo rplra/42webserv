@@ -32,27 +32,14 @@ public:
 	Server();
 	~Server() {};
 
-	void		parseServer(std::ifstream &inFile);
-	void		printServer();
-	void		printErrorPage();
-	void		assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
-	void		assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
-	void		assignCgiContainer(std::map<int, std::string> &data, std::istringstream &iss);
+	void								parseServer(std::ifstream &inFile);
+	void								printServer();
+	void								printErrorPage();
+	void								assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
+	void								assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
+	void								assignCgiContainer(std::map<int, std::string> &data, std::istringstream &iss);
 
-
-	// getters - these method names must align for ALL otherwise integration fails
-	// HTTP use    : getRoot(), getIndex(), getLocations(), getErrorPages()
-	// Network use : getHost(), getPort(),  getServerNames()
-
-	// helpers
-	// HTTP use    : matchLocation() - returns Location* based on longest prefix match
-	//			   : isAllowedMethod()
-	// Network use : isMatchesPort() (optional) - does this server listen on given port?
-	//			   : isMatchesHost() (optional) - does this server match the Host header?
-
-// this is where both network and config MUST ALIGN in terms of what DATA TYPE and FIELDS to have
-// network must let config know what fields it expects (if config doesnt have, then it fails to build)
-
+	// getters
 	const std::string&					getHost() const;
 	int									getPort() const;
 	const std::vector<std::string>&		getServerNames() const;
@@ -107,10 +94,7 @@ private:
 	void		parseLocation(std::ifstream &inFile, std::istringstream &iss);
 };
 
-// this is MAIN BRIDGE btw Network + Config 
-// Network depends on Config to know which Server obj's exist, which port they are on,
-// and which servers share the same port (virtual hosts)
-// HTTP depends on Server obj inside Config for routing + request handling
+
 class Config
 {
 public:

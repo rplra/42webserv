@@ -25,9 +25,25 @@ Request::Request()
 
 void	Request::handleRequest(const char* data, size_t size, size_t limit)
 {
-		_raw.append(data, size);
-		parseByState(limit);
+	_raw.append(data, size);
+	parseByState(limit);
 }
+
+// void	Request::setBodySizeLimit(size_t limit)
+// {
+// 	/* debug */std::cout << PINK << "> REQ: set bodySizeLimit" << RESET << std::endl;
+// 	_body_size_limit = limit;
+// }
+
+// void	Request::setStatus(HttpStatus status)
+// {
+// 	_status = status;
+// }
+
+// void	Request::setState(ParserState state)
+// {
+// 	_state = state;
+// }
 
 const	std::string& Request::getMethod() const
 {
@@ -77,6 +93,11 @@ const	std::map<std::string, std::string>&	Request::getHeaders() const
 	return (_headers);
 }
 
+// const	std::string& Request::getBoundary() const
+// {
+// 	return (_boundary);
+// }
+
 const	std::string& Request::getContentType() const
 {
 	return (_content_type);
@@ -108,16 +129,22 @@ const	ParserState& Request::getState() const
 	return (_state);
 }
 
+HttpStatus	Request::getStatus() const
+{
+	return (_status);
+}
+
+
 bool	Request::hasBody()
 {
 	return (!_body.empty());
 }
 
-HttpStatus	Request::getStatus() const
-{
-	return (_status);
-}
-	
+// bool	Request::hasMultipart() const
+// {
+// 	return (_content_type.find("multipart/form-data") != std::string::npos);
+// }
+
 bool 	Request::hasSessionId() const
 {
 	return (!_session_id.empty());
@@ -305,6 +332,22 @@ void 	Request::parseHeaders(const std::string& raw, size_t &pos)
 	pos = headers_end + 4; // move cursor to body_start, skipping header_end empty line
 }
 
+// void	Request::parseBoundary()
+// {
+// 	if (_content_type.find("multipart/form-data") == std::string::npos)
+// 		return ;
+	
+// 	size_t pos = _content_type.find("boundary=");
+// 	if (pos == std::string::npos)
+// 		return ;
+
+// 	_boundary = std::string(_content_type.c_str() + pos + 9);
+
+// 	size_t end = _boundary.find_first_of(" \t\r\n\"");
+// 	if (end != std::string::npos)
+// 		_boundary = std::string(_boundary.c_str(), end);
+// }
+
 void	Request::parseCookies(const std::string& value)
 {
 	const std::string key = "session_id";
@@ -441,10 +484,6 @@ void	Request::parseContentLengthBody(const std::string& raw, size_t &pos, size_t
 	_state = PARSE_COMPLETE;
 }
 
-// void	Request::parseMultipart(const std::string& raw, size_t &pos, size_t limit)
-// {
-
-// }
 
 /* 
 	check for c <= 31 || c == 127 is to abide RFC 9112 (HTTP/1.1)
@@ -504,8 +543,10 @@ void	Request::validateHeaders()
 
 void	Request::handleSpecialHeaders(const std::string& key, const std::string& value)
 {
+	unsigned long	ul_value;
+	std::istringstream(value) >> ul_value;
 	if (key == "content-length")
-		_content_length = std::stoul(value);
+		_content_length = ul_value;
 	else if (key == "transfer-encoding" && value == "chunked")
 		_isChunked = true; 
 	else if (key == "cookie")

@@ -1,6 +1,3 @@
-// #include "Response.hpp"
-// #include "Config.hpp"
-
 #include "Webserv.hpp"
 #include "ConfigParse.hpp"
 
@@ -104,10 +101,21 @@ void	Response::setHeader(const std::string& key, const std::string& value)
 void	Response::setHeaders()
 {
 	std::string	new_session_id;
+	std::ostringstream oss;
 
 	_headers["Date"] = getDate();
-	_headers["Server"] = "Webserv/1.0";
-	_headers["Content-Length"] = std::to_string(_body.size());
+	
+	const std::vector<std::string>& server_names = _server.getServerNames();
+	if (!_server.getServerNames().empty())
+		_headers["Server"] = server_names[0];
+	else 
+		_headers["Server"] = "Webserv/1.0";
+	
+	oss << _body.size();
+	_headers["Content-Length"] = oss.str();
+	oss.str("");
+	oss.clear();
+	// _headers["Content-Length"] = std::to_string(_body.size());
 	
 	if (_request)
 		_headers["Connection"] = _request->getConnection();
@@ -346,31 +354,35 @@ std::string Response::getMimeType(const std::string& file_path)
 std::string	Response::getRawResponse()
 {
 	_raw_response.clear();
+
+	std::ostringstream oss;
 	
 	// build status line
 	/* debug */std::cout << ORANGE << "> getting raw response" << RESET << std::endl;
+	oss << _status_code;
 	_raw_response += _http_version + " "
-					+ std::to_string(_status_code) + " " 
+					+ oss.str() + " " 
 					+ _reason_phrase + "\r\n";
 	// /* debug */std::cout << ORANGE << "> status line: \n" << RESET << _raw_response << std::endl;
-	
+	oss.str("");
+	oss.clear();
 	// build headers
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		_raw_response += it->first + ": " + it->second + "\r\n";
-	// /* debug */std::cout << ORANGE << "> status line + header: \n" << RESET << _raw_response << std::endl;
+	/* debug */std::cout << ORANGE << "> status line + header: \n" << RESET << _raw_response << std::endl;
 	
 	// empty line
 	_raw_response += "\r\n";
 
 	// build body
 	_raw_response += _body;
-	/* debug */std::cout << ORANGE << "> full response: \n" << RESET << _raw_response << std::endl;
+	// /* debug */std::cout << ORANGE << "> full response: \n" << RESET << _raw_response << std::endl;
 	return (_raw_response);
 }
 
 std::string Response::getFileBody(const std::string& path)
 {
-	std::ifstream file(path, std::ios::binary);
+	std::ifstream file(path.c_str(), std::ios::binary);
 	if (!file.is_open())
 		return (setError(HTTP_INTERNAL_SERVER_ERROR), "");
 
@@ -421,8 +433,11 @@ void Response::handleDirectory(const std::string& dir_path)
 
 	// else, generate index file
 	bool autoindex = _server.getAutoindex();	// server default
-	if (location)
+	if (location && location->_autoindex)
+	{
 		autoindex = location->_autoindex;		// location override
+		std::cout << PURPLE << "> location autoindex: " << RESET <<  location->_autoindex << std::endl;
+	}
 	if (autoindex)
 	{
 		/* debug */std::cout << PINK << "> handle directory: autoindex ON" << RESET << std::endl;
