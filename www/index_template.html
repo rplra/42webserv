@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta charset="utf-8" />
+	
+	<style>
+		*, *::before, *::after {
+		box-sizing: border-box;
+		}
+
+		html,
+		body {
+		margin: 0px;
+		min-height: 100vh;
+		}
+		/* a blue color as a generic focus style */
+		button:focus-visible {
+		outline: 2px solid #4a90e2 !important;
+		outline: -webkit-focus-ring-color auto 5px !important;
+		}
+		a {
+		text-decoration: none;
+		}
+		body {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 40px;
+		padding: 0px 24px 40px;
+		position: relative;
+		background: linear-gradient(
+			237deg,
+			rgba(184, 255, 220, 1) 0%,
+			rgba(130, 139, 255, 1) 100%
+		);
+		}
+
+		.header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 40px;
+		flex: 0 0 auto;
+		background-color: transparent;
+		border-radius: 200px;
+		position: relative;
+		align-self: stretch;
+		width: 100%;
+		}
+
+		.header-wrapper {
+		position: relative;
+		width: fit-content;
+		margin-top: -1.00px;
+		font-family: "Monofett-Regular", Helvetica;
+		font-weight: 400;
+		color: #2c48d0;
+		font-size: 24px;
+		letter-spacing: 0;
+		line-height: normal;
+		white-space: nowrap;
+		}
+
+		.frame {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 0px 24px 40px;
+		position: relative;
+		align-self: stretch;
+		width: 100%;
+		flex: 0 0 auto;
+		}
+
+		.block {
+		padding-top: 80px;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 32px;
+		position: relative;
+		align-self: stretch;
+		width: 100%;
+		flex: 0 0 auto;
+		}
+
+		.subheader {
+		height: 47px;
+		border-radius: 100px 8px 100px 8px;
+		object-fit: cover;
+		position: relative;
+		align-self: stretch;
+		width: 100%;
+		}
+
+		.row {
+		display: flex;
+		min-height: 300px;
+		align-items: stretch;
+		gap: 24px;
+		padding: 0px 56px;
+		position: relative;
+		width: 100%;
+		}
+
+		.card > * {
+		margin: 0;
+		}
+
+		.card {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+		padding: 24px;
+		position: relative;
+		/* flex: 1; */
+		align-self: stretch;
+		flex-grow: 1;
+
+		/* display: flex; */
+		/* flex-direction: column; */
+		/* align-items: flex-start; */
+		/* gap: 8px; */
+		/* padding: 24px; */
+
+		flex: 1 1 auto;        /* allow grow + shrink */
+		max-width: 344px;     /* ← cap the size */
+		width: 100%;          /* fill available space until max */
+
+		/* background-color: #ffffff33;
+		border-radius: 24px;
+		border: 4px solid;
+		border-color: #00000000;
+		backdrop-filter: blur(5.0px) brightness(108.0%) saturate(93.8%);
+		-webkit-backdrop-filter: blur(5.0px) brightness(108.0%) saturate(93.8%);
+		box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.32), inset -1px 0 3px
+			rgba(0, 0, 0, 0.11); */
+
+		background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+		border-radius: 24px;
+		border: 1px solid rgba(255,255,255,0.2);
+		
+		backdrop-filter: blur(12px) brightness(110%) saturate(120%);
+		-webkit-backdrop-filter: blur(12px) brightness(120%) saturate(120%);
+		
+		box-shadow:
+			inset 1px 0 0 rgba(255,255,255,0.32),
+			inset -1px 0 3px rgba(0,0,0,0.11),
+			0 8px 32px rgba(0,0,0,0.12);
+		}
+
+		.card .icon {
+		position: relative;
+		width: 35px;
+		height: 35px;
+		aspect-ratio: 1;
+		object-fit: cover;
+		}
+
+		.card .card-title {
+		position: relative;
+		align-self: stretch;
+		font-family: "Inter-Bold", Helvetica;
+		font-weight: 700;
+		color: #000000;
+		font-size: 22px;
+		letter-spacing: 0;
+		line-height: normal;
+		}
+
+		.card .methods {
+		position: relative;
+		align-self: stretch;
+		font-family: "Inter-SemiBold", Helvetica;
+		font-weight: 600;
+		color: #000000;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: normal;
+		}
+
+		.card .description {
+		position: relative;
+		align-self: stretch;
+		font-family: "Inter-Regular", Helvetica;
+		font-weight: 400;
+		color: #000000;
+		font-size: 18px;
+		letter-spacing: 0;
+		line-height: normal;
+		margin-bottom: 4px;
+		}
+
+		.card .navigation {
+		margin-top: auto;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 8px;
+		position: relative;
+		align-self: stretch;
+		width: 100%;
+		/* align-items: flex-end; */
+		/* padding: 24px 0px 0px; */
+		/* flex: 1; */
+		/* flex-grow: 1; */
+		}
+
+		.button-text {
+		position: relative;
+		width: fit-content;
+		margin-top: -1.00px;
+		font-family: "Inter-Bold", Helvetica;
+		font-weight: 700;
+		color: #ffffff;
+		font-size: 18px;
+		text-align: center;
+		letter-spacing: 0;
+		line-height: normal;
+		}
+
+		.navigation .button-wrapper,
+		.navigation .button-wrapper-focus {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 12px 16px;
+		position: relative;
+		flex: 0 0 auto;
+		background-color: #717bff;
+		border-radius: 12px;
+		}
+
+		.navigation .button-wrapper-focus {
+		background-color: #e17800;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- <header class="header"><div class="header-wrapper">introduction</div></header> -->
+
+	<div class="frame">
+		<!-- 1st block -->
+		<div class="block">
+			<img class="subheader" src="asset/home/Header-mand.png" />
+			<!-- modular row -->
+			<div class="row">
+				<div class="card">
+					<img class="icon" src="asset/home/1-1_by-freepik.png" />
+					<div class="card-title">Switch Ports</div>
+					<p class="methods">Methods | N/A</p>
+					<p class="description">Switch to different ports</p>
+					<div class="navigation">
+						<a href="http://localhost:8080" class="button-wrapper-focus"><span class="button-text">8080</span></a>
+						<a href="http://localhost:9743" class="button-wrapper"><span class="button-text">9743</span></a>
+						<a href="http://localhost:8081" class="button-wrapper"><span class="button-text">8081</span></a>
+						<!-- dup line above for more buttons -->
+					</div>
+				</div>
+
+				<div class="card">
+					<img class="icon" src="asset/home/1-2_by-freepik.png" />
+					<div class="card-title">Load Page Assets</div>
+					<div class="methods">Methods | GET</div>
+					<div class="description">Test GET method by fetching images & data</div>
+					<div class="navigation">
+						<a href="/cute/" class="button-wrapper"><span class="button-text">List images</span></a>
+						<a href="/calculator" class="button-wrapper"><span class="button-text">Calculator</span></a>
+					</div>
+				</div>
+
+				<div class="card">
+					<img class="icon" src="asset/home/1-3_by-freepik.png" />
+					<div class="card-title">Post Something!</div>
+					<div class="methods">Methods | GET POST</div>
+					<div class="description">Test POST method by adding something</div>
+					<div class="navigation">
+						<a href="/addParcel" class="button-wrapper"><span class="button-text">+ Add Parcel</span></a>
+						<a href="/form" class="button-wrapper"><span class="button-text">+ Fill Form</span></a>
+					</div>
+				</div>
+			</div>
+			<!-- row 2 -->
+			<div class="row">
+				<div class="card">
+					<img class="icon" src="asset/home/1-4_by-smashicons.png" />
+					<div class="card-title">Upload Something</div>
+					<p class="methods">Methods | GET POST DELETE</p>
+					<p class="description">Test with CGI by upload, show files, & delete entry</p>
+					<div class="navigation">
+						<a href="/upload" class="button-wrapper"><span class="button-text">+ Upload</span></a>
+						<!-- dup line above to more buttons -->
+					</div>
+				</div>
+
+				<div class="card">
+					<img class="icon" src="asset/home/1-5_by-freepik.png" />
+					<div class="card-title">Multiple CGI Test</div>
+					<div class="methods">Methods | GET POST</div>
+					<div class="description">Test CGI with GET & POST method</div>
+					<div class="navigation">
+						<a href="/filterTaskPYTHON" class="button-wrapper"><span class="button-text">Test Python</span></a>
+						<a href="/filterTaskPHP" class="button-wrapper"><span class="button-text">Test PHP</span></a>
+					</div>
+				</div>
+
+				<div class="card">
+					<img class="icon" src="asset/home/1-6_by-stockio.png" />
+					<div class="card-title">Errors</div>
+					<div class="methods">Methods | N/A</div>
+					<div class="description">Test error handlings</div>
+					<div class="navigation">
+						<a href="/hjhjkl" class="button-wrapper"><span class="button-text">Invalid path</span></a>
+						<a href="/cgi-bin/error_loop.py" class="button-wrapper"><span class="button-text">CGI Hang</span></a>
+						<a href="/" class="button-wrapper"><span class="button-text">403</span></a>
+						<a href="/" class="button-wrapper"><span class="button-text">413</span></a>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<!-- 2nd block -->
+		<div class="block">
+			<img class="subheader" src="asset/home/Header-bonus.png" />
+			<!-- modular row -->
+			<div class="row">
+				<div class="card">
+					<img class="icon" src="asset/home/2-1_by-freepik.png" />
+					<div class="card-title">Cookies</div>
+					<p class="methods">Methods | N/A</p>
+					<p class="description">Try to remove & generate new cookies in page, show XSS attack</p>
+					<div class="navigation">
+						<a href="/upload" class="button-wrapper"><span class="button-text">Try</span></a>
+						<!-- dup line above for more buttons -->
+					</div>
+				</div>
+				<!-- dup class above for more cards -->
+			</div>
+
+		</div>
+	</div>
+</body>
+</html>

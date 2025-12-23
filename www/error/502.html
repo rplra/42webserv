@@ -1,10 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta charset="utf-8" />
     <title>Error</title>
+	<style>
+		html, body {
+		height: 100%;      /* full viewport height */
+		margin: 0;         /* remove default spacing */
+		}
+
+		body {
+		display: flex;
+		align-items: center;      /* vertical centering */
+		justify-content: center;  /* horizontal centering */
+		
+		background: linear-gradient(
+			237deg,
+			rgba(184, 255, 220, 1) 0%,
+			rgba(130, 139, 255, 1) 100%
+		);
+
+		flex-direction: column;   /* stack items vertically if needed */
+		}
+
+		.frame {
+		color: #861799;
+		display: flex;
+		flex-direction: column;
+		align-items: center;  /* center text horizontally */
+		gap: 16px;            /* spacing between heading and paragraph */
+		padding: 0 40px; /* horizontal padding for content */
+		max-width: 520px; /* optional, controls maximum width */
+		}
+
+		h1 {
+		margin: 0;
+		font-family: "Inter", Helvetica, Roboto, Arial, sans-serif;
+		font-weight: 700;
+		font-size: 36px;
+		text-align: center;
+		}
+
+		p {
+		margin: 0;
+		font-family: "Inter", Helvetica, Roboto, Arial, sans-serif;
+		font-weight: 400;
+		font-size: 24px;
+		text-align: center;
+		}
+	</style>
 </head>
+
 <body>
-    <h1>502 - Bad Gateway</h1>
-    <p>The server received an invalid response from the upstream server.</p>
+	<div class="frame">
+		<h1>502 Bad Gateway</h1>
+		<p>The server received an invalid response from the upstream server</p>
+	</div>
 </body>
 </html>
