@@ -22,7 +22,8 @@ const std::string GREY   = "\033[90m";
 const std::string RESET  = "\033[0m";
 
 // values
-const size_t BUFFER_SIZE = 8192;
+const size_t BUFFER_SIZE	= 8192;
+const size_t DEFAULT_LIMIT	= 104576; // default initial limit 1MB
 
 // error - args
 const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configuration file]";

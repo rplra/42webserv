@@ -1,0 +1,14 @@
+virtual test cases
+
+/*************************** TESTS ***************************/
+
+RUN ./webserv conf/virtual.conf
+
+curl --resolve example:8000:127.0.0.1 http://example:8000/
+curl --resolve www.example.com:8000:127.0.0.1 http://www.example.com:8000/
+
+curl --resolve test:8000:127.0.0.1 http://test:8000/
+curl --resolve www.test.com:8000:127.0.0.1 http://www.test.com:8000/
+
+curl --resolve default:8000:127.0.0.1 http://default:8000/
+curl --resolve www.default.com:8000:127.0.0.1 http://www.default.com:8000/

@@ -2,12 +2,14 @@
 
 Client::Client(int clientSocket, const Server* server)
 :
-	_clientSocket(clientSocket),
 	_server(server),
+	_clientSocket(clientSocket),
+	_serverSocket(-1),
 	_request(),
 	_response(NULL),
 	_bytesSent(0),
-	_hasResponse(false)
+	_hasResponse(false),
+	_sendError(false)
 {}
 
 Client::~Client()
@@ -35,6 +37,21 @@ Response* Client::getResponse()
 	return (_response);
 }
 
+void Client::setServer(const Server* server)
+{
+	_server = server;
+}
+
+void Client::setServerSocket(int fd)
+{
+	_serverSocket = fd;
+}
+
+int	Client::getServerSocket()
+{
+	return (_serverSocket);
+}
+
 bool Client::responseReady() const
 {
 	return (_hasResponse);
@@ -49,7 +66,7 @@ void Client::markResponseReady()
 void Client::buildResponse()
 {
 	/* routing */const Location* location = _server->getMatchingLocation(_request.getPath());
-
+	
 	// clean up old response if exists
 	if (_response)
 	{
@@ -133,18 +150,24 @@ bool Client::sendResponse()
 	if (bytes < 0)
 	{
 		std::cerr << RED << ERR_SENDERROR << _clientSocket << RESET << std::endl;
+		_sendError = true;
 		return true;
 	}
 	else if (bytes == 0)
 	{
 		std::cerr << RED << ERR_SENDCONNCLOSED << _clientSocket << RESET << std::endl;
+		_sendError = true;
 		return true;
 	}
 
 	_bytesSent += bytes;
-
 	// return true if all sent
 	return (_bytesSent >= responseData.size());
+}
+
+bool Client::hasSendError()
+{
+	return (_sendError);
 }
 
 void Client::reset()

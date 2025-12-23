@@ -14,21 +14,28 @@ public:
 	Request&		getRequest();
 	Response*		getResponse();
 
+	void			setServer(const Server* server);
+	void			setServerSocket(int fd);
+	int				getServerSocket();
+
 	bool			responseReady() const;
 	void			markResponseReady();
 	void			buildResponse();
 	bool			sendResponse();
+	bool			hasSendError();
 	
 	void			reset();
 
 private:
-	int				_clientSocket;
 	const Server*	_server;
+	int				_clientSocket;
+	int				_serverSocket;
 	Request			_request;
 	Response*		_response;
 	size_t			_bytesSent;
 
 	bool			_hasResponse;
+	bool			_sendError;
 };
 
 #endif

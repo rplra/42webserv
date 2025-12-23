@@ -15,30 +15,30 @@ public:
 	void	run();
 
 private:
-	const Config&					_config;
-	std::vector<int>				_serverSockets;
-	std::map<int, const Server*>	_socketToServer;
-	std::map<int, Client*>			_clients;
-	std::vector<pollfd>				_pollFds;
-	static const int				_pollTimeoutMs = 5000;
+	const Config&								_config;
+	std::vector<int>							_serverSockets;
+	std::map<int, std::vector<const Server*> >	_socketToServer; // virtual hosting; multiple servers can share same socket
+	std::map<int, Client*>						_clients;
+	std::vector<pollfd>							_pollFds;
+	static const int							_pollTimeoutMs = 5000;
 
-	int		createListeningSocket(std::string host, int port);
-	void	createAllListeningSockets();
-	void	createPollFds();
-	void	addPollFd(int fd, short events);
-	void	removePollFd(int fd);
+	int				createListeningSocket(std::string host, int port);
+	void			createAllListeningSockets();
+	void			createPollFds();
+	void			addPollFd(int fd, short events);
+	void			removePollFd(int fd);
 
-	void	acceptNewClient(int serverSocket);
-	void	removeClient(int clientSocket);
+	void			acceptNewClient(int serverSocket);
+	void			removeClient(int clientSocket);
 
-	void	handleEventRead(int clientSocket);
-	void	handleEventWrite(int clientSocket);
-	void	enableWriteEvent(int clientSocket);
-	void	disableWriteEvent(int clientSocket);
+	void			handleEventRead(int clientSocket);
+	void			handleEventWrite(int clientSocket);
+	void			enableWriteEvent(int clientSocket);
+	void			disableWriteEvent(int clientSocket);
 
-	bool	isServerSocket(int fd);
-	bool	isKeepAlive(Client* client);
-	void	cleanUp();
+	bool			isServerSocket(int fd);
+	bool			isKeepAlive(Client* client);
+	void			cleanUp();
 };
 
 #endif
