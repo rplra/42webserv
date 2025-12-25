@@ -87,8 +87,7 @@ int ServerManager::createListeningSocket(std::string host, int port)
     struct addrinfo hints, *res;
     memset(&hints, 0, sizeof(hints));
 
-    hints.ai_flags = AI_PASSIVE;      // Only allow binding to local IP addresses
-    hints.ai_family = AF_INET;        // IPv4
+    hints.ai_family = AF_UNSPEC;    // IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP
     std::cout << GREEN << "Creating listening socket on " << port << RESET << std::endl;
     
@@ -121,7 +120,7 @@ int ServerManager::createListeningSocket(std::string host, int port)
     }
 
     // 4. Listen for incoming connections
-    if (listen(serverSocket, 5) < 0)
+    if (listen(serverSocket, SOMAXCONN) < 0)
 	{
 		freeaddrinfo(res);
         close(serverSocket);
@@ -174,35 +173,46 @@ void	ServerManager::removePollFd(int fd)
 
 void	ServerManager::acceptNewClient(int serverSocket)
 {
-	// 1. accept a connection first
-	// accept() creates a new socket FD for client
-	// each client get its own socket seperate from listening socket
-    int clientSocket = accept(serverSocket, NULL, NULL);
-    if (clientSocket < 0)
-        return ;
+	while (true)
+	{
+		// 1. accept a connection first
+		// accept() creates a new socket FD for client
+		// each client get its own socket seperate from listening socket
+		int clientSocket = accept(serverSocket, NULL, NULL);
+		if (clientSocket < 0)
+		{
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break ; // no more incoming connections to accept
+			else
+			{
+				perror("accept");
+				break ;
+			}
+		}
 
-	// 2. set Non-blocking mode for client socket immediately
-    // recv() uses clientSocket to read data
-    // If clientSocket is blocking, recv() will freeze the whole server
-    // Retrieve current flags of the socket and set O_NONBLOCK
-    int flags = fcntl(clientSocket, F_GETFL, 0);
-    fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
+		// 2. set Non-blocking mode for client socket immediately
+		// recv() uses clientSocket to read data
+		// If clientSocket is blocking, recv() will freeze the whole server
+		// Retrieve current flags of the socket and set O_NONBLOCK
+		int flags = fcntl(clientSocket, F_GETFL, 0);
+		fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
 
-	// 3. create and store client obj
-	// get the server obj that this server socket belongs to
-	const Server* serverPtr = _socketToServer[serverSocket];
-	// map the client to its own socket and the server obj it connected to
-    Client* client = new Client(clientSocket, serverPtr);
-	// store the client into map (allow serverManager to find client quickly when socket has activity)
-	_clients[clientSocket] = client;
-    /* debug */std::cout << GREEN << "Mapped client fd: " << clientSocket << " to server fd: " << serverSocket << RESET << std::endl;
+		// 3. create and store client obj
+		// get the server obj that this server socket belongs to
+		const Server* serverPtr = _socketToServer[serverSocket];
+		// map the client to its own socket and the server obj it connected to
+		Client* client = new Client(clientSocket, serverPtr);
+		// store the client into map (allow serverManager to find client quickly when socket has activity)
+		_clients[clientSocket] = client;
+		/* debug */std::cout << GREEN << "Mapped client fd: " << clientSocket << " to server fd: " << serverSocket << RESET << std::endl;
 
-	//4. add to pollfd
-	// create new pollfd struct for this client socket
-	// events = POLLIN - we want to read from the client when it sends data
-	// push client_fd into fds vector so poll() can start monitoring
-	addPollFd(clientSocket, POLLIN);
-	// from now on, client FD is mointored like all others
+		//4. add to pollfd
+		// create new pollfd struct for this client socket
+		// events = POLLIN - we want to read from the client when it sends data
+		// push client_fd into fds vector so poll() can start monitoring
+		addPollFd(clientSocket, POLLIN);
+		// from now on, client FD is mointored like all others
+	}
 }
 
 void	ServerManager::handleEventRead(int clientSocket)
