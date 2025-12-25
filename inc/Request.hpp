@@ -27,8 +27,8 @@ public:
 
 	//		setters
 	// void										setBodySizeLimit(size_t limit);
-	// void										setStatus(HttpStatus status);
-	// void										setState(ParserState state);
+	void										setStatus(HttpStatus status);
+	void										setState(ParserState state);
 
 	//		getters
 	const	std::string&						getMethod() const;
@@ -40,6 +40,7 @@ public:
 	const	std::string&						getHeader(const std::string& key) const;
 	const	std::map<std::string, std::string>&	getHeaders() const;
 	// const	std::string&						getBoundary() const;
+	size_t										getContentLength() const;
 	const	std::string&						getContentType() const;
 	const	std::string&						getConnection() const;
 	const	std::string&						getSessionID() const;

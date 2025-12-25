@@ -240,6 +240,39 @@ void	ServerManager::acceptNewClient(int serverSocket)
 	addPollFd(clientSocket, POLLIN);
 }
 
+void	ServerManager::selectServer(Client* client)
+{
+	// extract host header
+	std::string hostHeader = client->getRequest().getHeader("host");
+	std::string hostname = hostHeader;
+	// remove port if present
+	size_t colonPos = hostname.find(":");
+	if (colonPos != std::string::npos)
+		hostname = hostname.substr(0, colonPos);
+	// get servers for this socket
+	const std::vector<const Server*>& servers = _socketToServer[client->getServerSocket()];
+	const Server* selectedServer = servers[0];
+
+	// match hostname
+	bool found = false;
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		const std::vector<std::string>& serverNames = servers[i]->getServerNames();
+		for (size_t j = 0; j < serverNames.size(); ++j)
+		{
+			if (serverNames[j] == hostname)
+			{
+				selectedServer = servers[i];
+				found = true;
+				break;
+			}
+		}
+		if (found)
+			break;
+	}
+	client->setServer(selectedServer);	
+}
+
 void	ServerManager::handleEventRead(int clientSocket)
 {
 	Client* client = _clients[clientSocket];
@@ -263,56 +296,55 @@ void	ServerManager::handleEventRead(int clientSocket)
 	}
 
 	// track parser state cz server selection based on Host header happens only after headers are parsed
-	ParserState prevState = client->getRequest().getState();
+	Request&	request = client->getRequest();
+	ParserState prevState = request.getState();
+
 	// determine initial body size limit if no server yet, else assign server's limit
 	size_t limit = DEFAULT_LIMIT;
-	if (client->getServer())
-		limit = client->getServer()->getClientMaxBodySize();
+	const Server* server = client->getServer();
 
-	// feed buffer to request parser
-	client->getRequest().handleRequest(buffer, bytes, limit);
-	
-
-	// select server after parsing headers
-	if (prevState < PARSE_HEADERS && client->getRequest().getState() >= PARSE_HEADERS && !client->getServer())
+	if (server)
 	{
-		// extract host header
-		std::string hostHeader = client->getRequest().getHeader("host");
-		std::string hostname = hostHeader;
-		size_t colonPos = hostname.find(":");
-		if (colonPos != std::string::npos)
-			hostname = hostname.substr(0, colonPos);
-	// 	// get servers for this socket
-		const std::vector<const Server*>& servers = _socketToServer[client->getServerSocket()];
-		const Server* selectedServer = servers[0];
-
-	// 	// match hostname
-		bool found = false;
-		for (size_t i = 0; i < servers.size(); ++i)
+		limit = client->getServer()->getClientMaxBodySize();
+		// update limit based on location
+		if (request.getState() >= PARSE_HEADERS && !request.getPath().empty())
 		{
-			const std::vector<std::string>& serverNames = servers[i]->getServerNames();
-			for (size_t j = 0; j < serverNames.size(); ++j)
-			{
-				if (serverNames[j] == hostname)
-				{
-					selectedServer = servers[i];
-					found = true;
-					break;
-				}
-			}
-			if (found)
-				break;
+			const Location* location = server->getMatchingLocation(request.getPath());
+			if (location && location->_client_max_body_size > 0)
+				limit = location->_client_max_body_size;
 		}
-		client->setServer(selectedServer);
-		limit = selectedServer->getClientMaxBodySize();
 	}
 
-	// update limit based on location
-	if (client->getServer() && client->getRequest().getState() >= PARSE_HEADERS && !client->getRequest().getPath().empty())
+	// feed buffer to request parser
+	request.handleRequest(buffer, bytes, limit);
+
+	// select server after parsing headers
+	if (prevState < PARSE_HEADERS && request.getState() >= PARSE_HEADERS && !server)
 	{
-		const Location* location = client->getServer()->getMatchingLocation(client->getRequest().getPath());
-		if (location && location->_client_max_body_size > 0)
-			limit = location->_client_max_body_size;
+		selectServer(client);
+		server = client->getServer();
+		if (server)
+		{
+			// recalculate limit with selected server + location
+			limit = server->getClientMaxBodySize();
+			const Location* location = server->getMatchingLocation(request.getPath());
+			if (location && location->_client_max_body_size > 0)
+				limit = location->_client_max_body_size;
+
+			// nginx-style : reject large content-length immediately
+			size_t contentLength = request.getContentLength();
+			if (contentLength > limit)
+			{
+				request.setStatus(HTTP_PAYLOAD_TOO_LARGE);
+				request.setState(PARSE_ERROR);
+			}
+			// check if body already received exceeds limit
+			else if (request.getBody().size() > limit)
+			{
+				request.setStatus(HTTP_PAYLOAD_TOO_LARGE);
+				request.setState(PARSE_ERROR);
+			}
+		}
 	}
 
 	if (client->getRequest().isParseComplete() || client->getRequest().getState() == PARSE_ERROR)

@@ -31,6 +31,7 @@ private:
 	void			acceptNewClient(int serverSocket);
 	void			removeClient(int clientSocket);
 
+	void			selectServer(Client* client);
 	void			handleEventRead(int clientSocket);
 	void			handleEventWrite(int clientSocket);
 	void			enableWriteEvent(int clientSocket);
@@ -42,6 +43,20 @@ private:
 };
 
 #endif
+
+/* 
+    Flow of a server-side socket programming 
+    1. socket() - create a socket
+    2. bind() - bind the socket to an IP/port
+    3. listen() - limits how many connections can wait before being accepted
+    4. accept() - accept a connection
+    5. recv() - receive data from a connection
+    6. close() - close the connection
+
+    1. set up server socket and get the port number from config file 
+    2. receive request from client and store in a struct
+    3. process the request and generate a response
+*/
 
 /* 
 	std::map<int, const Server*>	_socketToServer;
@@ -60,5 +75,4 @@ private:
 	_socketToServer is mapped to server obj when createAllListeningSocket, 
 	_clients are created when we need to accept a connection (checked during run if its listenFd), 
 	_pollfds are collective addition of listeningfd (serverSocket) and connectionfd (clientSocket)
-
 */
