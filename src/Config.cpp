@@ -65,15 +65,12 @@ std::string	Server::getFullPath(const Request& request) const
 	const Location* location = getMatchingLocation(request.getPath());
 	std::string path = request.getPath();
 	std::string root = _root;
-	// std::string index = _index;
 
 	/* debug */std::cout << YELLOW << "> ROUTING: initial req path: " << RESET << path << std::endl;
 
 	// check alias first (precedence) and then root
 	if (location)
 	{
-		// if (!location->_index.empty())
-		// 	index = location->_index;
 		if (!location->_alias.empty())
 		{
 			root = location->_alias;
@@ -91,9 +88,6 @@ std::string	Server::getFullPath(const Request& request) const
 			/* debug */std::cout << YELLOW << "> ROUTING: using location root: " << RESET << root << std::endl;
 		}
 	}
-	// append index if path ends with /
-	// if (!path.empty() && path.back() == '/')
-	// 	path += index;
 
 	return (normalizePath(root + path));
 }

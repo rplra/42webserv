@@ -10,6 +10,7 @@ ServerManager::ServerManager(const Config& config)
 
 void ServerManager::run()
 {
+	std::cout << BLUE << ">> Server running ... (Ctrl+C to stop)" << std::endl;
 	const std::vector<Server>& servers = _config.getServers();
     if (servers.empty())
 	{
@@ -50,6 +51,7 @@ void ServerManager::run()
 	}
 	// 6. cleanup
 	cleanUp();
+	std::cout << BLUE << ">> Webserv successfully shut down." << std::endl;
 }
 
 void ServerManager::createAllListeningSockets()

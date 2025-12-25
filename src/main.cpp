@@ -7,21 +7,17 @@ int main(int ac, char **av)
 {
 	try
 	{
-	checkArgument(ac);
+		checkArgument(ac);
 
-    g_signal = 1;
-    signal(SIGINT, handleSignal);
+		g_signal = 1;
+		signal(SIGINT, handleSignal);
 
-    Config          config;
-	ConfigParser    parser(config);
-    parser.parseConfig(av);
+		Config          config;
+		ConfigParser    parser(config);
+		parser.parseConfig(av);
 
-	std::cout << BLUE << ">> Server running ... (Ctrl+C to stop)" << std::endl;
-
-	ServerManager webserv(config);
-	webserv.run();
-
-	std::cout << BLUE << ">> Webserv successfully shut down." << std::endl;
+		ServerManager webserv(config);
+		webserv.run();
 	}
 	catch(const std::exception& e)
 	{
