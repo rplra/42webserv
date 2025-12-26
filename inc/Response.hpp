@@ -83,6 +83,7 @@ private:
 	void						serveFile(const std::string& file_path, HttpStatus status);
 	void						setEnvVariables();
 	void						executeCgi(const Location* location, int len);
+	bool						parseCgiHeaders(const std::string& raw, size_t &pos);
 
 	// page generators
 	std::string	generateAutoIndexBody(const std::string& file_path);

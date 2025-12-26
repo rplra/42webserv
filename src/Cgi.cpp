@@ -33,7 +33,12 @@ void	Response::setEnvVariables()
 	_env_variables.push_back("SCRIPT_FILENAME=" + currentDir + "/" + _file_path); // for PHP
 	_env_variables.push_back("REDIRECT_STATUS=200"); // for PHP
 	_env_variables.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	std::cout << PURPLE << "CGI Environment Variables: " << RESET << std::endl; //debug
+	if (_request->hasSessionId())
+		_env_variables.push_back("HTTP_COOKIE=" + _request->getHeaders().at("cookie")); // for cookie
+	else
+		_env_variables.push_back("HTTP_COOKIE="); // empty cookie
+
+	/*debug*/std::cout << PURPLE << "CGI Environment Variables: " << RESET << std::endl;
 	for (std::vector<std::string>::const_iterator it = _env_variables.begin(); it != _env_variables.end(); ++it) {
 		std::cout << *it << std::endl;
 	}
@@ -131,7 +136,7 @@ void	Response::executeCgi(const Location* location, int len)
         std::cerr << RED << ERR_POLL << RESET << std::endl;
     }
 
-	std::cout << GREEN << "CGI Response: " << RESET << _cgiResponse << std::endl;
+	std::cout << GREEN << "CGI Response: \n" << RESET << _cgiResponse << std::endl;
 
 	close(stdin_pipe[1]);
 	close(stdout_pipe[0]);

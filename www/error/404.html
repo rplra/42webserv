@@ -21,7 +21,7 @@
 			rgba(184, 255, 220, 1) 0%,
 			rgba(130, 139, 255, 1) 100%
 		);
-
+	    transition: background 0.1s linear; /* smooth gradient update */
 		flex-direction: column;   /* stack items vertically if needed */
 		}
 
@@ -58,5 +58,13 @@
 		<h1>404 Not Found</h1>
 		<p>The page you requested could not be found</p>
 	</div>
+
+	<script>
+		document.addEventListener('mousemove', (e) => {
+			const xRatio = e.clientX / window.innerWidth; // 0 to 1
+			const angle = xRatio * 360; // map to 0-360 degrees
+			document.body.style.background = `linear-gradient(${angle}deg, rgba(184, 255, 220, 1) 0%, rgba(130, 139, 255, 1) 100%)`;
+		});
+	</script>
 </body>
 </html>
