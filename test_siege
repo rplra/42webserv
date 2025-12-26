@@ -30,6 +30,12 @@ siege -b -c 2 -t 5M http://localhost:8000/empty.html
 # TEST 4 : small stress with higher concurrency
 siege -b -c 10 -t 2M http://localhost:8000/empty.html
 
+/*************************** UNDERSTANDING THE ERROR ***************************/
+"Resource temporarily unavailable" (EAGAIN/EWOULDBLOCK)
 
+This error from siege means:
+- Siege is trying to create too many connections too fast
+- The OS or your server can't keep up
+- Connections are being refused or timing out
 
 

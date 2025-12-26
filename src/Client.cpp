@@ -133,7 +133,7 @@ bool Client::sendResponse()
 	if (bytes < 0)
 	{
 		std::cerr << RED << ERR_SENDERROR << _clientSocket << RESET << std::endl;
-		return true;
+		return false;
 	}
 	else if (bytes == 0)
 	{

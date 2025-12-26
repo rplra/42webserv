@@ -20,7 +20,7 @@ private:
 	std::map<int, const Server*>	_socketToServer;
 	std::map<int, Client*>			_clients;
 	std::vector<pollfd>				_pollFds;
-	static const int				_pollTimeoutMs = 5000;
+	static const int				_pollTimeoutMs = 1000;
 
 	int		createListeningSocket(std::string host, int port);
 	void	createAllListeningSockets();
@@ -30,6 +30,7 @@ private:
 
 	void	acceptNewClient(int serverSocket);
 	void	removeClient(int clientSocket);
+
 
 	void	handleEventRead(int clientSocket);
 	void	handleEventWrite(int clientSocket);
