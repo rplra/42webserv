@@ -40,7 +40,6 @@ private:
 	HttpStatus							_status_code;
 	std::string							_reason_phrase;
 	std::map<std::string, std::string>	_headers;
-	// std::string							_session_id;
 	std::string							_body;
 	std::string							_content_type;
 
@@ -81,6 +80,8 @@ private:
 	std::string					getFileBody(const std::string& file_path);
 	void						handleDirectory(const std::string& dir_path);
 	void						serveFile(const std::string& file_path, HttpStatus status);
+	
+	// cgi
 	void						setEnvVariables();
 	void						executeCgi(const Location* location, int len);
 

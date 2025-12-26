@@ -29,12 +29,6 @@ void	Request::handleRequest(const char* data, size_t size, size_t limit)
 	parseByState(limit);
 }
 
-// void	Request::setBodySizeLimit(size_t limit)
-// {
-// 	/* debug */std::cout << PINK << "> REQ: set bodySizeLimit" << RESET << std::endl;
-// 	_body_size_limit = limit;
-// }
-
 void	Request::setStatus(HttpStatus status)
 {
 	_status = status;
@@ -93,11 +87,6 @@ const	std::map<std::string, std::string>&	Request::getHeaders() const
 	return (_headers);
 }
 
-// const	std::string& Request::getBoundary() const
-// {
-// 	return (_boundary);
-// }
-
 size_t Request::getContentLength() const
 {
 	return (_content_length);
@@ -124,11 +113,6 @@ const	std::string& Request::getBody() const
 	return (_body);
 }
 
-// const 	std::map<std::string, std::string>&	Request::getCookies() const
-// {
-// 	return (_cookies);
-// }
-
 const	ParserState& Request::getState() const
 {
 	return (_state);
@@ -144,11 +128,6 @@ bool	Request::hasBody()
 {
 	return (!_body.empty());
 }
-
-// bool	Request::hasMultipart() const
-// {
-// 	return (_content_type.find("multipart/form-data") != std::string::npos);
-// }
 
 bool 	Request::hasSessionId() const
 {
@@ -334,22 +313,6 @@ void 	Request::parseHeaders(const std::string& raw, size_t &pos)
 	validateHeaders();
 	pos = headers_end + 4; // move cursor to body_start, skipping header_end empty line
 }
-
-// void	Request::parseBoundary()
-// {
-// 	if (_content_type.find("multipart/form-data") == std::string::npos)
-// 		return ;
-	
-// 	size_t pos = _content_type.find("boundary=");
-// 	if (pos == std::string::npos)
-// 		return ;
-
-// 	_boundary = std::string(_content_type.c_str() + pos + 9);
-
-// 	size_t end = _boundary.find_first_of(" \t\r\n\"");
-// 	if (end != std::string::npos)
-// 		_boundary = std::string(_boundary.c_str(), end);
-// }
 
 void	Request::parseCookies(const std::string& value)
 {

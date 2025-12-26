@@ -17,7 +17,7 @@ public:
 private:
 	const Config&								_config;
 	std::vector<int>							_serverSockets;
-	std::map<int, std::vector<const Server*> >	_socketToServer; // virtual hosting; multiple servers can share same socket
+	std::map<int, std::vector<const Server*> >	_socketToServer;
 	std::map<int, Client*>						_clients;
 	std::vector<pollfd>							_pollFds;
 	static const int							_pollTimeoutMs = 5000;
@@ -59,7 +59,11 @@ private:
 */
 
 /* 
-	std::map<int, const Server*>	_socketToServer;
+	config :: _port_map: maps port number → servers
+	svrmgr :: _socketToServer: maps socket file descriptor → servers
+			: virtual hosting; multiple servers can share same socket
+
+	std::map<int, std::vector<const Server*> >	_socketToServer;
 	using Server* (pointer)
 	- _config owns the Server objs
 	- _socketToServer just needs to reference them, not copy them

@@ -65,7 +65,7 @@ void Client::markResponseReady()
 
 void Client::buildResponse()
 {
-	/* routing */const Location* location = _server->getMatchingLocation(_request.getPath());
+	const Location* location = _server->getMatchingLocation(_request.getPath());
 	
 	// clean up old response if exists
 	if (_response)
@@ -87,9 +87,7 @@ void Client::buildResponse()
 		return ;
 	}
 
-	/****************** CHECKING METHOD & REDIRECT TO REPLACE BY CONFIG (ROUTING) ******************/
-	// check if method is allowed (if location sepcifies allows methods)
-	/* routing */if (location && !location->_allowed_methods.empty())
+	if (location && !location->_allowed_methods.empty())
 	{
 		bool methodAllowed = false;
 		for (size_t i = 0; i < location->_allowed_methods.size(); ++i)
@@ -99,7 +97,7 @@ void Client::buildResponse()
 				methodAllowed = true;					
 				break;
 			}
-	/* routing */	}
+		}
 		
 		if (!methodAllowed)
 		{
@@ -113,14 +111,13 @@ void Client::buildResponse()
 
 	// 5. check for redirect (config redirect)
 	// if a redirect can be decided without touching the filesystem
-	/* routing */if (location && !location->_redirect.empty())
+	if (location && !location->_redirect.empty())
 	{
 		_response->setType(REDIRECT);
 		_response->buildResponse();
 		markResponseReady();
 		return;
 	}
-	/****************** CHECKING METHOD & REDIRECT TO REPLACE BY CONFIG (ROUTING) ******************/
 
 	// 6. else, serve static content
 	_response->setType(STATIC);

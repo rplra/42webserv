@@ -60,18 +60,6 @@ void ServerManager::createAllListeningSockets()
 	const std::vector<Server>& servers = _config.getServers();
 	std::map<std::string, int> hostPortToSocket;
 
-    // for (size_t i = 0; i < servers.size(); ++i) 
-	// {
-	// 	oss << servers[i].getPort();
-    //     int serverSocket = createListeningSocket(servers[i].getHost(), servers[i].getPort());
-    //     if (serverSocket < 0) 
-	// 		throw std::runtime_error(ERR_CREATEALLSOCK + oss.str());
-	// 	// how to clear oss after throw?
-    //     _serverSockets.push_back(serverSocket);
-	// 	// map serversocket to the server obj
-	// 	_socketToServer[serverSocket].push_back(&servers[i]);
-    // }
-
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
 		// create key

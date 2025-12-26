@@ -12,7 +12,6 @@ Response::Response(const Request* request, const Server& server, HttpStatus stat
 	_cgi_path(),
 	_file_path(),
 	_env_variables(),
-
 	_raw_response(),
 	_isBuilt(false),
 	_request(request),
@@ -21,17 +20,8 @@ Response::Response(const Request* request, const Server& server, HttpStatus stat
 	setStatus(status);
 }
 
-// 1. what type of response is this? - error, static, index, cgi, redirect?
-// 2. where does the content come from?
-// 	- generated in memmory; error pages, html
-// 	- read from disk (static files - img, html, css)
-// 	- executed and captured - CGI
-// 3. what metadata must accompany it? content type, content length, special headers (location for redirects)
 std::string	Response::buildResponse()
-{
-	// if (_isBuilt)
-	// 	return getRawResponse(); // return cached response
-	
+{	
 	/* debug */std::cout << PINK << "> building response" << RESET << std::endl;
 	switch(_type)
 	{
@@ -95,7 +85,7 @@ void	Response::setHeader(const std::string& key, const std::string& value)
 /*
 	about sessionId header:
 	- HttpOnly prevents JavaScript access (XSS)
-	  (check by typing document.cookie in browser console)
+	(check by typing document.cookie in browser console)
 	- Secure makes HTTPS connection mandatory
  */
 void	Response::setHeaders()
@@ -141,11 +131,6 @@ void	Response::setBody(const std::string& body)
 	_body = body;
 }
 
-/* 
-	1. set _status to 301 or 302
-	2. set Location header from config
-	3. optional - generate small HTML body saying "Moved Permanently"
-*/
 void	Response::buildRedirect()
 {
 	/* debug */std::cout << PINK << "> build redirect() for path: " << RESET << _request->getPath() << "'" << std::endl;
