@@ -43,7 +43,7 @@ bool	ConfigParser::checkDuplicateServerName(std::vector<std::string> &master, st
 		std::vector<std::string>::iterator it_find = std::find(master.begin(), master.end(), *it);
 		if (it_find != master.end()) // if found
 			return (1);
-		/*debug*/std::cout << "checkDuplicateServerName: " << *it << std::endl;
+		// /*debug*/std::cout << "checkDuplicateServerName: " << *it << std::endl;
 		it++;
 	}
 	return (0);
