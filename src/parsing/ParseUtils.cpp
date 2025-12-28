@@ -77,17 +77,6 @@ void	Server::assignCgiContainer(std::map<int, std::string> &data, std::istringst
 	}
 }
 
-void	Server::assignVecContainer(std::vector<std::string> &data, std::istringstream &iss)
-{
-	std::string word;
-
-	while (iss >> word)
-	{
-		// word = trimStringTail(word, ';');
-		data.push_back(word);
-	}
-}
-
 void	Server::initLocation(Location &obj)
 {
 	obj._autoindex = 0;

@@ -10,6 +10,8 @@ void		checkArgument(int ac);
 std::string	trimStringTail(const std::string &str, char c);
 std::string	trimStringHead(const std::string &str, char c);
 std::string	normalizePath(const std::string& path);
+void		assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
+
 
 // http
 std::string toLower(const std::string& s);

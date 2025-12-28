@@ -205,12 +205,9 @@ void	ConfigParser::checkServerArgCount(size_t code, std::istringstream &iss)
 }
 
 /* return (0) == no error */
-bool	ConfigParser::errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile)
+bool	ConfigParser::errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile, errCheckPortName &tmp)
 {
 	(void) inFile;
-
-	// if (str == "}")
-		// return (0);
 
 	const char *arr[] =
 	{
@@ -231,6 +228,7 @@ bool	ConfigParser::errorServerDirective(std::string &str, std::istringstream &is
 				checkDuplicate(str, this->_check.serv.dup, ERR_DUPLICATE);
 				checkServerArgCount(i, iss);
 				checkValidTypeServer(i, iss);
+				checkDuplicateEndpoint(i, iss, tmp);
 			}
 			return (0);
 		}
@@ -297,7 +295,7 @@ bool	ConfigParser::checkTrimSemicolon(std::string &buffer)
 }
 
 /* checks the server scope */
-void	ConfigParser::errorCheckServer(std::istringstream &iss, std::ifstream &inFile)
+void	ConfigParser::errorCheckServer(std::istringstream &iss, std::ifstream &inFile, errCheckPortName &tmp)
 {
 	std::string			word, buffer;
 
@@ -332,7 +330,7 @@ void	ConfigParser::errorCheckServer(std::istringstream &iss, std::ifstream &inFi
 		if (word == "}" && noMoreBrace(iss))
 			break ;
 
-		if (errorCommonDirective(word, iss, this->_check.serv) && errorServerDirective(word, iss, inFile))
+		if (errorCommonDirective(word, iss, this->_check.serv) && errorServerDirective(word, iss, inFile, tmp))
 			throw (std::invalid_argument(ERR_DIRECTIVEINVALID)); //invalid_directive
 	}
 }
@@ -377,7 +375,11 @@ bool	ConfigParser::errorCheckConfig(std::ifstream &inFile)
 			continue ;
 		this->_check.keyword = word;
 		if (word == "server")
-			this->errorCheckServer(iss, inFile);
+		{
+			errCheckPortName	tmp;
+			this->errorCheckServer(iss, inFile, tmp);
+			this->_check.portNameMap.push_back(tmp);
+		}
 		else
 		{
 			if (isDirective(word))

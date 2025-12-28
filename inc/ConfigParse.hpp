@@ -56,12 +56,21 @@ struct errCheckGroup
 	std::string							root;
 };
 
+struct errCheckPortName
+{
+	// std::map<std::string, std::string>	hostPort;
+	std::string							host;
+	std::string							port;
+	std::vector<std::string>			server_names;
+};
+
 struct errCheck
 {
-	int									line_count;
-	std::string							keyword;
-	errCheckGroup						loc;
-	errCheckGroup						serv;
+	int												line_count;
+	std::string										keyword;
+	errCheckGroup									loc;
+	errCheckGroup									serv;
+	std::vector<errCheckPortName>					portNameMap;
 };
 
 class ConfigParser
@@ -86,11 +95,14 @@ private:
 	bool		noMoreBrace(std::istringstream &iss);
 	bool		checkTrimSemicolon(std::string &buffer);
 	bool		ignoreKeyword(std::string &word, std::istringstream &iss, errCheckGroup &data);
+	void		errorParseListen(std::istringstream &iss, errCheckPortName &tmp);
+	void		errorParseServerName(std::istringstream &iss, errCheckPortName &tmp);
+
 	
 	bool		errorCheckConfig(std::ifstream &inFile);
-	void		errorCheckServer(std::istringstream &iss, std::ifstream &inFile);
+	void		errorCheckServer(std::istringstream &iss, std::ifstream &inFile, errCheckPortName &tmp);
 	void		errorCheckLocation(std::istringstream &iss, std::ifstream &inFile);
-	bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile);
+	bool		errorServerDirective(std::string &str, std::istringstream &iss, std::ifstream &inFile, errCheckPortName &tmp);
 	bool		errorCommonDirective(std::string &str, std::istringstream &iss, errCheckGroup &data);
 	bool		errorLocationDirective(std::string str, std::istringstream &iss);
 
@@ -110,6 +122,11 @@ private:
 	
 	bool		checkMatch(const char* types[], std::string word, const std::string err_message);
 	bool		checkDuplicate(std::string &str, std::vector<std::string> &data, const std::string err_message);
+	void		checkDuplicateEndpoint(size_t code, std::istringstream &iss, errCheckPortName &tmp);
+	bool		checkDuplicateServerName(std::vector<std::string> &master, std::vector<std::string> &to_find);
+	// bool		checkDuplicateEntry(std::vector<std::string> &data, std::vector<std::string> &content);
+	bool		hasDuplicateHostPort(errCheckPortName &tmp);
+
 	bool		checkAliasRootConflict(std::string &str, std::vector<std::string> &data);
 	bool		checkDuplicateCgi(std::string &str, std::istringstream &iss, std::map<std::string, std::string> &data);
 	void		checkServerArgCount(size_t code, std::istringstream &iss);

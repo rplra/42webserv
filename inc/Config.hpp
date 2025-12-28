@@ -36,7 +36,7 @@ public:
 	void								printServer();
 	void								printErrorPage();
 	void								assignMapContainer(std::map<int, std::string> &data, std::istringstream &iss);
-	void								assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
+	// void								assignVecContainer(std::vector<std::string> &data, std::istringstream &iss);
 	void								assignCgiContainer(std::map<int, std::string> &data, std::istringstream &iss);
 
 	// getters

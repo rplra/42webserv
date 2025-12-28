@@ -26,6 +26,17 @@ std::string	trimStringHead(const std::string &str, char c)
 	return (str);
 }
 
+void	assignVecContainer(std::vector<std::string> &data, std::istringstream &iss)
+{
+	std::string word;
+
+	while (iss >> word)
+	{
+		// word = trimStringTail(word, ';');
+		data.push_back(word);
+	}
+}
+
 /* 
 	RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax
 	brief: takes a raw path string (URL/filesystem) and cleans it up by resolving

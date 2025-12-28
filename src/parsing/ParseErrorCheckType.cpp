@@ -104,23 +104,28 @@ void	ConfigParser::checkValidTypeAutoindex(std::istringstream &iss)
 void	ConfigParser::checkValidTypeListen(std::istringstream &iss)
 {
 	std::string			word;
-	int					count = 0;
 	size_t				pos = 0;
 	std::istringstream	tmp_iss(iss.str());
 	tmp_iss.seekg(iss.tellg());
 
 	tmp_iss >> word;
+
 	pos = word.find(':');
-	while (pos != std::string::npos)
+	if (pos == std::string::npos) // ':' not found
 	{
-		pos = word.find(':', pos + 1);
-		count++;
+		for (size_t i=0; i < word.length(); i++)
+			if (!isdigit(static_cast<int>(word[i])))
+				throw (std::invalid_argument(ERR_PORTINVALID));
+		return ;
 	}
-	if (count > 1)
+	else if (pos == 0 || pos + 1 == word.length()) // at begin or end
 	{
-		this->_check.keyword = ':';
+		this->_check.keyword = word[pos];
 		throw (std::invalid_argument(ERR_UNEXPECTSIGN));
 	}
+	for (size_t i=pos+1; i < word.length(); i++)
+		if (!isdigit(static_cast<int>(word[i])))
+			throw (std::invalid_argument(ERR_PORTINVALID));
 }
 
 void	ConfigParser::checkValidTypeServer(size_t code, std::istringstream &iss)

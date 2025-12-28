@@ -61,10 +61,11 @@ void	Server::parseListen(std::istringstream &iss)
 	if (iss >> word)
 	{
 		port = trimStringHead(word, ':');
-		// port = trimStringTail(port, ';');
 		std::istringstream(port) >> this->_port;
 
 		this->_host = trimStringTail(word, ':');
+		if (this->_host == port)
+			this->_host = "0.0.0.0"; // set this if no ip specified
 	}
 }
 
@@ -227,7 +228,7 @@ void	ConfigParser::parseConfig(char **av)
 
 		/* else, start parsing */
 		this->startParser(inFile);
-		/*debug*/ this->_config.printAllServer();
+		// /*debug*/ this->_config.printAllServer();
 
 		/* close after reading */
 		inFile.close();
