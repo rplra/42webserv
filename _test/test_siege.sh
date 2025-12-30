@@ -37,19 +37,13 @@ echo ""
 # echo "${YELLOW}TEST 2 : handle multiple simultaneous users${RESET}"
 # echo "EXPECTED: Availability above 99.5%"
 # echo "----------------------------------------"
-# siege -b -c 5 -t 1M http://localhost:8000/empty.html
+# siege -b -c 10 -t 30S http://localhost:8000/empty.html
 # echo ""
 
 # echo "${YELLOW}TEST 3 : detect memory leaks or slow-growing issues${RESET}"
 # echo "EXPECTED: Availability above 99.5%"
 # echo "----------------------------------------"
-# siege -b -c 2 -t 5M http://localhost:8000/empty.html
-# echo ""
-
-# echo "${YELLOW}TEST 4 : small stress with higher concurrency${RESET}"
-# echo "EXPECTED: Availability above 99.5%"
-# echo "----------------------------------------"
-# siege -b -c 10 -t 2M http://localhost:8000/empty.html
+# siege -b -c 200 -t 30S http://localhost:8000/empty.html
 # echo ""
 
 
@@ -60,10 +54,7 @@ echo ""
 # siege -b http://localhost:8000/empty.html
 
 # # TEST 2 : handle multiple simultaneous users
-# siege -b -c 5 -t 1M http://localhost:8000/empty.html
+# siege -b -c 10 -t 30S http://localhost:8000/empty.html
 
 # # TEST 3 : detect memory leaks or slow-growing issues
-# siege -b -c 2 -t 5M http://localhost:8000/empty.html
-
-# # TEST 4 : small stress with higher concurrency
-# siege -b -c 10 -t 2M http://localhost:8000/empty.html
+# siege -b -c 200 -t 30S http://localhost:8000/empty.html
