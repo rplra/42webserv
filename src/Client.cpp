@@ -2,12 +2,14 @@
 
 Client::Client(int clientSocket, const Server* server)
 :
-	_clientSocket(clientSocket),
 	_server(server),
+	_clientSocket(clientSocket),
+	_serverSocket(-1),
 	_request(),
 	_response(NULL),
 	_bytesSent(0),
-	_hasResponse(false)
+	_hasResponse(false),
+	_sendError(false)
 {}
 
 Client::~Client()
@@ -35,6 +37,21 @@ Response* Client::getResponse()
 	return (_response);
 }
 
+void Client::setServer(const Server* server)
+{
+	_server = server;
+}
+
+void Client::setServerSocket(int fd)
+{
+	_serverSocket = fd;
+}
+
+int	Client::getServerSocket()
+{
+	return (_serverSocket);
+}
+
 bool Client::responseReady() const
 {
 	return (_hasResponse);
@@ -48,8 +65,8 @@ void Client::markResponseReady()
 
 void Client::buildResponse()
 {
-	/* routing */const Location* location = _server->getMatchingLocation(_request.getPath());
-
+	const Location* location = _server->getMatchingLocation(_request.getPath());
+	
 	// clean up old response if exists
 	if (_response)
 	{
@@ -70,9 +87,7 @@ void Client::buildResponse()
 		return ;
 	}
 
-	/****************** CHECKING METHOD & REDIRECT TO REPLACE BY CONFIG (ROUTING) ******************/
-	// check if method is allowed (if location sepcifies allows methods)
-	/* routing */if (location && !location->_allowed_methods.empty())
+	if (location && !location->_allowed_methods.empty())
 	{
 		bool methodAllowed = false;
 		for (size_t i = 0; i < location->_allowed_methods.size(); ++i)
@@ -82,7 +97,7 @@ void Client::buildResponse()
 				methodAllowed = true;					
 				break;
 			}
-	/* routing */	}
+		}
 		
 		if (!methodAllowed)
 		{
@@ -96,14 +111,13 @@ void Client::buildResponse()
 
 	// 5. check for redirect (config redirect)
 	// if a redirect can be decided without touching the filesystem
-	/* routing */if (location && !location->_redirect.empty())
+	if (location && !location->_redirect.empty())
 	{
 		_response->setType(REDIRECT);
 		_response->buildResponse();
 		markResponseReady();
 		return;
 	}
-	/****************** CHECKING METHOD & REDIRECT TO REPLACE BY CONFIG (ROUTING) ******************/
 
 	// 6. else, serve static content
 	_response->setType(STATIC);
@@ -133,18 +147,24 @@ bool Client::sendResponse()
 	if (bytes < 0)
 	{
 		std::cerr << RED << ERR_SENDERROR << _clientSocket << RESET << std::endl;
+		_sendError = true;
 		return true;
 	}
 	else if (bytes == 0)
 	{
 		std::cerr << RED << ERR_SENDCONNCLOSED << _clientSocket << RESET << std::endl;
+		_sendError = true;
 		return true;
 	}
 
 	_bytesSent += bytes;
-
 	// return true if all sent
 	return (_bytesSent >= responseData.size());
+}
+
+bool Client::hasSendError()
+{
+	return (_sendError);
 }
 
 void Client::reset()

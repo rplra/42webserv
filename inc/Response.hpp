@@ -40,11 +40,10 @@ private:
 	HttpStatus							_status_code;
 	std::string							_reason_phrase;
 	std::map<std::string, std::string>	_headers;
-	// std::string							_session_id;
 	std::string							_body;
 	std::string							_content_type;
 
-	// Cgi
+	// cgi
 	std::string							_cgi_path;
 	std::string							_file_path;
 	std::vector<std::string>			_env_variables;
@@ -59,32 +58,34 @@ private:
 	const Request*						_request;
 	const Server&						_server;
 
-	// setters
-	void	setStatus(HttpStatus status);
-	void	setHeader(const std::string& key, const std::string& value);
-	void	setHeaders();
-	void	setBody(const std::string& body);
+	//			setters
+	void		setStatus(HttpStatus status);
+	void		setHeader(const std::string& key, const std::string& value);
+	void		setHeaders();
+	void		setBody(const std::string& body);
 
-	// builders
-	void	buildRedirect();
-	void	buildStatic();
-	void	buildAutoIndex();
-	void	buildCgi();
-	void	buildError(); 
+	//			builders
+	void		buildRedirect();
+	void		buildStatic();
+	void		buildAutoIndex();
+	void		buildCgi();
+	void		buildError(); 
 
-	// helpers
+	// 			helpers
 	std::string getDate();
 	std::string	getLastModified();
 	std::string getMimeType(const std::string& path);
 
-	// static
-	std::string					getFileBody(const std::string& file_path);
-	void						handleDirectory(const std::string& dir_path);
-	void						serveFile(const std::string& file_path, HttpStatus status);
-	void						setEnvVariables();
-	void						executeCgi(const Location* location, int len);
+	//			static
+	std::string	getFileBody(const std::string& file_path);
+	void		handleDirectory(const std::string& dir_path);
+	void		serveFile(const std::string& file_path, HttpStatus status);
+	
+	//			cgi
+	void		setEnvVariables();
+	void		executeCgi(const Location* location, int len);
 
-	// page generators
+	// 			page generators
 	std::string	generateAutoIndexBody(const std::string& file_path);
 	// std::string	generateErrorPage(HttpStatus status);
 

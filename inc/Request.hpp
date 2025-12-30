@@ -26,9 +26,8 @@ public:
 	void	handleRequest(const char* data, size_t size, size_t limit);
 
 	//		setters
-	// void										setBodySizeLimit(size_t limit);
-	// void										setStatus(HttpStatus status);
-	// void										setState(ParserState state);
+	void										setStatus(HttpStatus status);
+	void										setState(ParserState state);
 
 	//		getters
 	const	std::string&						getMethod() const;
@@ -39,11 +38,10 @@ public:
 	const	std::string&						getHttpVersion() const;
 	const	std::string&						getHeader(const std::string& key) const;
 	const	std::map<std::string, std::string>&	getHeaders() const;
-	// const	std::string&						getBoundary() const;
+	size_t										getContentLength() const;
 	const	std::string&						getContentType() const;
 	const	std::string&						getConnection() const;
 	const	std::string&						getSessionID() const;
-	// const 	std::map<std::string, std::string>&	getCookies() const;
 	const	std::string&						getBody() const;
 	const	ParserState&						getState() const;
 	HttpStatus									getStatus() const;
@@ -67,14 +65,12 @@ private:
 	std::map<std::string, std::string>	_headers;
 	size_t								_content_length;
 	std::string							_content_type;
-	// std::string							_boundary;
 	std::string							_body;
-	std::map<std::string, std::string>	_cookies; // may be redundant
+	std::map<std::string, std::string>	_cookies;
 	std::string							_session_id;
 	std::string							_connection;
 	
 	ParserState							_state;
-	// size_t								_body_size_limit;
 	size_t								_parsed_pos;
 	HttpStatus							_status;
 	bool								_isChunked;

@@ -10,6 +10,7 @@ ServerManager::ServerManager(const Config& config)
 
 void ServerManager::run()
 {
+	std::cout << BLUE << ">> Server running ... (Ctrl+C to stop)" << std::endl;
 	const std::vector<Server>& servers = _config.getServers();
     if (servers.empty())
 	{
@@ -23,7 +24,7 @@ void ServerManager::run()
 	{
 		// a. wait for events
 		int ready_count = poll(_pollFds.data(), _pollFds.size(), _pollTimeoutMs);
-        /* debug */std::cout << GREEN << "Ready: " << RESET << ready_count << std::endl;
+
         if (ready_count < 0) {
             if (errno == EINTR)
                 continue; // interrupted by signal
@@ -33,41 +34,67 @@ void ServerManager::run()
 			}
 		}
 
+		if (ready_count == 0)
+			continue; // timeout, no events
+
 		// b. loop over all pollfds
 		// ensure all the writing or reading fds go through poll()
 		for (size_t i = 0; i < _pollFds.size(); ++i)
 		{
 			int fd = _pollFds[i].fd;
+
 			// listen for incoming connections
 			if (_pollFds[i].revents & POLLIN && isServerSocket(fd))
 				acceptNewClient(fd);
+			else if (_pollFds[i].events & POLLHUP)
+				removeClient(fd);
 			else if (_pollFds[i].revents & POLLIN && !isServerSocket(fd))
 				handleEventRead(fd);
-			if (_pollFds[i].revents & POLLOUT && _clients.find(fd) != _clients.end()
+			else if (_pollFds[i].revents & POLLOUT && _clients.find(fd) != _clients.end()
 					&& _clients[fd]->responseReady())
 				handleEventWrite(fd);
+			
 		}
 	}
 	// 6. cleanup
 	cleanUp();
+	std::cout << BLUE << ">> Webserv successfully shut down." << std::endl;
 }
 
 void ServerManager::createAllListeningSockets()
 {
 	std::ostringstream oss;
 	const std::vector<Server>& servers = _config.getServers();
+	std::map<std::string, int> hostPortToSocket;
 
-    for (size_t i = 0; i < servers.size(); ++i) 
+	for (size_t i = 0; i < servers.size(); ++i)
 	{
-		oss << servers[i].getPort();
-        int serverSocket = createListeningSocket(servers[i].getHost(), servers[i].getPort());
-        if (serverSocket < 0) 
-			throw std::runtime_error(ERR_CREATEALLSOCK + oss.str());
-		// how to clear oss after throw?
-        _serverSockets.push_back(serverSocket);
-		// map serversocket to the server obj
-		_socketToServer[serverSocket] = &servers[i];
-    }
+		// create key
+		oss.str("");
+		oss.clear();
+		oss << servers[i].getHost() << ":" << servers[i].getPort();
+		std::string hostPort = oss.str();
+
+		int serverSocket;
+
+		// check if socket exists
+		if (hostPortToSocket.find(hostPort) != hostPortToSocket.end())
+			serverSocket = hostPortToSocket[hostPort];	// reuse
+		else
+		{
+			serverSocket = createListeningSocket(servers[i].getHost(), servers[i].getPort());
+			if (serverSocket < 0)
+			{
+				oss.str("");
+				oss << servers[i].getPort();
+				throw std::runtime_error(ERR_CREATEALLSOCK + oss.str());
+			}
+			_serverSockets.push_back(serverSocket);
+			hostPortToSocket[hostPort] = serverSocket; // track
+		}
+		// add to vector
+		_socketToServer[serverSocket].push_back(&servers[i]);
+	}
 }
 
 int ServerManager::createListeningSocket(std::string host, int port)
@@ -87,8 +114,7 @@ int ServerManager::createListeningSocket(std::string host, int port)
     struct addrinfo hints, *res;
     memset(&hints, 0, sizeof(hints));
 
-    hints.ai_flags = AI_PASSIVE;      // Only allow binding to local IP addresses
-    hints.ai_family = AF_INET;        // IPv4
+    hints.ai_family = AF_UNSPEC;    // IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP
     std::cout << GREEN << "Creating listening socket on " << port << RESET << std::endl;
     
@@ -121,7 +147,7 @@ int ServerManager::createListeningSocket(std::string host, int port)
     }
 
     // 4. Listen for incoming connections
-    if (listen(serverSocket, 5) < 0)
+    if (listen(serverSocket, SOMAXCONN) < 0)
 	{
 		freeaddrinfo(res);
         close(serverSocket);
@@ -172,37 +198,75 @@ void	ServerManager::removePollFd(int fd)
 	}
 }
 
+/* 
+	1. accept a connection first
+	accept() creates a new socket FD for client
+	each client get its own socket seperate from listening socket
+
+	2. set Non-blocking mode for client socket immediately
+    recv() uses clientSocket to read data
+    If clientSocket is blocking, recv() will freeze the whole server
+    Retrieve current flags of the socket and set O_NONBLOCK
+
+	3. create and store client obj
+	get the server obj that this server socket belongs to
+	4. map the client to its own socket and the server obj it connected to
+	5. store the client into map (allow serverManager to find client quickly when socket has activity)
+	4. add to pollfd
+	create new pollfd struct for this client socket
+	events = POLLIN - we want to read from the client when it sends data
+	push client_fd into fds vector so poll() can start monitoring
+
+*/
 void	ServerManager::acceptNewClient(int serverSocket)
 {
-	// 1. accept a connection first
-	// accept() creates a new socket FD for client
-	// each client get its own socket seperate from listening socket
     int clientSocket = accept(serverSocket, NULL, NULL);
     if (clientSocket < 0)
         return ;
 
-	// 2. set Non-blocking mode for client socket immediately
-    // recv() uses clientSocket to read data
-    // If clientSocket is blocking, recv() will freeze the whole server
-    // Retrieve current flags of the socket and set O_NONBLOCK
     int flags = fcntl(clientSocket, F_GETFL, 0);
     fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK);
 
-	// 3. create and store client obj
-	// get the server obj that this server socket belongs to
-	const Server* serverPtr = _socketToServer[serverSocket];
-	// map the client to its own socket and the server obj it connected to
-    Client* client = new Client(clientSocket, serverPtr);
-	// store the client into map (allow serverManager to find client quickly when socket has activity)
+	// const Server* serverPtr = _socketToServer[serverSocket];
+    Client* client = new Client(clientSocket, NULL);
+	client->setServerSocket(serverSocket);
 	_clients[clientSocket] = client;
-    /* debug */std::cout << GREEN << "Mapped client fd: " << clientSocket << " to server fd: " << serverSocket << RESET << std::endl;
+	/* debug */std::cout << GREEN << "Mapped client fd: " << clientSocket << " to server fd: " << serverSocket << RESET << std::endl;
 
-	//4. add to pollfd
-	// create new pollfd struct for this client socket
-	// events = POLLIN - we want to read from the client when it sends data
-	// push client_fd into fds vector so poll() can start monitoring
 	addPollFd(clientSocket, POLLIN);
-	// from now on, client FD is mointored like all others
+}
+
+void	ServerManager::selectServer(Client* client)
+{
+	// extract host header
+	std::string hostHeader = client->getRequest().getHeader("host");
+	std::string hostname = hostHeader;
+	// remove port if present
+	size_t colonPos = hostname.find(":");
+	if (colonPos != std::string::npos)
+		hostname = hostname.substr(0, colonPos);
+	// get servers for this socket
+	const std::vector<const Server*>& servers = _socketToServer[client->getServerSocket()];
+	const Server* selectedServer = servers[0];
+
+	// match hostname
+	bool found = false;
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		const std::vector<std::string>& serverNames = servers[i]->getServerNames();
+		for (size_t j = 0; j < serverNames.size(); ++j)
+		{
+			if (serverNames[j] == hostname)
+			{
+				selectedServer = servers[i];
+				found = true;
+				break;
+			}
+		}
+		if (found)
+			break;
+	}
+	client->setServer(selectedServer);	
 }
 
 void	ServerManager::handleEventRead(int clientSocket)
@@ -223,54 +287,64 @@ void	ServerManager::handleEventRead(int clientSocket)
 	else if (bytes < 0)
 	{
 		std::cerr << RED << ERR_RECVFD << clientSocket << RESET << std::endl;
-		removeClient(clientSocket);
+		// removeClient(clientSocket);
 		return ;
 	}
 
-	// Request& request = client->getRequest();
-	// ParserState prevState = request.getState();
+	// track parser state cz server selection based on Host header happens only after headers are parsed
+	Request&	request = client->getRequest();
+	ParserState prevState = request.getState();
 
-	// size_t limit = client->getServer()->getClientMaxBodySize();
-	// // /* debug */ std::cout << PINK << "SVR: server limit: " << RESET << limit << std::endl;
-	// client->getRequest().handleRequest(buffer, bytes, limit);
-	// // only after we parse request line, we know which req path > location block to check limit
-	// if (prevState == PARSE_REQUEST_LINE && request.getState() >= PARSE_HEADERS && !request.getPath().empty())
-	// {
-	// 	// /* debug */ std::cout << PINK << "SVR: loc path: " << RESET << request.getPath() << std::endl;
-	// 	const Location* loc = client->getServer()->getMatchingLocation(client->getRequest().getPath());
-	// 	if (loc && loc->_client_max_body_size > 0)
-	// 	{
-	// 		// /* debug */ std::cout << PINK << "SVR: location matched. limit : " << RESET << loc->_client_max_body_size << std::endl;
-	// 		limit = loc->_client_max_body_size;
-	// 	}
-		
-	// 	request.setBodySizeLimit(limit);
-	// 	// /* debug */ std::cout << PINK << "SVR: body size received : " << RESET << request.getBody().size() << std::endl;
-	// 	// /* debug */ std::cout << PINK << "SVR: location limit: " << RESET << limit << std::endl;
+	// determine initial body size limit if no server yet, else assign server's limit
+	size_t limit = DEFAULT_LIMIT;
+	const Server* server = client->getServer();
 
-	// 	if (request.getBody().size() > limit)
-	// 	{
-	// 		// /* debug */ std::cout << PINK << "body exceed limit" << RESET << std::endl;
-	// 		request.setStatus(HTTP_PAYLOAD_TOO_LARGE);
-	// 		request.setState(PARSE_ERROR);
-	// 	}
-	// }
-
-	size_t limit = client->getServer()->getClientMaxBodySize();
-	if (client->getRequest().getState() >= PARSE_HEADERS && !client->getRequest().getPath().empty())
+	if (server)
 	{
-		const Location* location = client->getServer()->getMatchingLocation(client->getRequest().getPath());
-		if (location)
-			limit = location->_client_max_body_size;
+		limit = client->getServer()->getClientMaxBodySize();
+		// update limit based on location
+		if (request.getState() >= PARSE_HEADERS && !request.getPath().empty())
+		{
+			const Location* location = server->getMatchingLocation(request.getPath());
+			if (location && location->_client_max_body_size > 0)
+				limit = location->_client_max_body_size;
+		}
 	}
 
-	// parse the received data
-	client->getRequest().handleRequest(buffer, bytes, limit);
-	// if parsing is complete or state is parse_error, generate response
+	// feed buffer to request parser
+	request.handleRequest(buffer, bytes, limit);
+
+	// select server after parsing headers
+	if (prevState < PARSE_HEADERS && request.getState() >= PARSE_HEADERS && !server)
+	{
+		selectServer(client);
+		server = client->getServer();
+		if (server)
+		{
+			// recalculate limit with selected server + location
+			limit = server->getClientMaxBodySize();
+			const Location* location = server->getMatchingLocation(request.getPath());
+			if (location && location->_client_max_body_size > 0)
+				limit = location->_client_max_body_size;
+
+			// nginx-style : reject large content-length immediately
+			size_t contentLength = request.getContentLength();
+			if (contentLength > limit)
+			{
+				request.setStatus(HTTP_PAYLOAD_TOO_LARGE);
+				request.setState(PARSE_ERROR);
+			}
+			// check if body already received exceeds limit
+			else if (request.getBody().size() > limit)
+			{
+				request.setStatus(HTTP_PAYLOAD_TOO_LARGE);
+				request.setState(PARSE_ERROR);
+			}
+		}
+	}
+
 	if (client->getRequest().isParseComplete() || client->getRequest().getState() == PARSE_ERROR)
 	{
-		// /* debug */ std::cout << PINK << "SVR: building response: " << RESET << request.getStatus() << std::endl;
-		// /* debug */ std::cout << PINK << "SVR: final body size: " << RESET << request.getBody().size() << std::endl;
 		client->buildResponse();			// build response (routing handled by config > file_path)
 		enableWriteEvent(clientSocket);		// enable POLLOUT so we can send the data
 	}
@@ -286,6 +360,11 @@ void	ServerManager::handleEventWrite(int clientSocket)
 	if (sendComplete)
 	{
 		disableWriteEvent(clientSocket);
+		if (client->hasSendError())
+		{
+			removeClient(clientSocket);
+			return;
+		}
 		if (isKeepAlive(client))	// keep connection alive for next request 
 			client->reset();		// clear request/response data
 		else
@@ -342,24 +421,27 @@ bool	ServerManager::isKeepAlive(Client* client)
 	USE: 	handleEventRead > when client disconnect
 			handleEventWrite > response done 
 */
-void	ServerManager::removeClient(int clientSocket)
-{
-	for (size_t i = 0; i < _pollFds.size(); i++)
-	{
-		if (_pollFds[i].fd == clientSocket)
-		{
-			close(clientSocket);
-
-			std::map<int, Client*>::iterator it = _clients.find(clientSocket);
-			if (it != _clients.end())
-			{
-				delete it->second;
-				_clients.erase(it);
-			}
-			_pollFds.erase(_pollFds.begin() + i);
-			return;
-		}
-	}
+void ServerManager::removeClient(int clientSocket)
+{   
+    // Close the socket immediately (stops any further I/O)
+    close(clientSocket);
+    
+    // Delete the client object immediately
+    std::map<int, Client*>::iterator it = _clients.find(clientSocket);
+    if (it != _clients.end())
+    {
+        delete it->second;
+        _clients.erase(it);
+    }
+    
+    for (size_t i = 0; i < _pollFds.size(); ++i)
+    {
+        if (_pollFds[i].fd == clientSocket)
+        {
+            _pollFds.erase(_pollFds.begin() + i);
+            break;
+        }
+    }
 }
 
 void	ServerManager::cleanUp()

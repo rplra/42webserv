@@ -3,13 +3,6 @@
 
 #include <string>
 
-/* 
-	for c++, we avoid using #define (could be accidentally modified)
-	because define behaves differently in C++ compared to C
-	- use `const` instead to follow modern C++ approach
-	- correct use is `constexpr` but it's only available for C++11 onwards 
- */
-
 // colours
 const std::string GREEN  = "\033[38;2;168;204;124m";
 const std::string RED    = "\033[38;2;191;97;106m";
@@ -22,7 +15,8 @@ const std::string GREY   = "\033[90m";
 const std::string RESET  = "\033[0m";
 
 // values
-const size_t BUFFER_SIZE = 8192;
+const size_t BUFFER_SIZE	= 8192;
+const size_t DEFAULT_LIMIT	= 104576; // default initial limit 1MB
 
 // error - args
 const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configuration file]";

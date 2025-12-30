@@ -16,7 +16,7 @@ struct Location
 	std::string					_root;
 	std::string					_alias;
 	std::string					_index;
-	bool						_autoindex;
+	int							_autoindex;
 	size_t						_client_max_body_size;
 	std::map<int, std::string>	_error_pages;
 	std::vector<std::string> 	_allowed_methods;
