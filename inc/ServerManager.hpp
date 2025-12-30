@@ -20,7 +20,7 @@ private:
 	std::map<int, std::vector<const Server*> >	_socketToServer;
 	std::map<int, Client*>						_clients;
 	std::vector<pollfd>							_pollFds;
-	static const int							_pollTimeoutMs = 5000;
+	static const int							_pollTimeoutMs = 1000;
 
 	int				createListeningSocket(std::string host, int port);
 	void			createAllListeningSockets();

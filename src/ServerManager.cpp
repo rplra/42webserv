@@ -24,7 +24,7 @@ void ServerManager::run()
 	{
 		// a. wait for events
 		int ready_count = poll(_pollFds.data(), _pollFds.size(), _pollTimeoutMs);
-        /* debug */std::cout << GREEN << "Ready: " << RESET << ready_count << std::endl;
+
         if (ready_count < 0) {
             if (errno == EINTR)
                 continue; // interrupted by signal
@@ -34,19 +34,26 @@ void ServerManager::run()
 			}
 		}
 
+		if (ready_count == 0)
+			continue; // timeout, no events
+
 		// b. loop over all pollfds
 		// ensure all the writing or reading fds go through poll()
 		for (size_t i = 0; i < _pollFds.size(); ++i)
 		{
 			int fd = _pollFds[i].fd;
+
 			// listen for incoming connections
 			if (_pollFds[i].revents & POLLIN && isServerSocket(fd))
 				acceptNewClient(fd);
+			else if (_pollFds[i].events & POLLHUP)
+				removeClient(fd);
 			else if (_pollFds[i].revents & POLLIN && !isServerSocket(fd))
 				handleEventRead(fd);
-			if (_pollFds[i].revents & POLLOUT && _clients.find(fd) != _clients.end()
+			else if (_pollFds[i].revents & POLLOUT && _clients.find(fd) != _clients.end()
 					&& _clients[fd]->responseReady())
 				handleEventWrite(fd);
+			
 		}
 	}
 	// 6. cleanup
@@ -107,8 +114,7 @@ int ServerManager::createListeningSocket(std::string host, int port)
     struct addrinfo hints, *res;
     memset(&hints, 0, sizeof(hints));
 
-    hints.ai_flags = AI_PASSIVE;      // Only allow binding to local IP addresses
-    hints.ai_family = AF_INET;        // IPv4
+    hints.ai_family = AF_UNSPEC;    // IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM;  // TCP
     std::cout << GREEN << "Creating listening socket on " << port << RESET << std::endl;
     
@@ -141,7 +147,7 @@ int ServerManager::createListeningSocket(std::string host, int port)
     }
 
     // 4. Listen for incoming connections
-    if (listen(serverSocket, 5) < 0)
+    if (listen(serverSocket, SOMAXCONN) < 0)
 	{
 		freeaddrinfo(res);
         close(serverSocket);
@@ -225,7 +231,7 @@ void	ServerManager::acceptNewClient(int serverSocket)
     Client* client = new Client(clientSocket, NULL);
 	client->setServerSocket(serverSocket);
 	_clients[clientSocket] = client;
-    /* debug */std::cout << GREEN << "Mapped client fd: " << clientSocket << " to server fd: " << serverSocket << RESET << std::endl;
+	/* debug */std::cout << GREEN << "Mapped client fd: " << clientSocket << " to server fd: " << serverSocket << RESET << std::endl;
 
 	addPollFd(clientSocket, POLLIN);
 }
@@ -415,24 +421,27 @@ bool	ServerManager::isKeepAlive(Client* client)
 	USE: 	handleEventRead > when client disconnect
 			handleEventWrite > response done 
 */
-void	ServerManager::removeClient(int clientSocket)
-{
-	for (size_t i = 0; i < _pollFds.size(); i++)
-	{
-		if (_pollFds[i].fd == clientSocket)
-		{
-			close(clientSocket);
-
-			std::map<int, Client*>::iterator it = _clients.find(clientSocket);
-			if (it != _clients.end())
-			{
-				delete it->second;
-				_clients.erase(it);
-			}
-			_pollFds.erase(_pollFds.begin() + i);
-			return;
-		}
-	}
+void ServerManager::removeClient(int clientSocket)
+{   
+    // Close the socket immediately (stops any further I/O)
+    close(clientSocket);
+    
+    // Delete the client object immediately
+    std::map<int, Client*>::iterator it = _clients.find(clientSocket);
+    if (it != _clients.end())
+    {
+        delete it->second;
+        _clients.erase(it);
+    }
+    
+    for (size_t i = 0; i < _pollFds.size(); ++i)
+    {
+        if (_pollFds[i].fd == clientSocket)
+        {
+            _pollFds.erase(_pollFds.begin() + i);
+            break;
+        }
+    }
 }
 
 void	ServerManager::cleanUp()
