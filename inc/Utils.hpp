@@ -3,20 +3,20 @@
 
 #include "Webserv.hpp"
 
-// main
+//			main
 void		checkArgument(int ac);
 
-// config
+//			config
 std::string	trimStringTail(const std::string &str, char c);
 std::string	trimStringHead(const std::string &str, char c);
 std::string	normalizePath(const std::string& path);
 
-// http
+//			http
 std::string toLower(const std::string& s);
 std::string trim(const std::string& s);
 std::string	urlDecode(const std::string& s);
 
-// generic
+//			generic
 bool		isDirectory(const std::string& path);
 bool		isFile(const std::string& path);
 

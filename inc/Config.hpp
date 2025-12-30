@@ -24,8 +24,6 @@ struct Location
 	std::string					_upload_path;
 	std::map<int, std::string>	_cgi;
 	std::map<int, std::string>	_redirect;
-
-	Location() : _autoindex(-1) {}
 };
 
 class Server
