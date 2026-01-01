@@ -10,3 +10,6 @@ obj/
 
 # Executable
 webserv
+
+# CGI cache file
+www/cgi/__pycache__/

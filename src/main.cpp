@@ -43,7 +43,7 @@ int main(int ac, char **av)
 	ServerManager webserv(config);
 	webserv.run();
 
-	std::cout << BLUE << ">> Webserv successfully shut down." << std::endl;
+	std::cout << BLUE << ">> Webserv successfully shut down." << RESET << std::endl;
 	}
 	catch(const std::exception& e)
 	{

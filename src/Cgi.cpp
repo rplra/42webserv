@@ -115,18 +115,27 @@ void	Response::executeCgi(const Location* location, int len)
     int poll_result = poll(&pfd, 1, timeout);
 
     if (poll_result > 0) {
-        nbytes = read(stdout_pipe[0], buffer, sizeof(buffer));
-        if (nbytes > 0) {
-            cgiResponse.append(buffer, nbytes);
-            if (_request->getPath().compare(len - 4, 4, ".php") == 0) {
-                size_t start = cgiResponse.find("<html>");
-                _cgiResponse = cgiResponse.substr(start);
-            }
-            else {
-                _cgiResponse = cgiResponse;
-            }   
-        }
-    } else if (poll_result == 0) {
+		while (true)
+		{
+			nbytes = read(stdout_pipe[0], buffer, sizeof(buffer));
+			if (nbytes > 0) {
+				cgiResponse.append(buffer, nbytes);
+			}
+			else if (nbytes == 0)
+			{
+				// further process if is php
+				if (_request->getPath().compare(len - 4, 4, ".php") == 0) {
+					size_t start = cgiResponse.find("<html>");
+					// /*debug*/std::cout  <<"cgiR: " << cgiResponse << std::endl;
+					_cgiResponse = cgiResponse.substr(start);
+				}
+				else
+					_cgiResponse = cgiResponse;
+				break ;
+			}
+		}
+    }
+	else if (poll_result == 0) {
         kill(pid, SIGKILL);
         waitpid(pid, NULL, 0);  // clean up zombie
         std::cerr << RED << "CGI script timed out" << RESET << std::endl;

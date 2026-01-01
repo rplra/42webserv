@@ -80,4 +80,11 @@ print(f"Status: {status}")
 print("Content-Type: text/html")
 print() # This blank line is CRITICAL
 
-print_html("www/html/upload_success.html", html.escape(message))
+# Content body
+print("<html><body>")
+print("<h1>Upload a File</h1>")
+print(f"<h2>{html.escape(message)}</h2>")
+print('<br><a href="/upload"><button type="button">Upload Another File</button></a>')
+print('<a href="/cgi-bin/uploads.py"><button type="button">View Uploaded Files</button></a>')
+
+print("</body></html>")

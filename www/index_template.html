@@ -19,9 +19,11 @@
 		outline: 2px solid #4a90e2 !important;
 		outline: -webkit-focus-ring-color auto 5px !important;
 		}
+
 		a {
 		text-decoration: none;
 		}
+
 		body {
 		display: flex;
 		flex-direction: column;
@@ -117,28 +119,11 @@
 		gap: 8px;
 		padding: 24px;
 		position: relative;
-		/* flex: 1; */
 		align-self: stretch;
 		flex-grow: 1;
-
-		/* display: flex; */
-		/* flex-direction: column; */
-		/* align-items: flex-start; */
-		/* gap: 8px; */
-		/* padding: 24px; */
-
 		flex: 1 1 auto;        /* allow grow + shrink */
 		max-width: 344px;     /* ← cap the size */
 		width: 100%;          /* fill available space until max */
-
-		/* background-color: #ffffff33;
-		border-radius: 24px;
-		border: 4px solid;
-		border-color: #00000000;
-		backdrop-filter: blur(5.0px) brightness(108.0%) saturate(93.8%);
-		-webkit-backdrop-filter: blur(5.0px) brightness(108.0%) saturate(93.8%);
-		box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.32), inset -1px 0 3px
-			rgba(0, 0, 0, 0.11); */
 
 		background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
 		border-radius: 24px;
@@ -313,9 +298,9 @@
 					<div class="methods">Methods | GET POST</div>
 					<div class="description">Test CGI with GET & POST method</div>
 					<div class="navigation">
+						<a href="/filterTaskPHP" class="button-wrapper"><span class="button-text">Test PHP</span></a>
 						<a href="/filterTaskPYTHON" class="button-wrapper"><span class="button-text">Test Python Filter</span></a>
 						<a href="/cgi-bin/hello.py" class="button-wrapper"><span class="button-text">Python Load Page</span></a>
-						<a href="/filterTaskPHP" class="button-wrapper"><span class="button-text">Test PHP</span></a>
 					</div>
 				</div>
 

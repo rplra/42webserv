@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+	<meta charset='UTF-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+	<title>Prize Pool</title>
+	<style>
+		body {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100vh;
+		padding: 24px;
+		position: relative;
+		background: linear-gradient(
+			237deg,
+			rgba(184, 255, 220, 1) 0%,
+			rgba(130, 139, 255, 1) 100%
+			);
+		}
+
+		a {
+		text-decoration: none;
+		}
+
+		p {
+		font-family: 'Inter-Regular', Helvetica;
+		font-weight: 400;
+		color: #9999ad;
+		font-size: 18px;
+		}
+
+		h1 {
+		position: relative;
+		align-self: stretch;
+		font-family: 'Inter-Bold', Helvetica;
+		font-weight: 700;
+		color: #ffffff;
+		font-size: 36px;
+		text-align: center;
+		margin: 0;
+		}
+
+		.card {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		max-width: 700px;
+		gap: 24px;
+		/* padding: 0px; */
+		/* border-radius: 16px; */
+		/* padding: clamp(24px, 5vw, 40px); */
+		}
+
+		.navigation {
+		display: flex;
+		margin-top: auto;
+		flex-wrap: wrap;
+		gap: 8px 16px;
+		position: relative;
+		align-self: stretch;
+		width: 100%;
+		justify-content: center;
+		}
+
+		.svg-icon {
+		fill: #b8b8d6;
+		transition: fill 0.3s ease;
+		width: 24px;
+		height: 100%;
+		}
+
+		.svg-icon:hover {
+		fill: #727BFF;
+		}
+
+		.button-text {
+		position: relative;
+		width: fit-content;
+		font-family: 'Inter-Bold', Helvetica;
+		font-weight: 700;
+		color: #ffffff;
+		text-align: center;
+		}
+
+		.button-text-small {
+		font-size: 14px;
+		}
+
+		.button-text-big {
+		font-size: 18px;
+		}
+
+		.btn {
+		border: none;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 12px 12px;
+		position: relative;
+		flex: 0 0 auto;
+		border-radius: 8px;
+		}
+
+		.btn-primary {
+		background-color: #727BFF;
+		}
+
+		.btn-home {
+		background-color: #43bccf;
+		}
+
+		.btn-secondary {
+		background-color: #FFA33B;
+		}
+
+		.btn-primary:hover,
+		.btn-home:hover,
+		.btn-secondary:hover {
+		background-color: #5064FF;
+		transform: translateY(-1px);
+		}
+
+		.btn-secondary:hover {
+		background-color: #FF7171;
+		}
+
+		.btn-home:hover {
+		background-color: #2EB5CA;
+		}
+
+		.table-container {
+		background-color: #ffffff;
+		border-radius: 80px 12px;
+		padding: clamp(16px, 5vw, 24px);
+		}
+
+		.styled-table {
+		width: 100%;
+		font-family: 'Inter-Bold', Helvetica;
+		font-weight: 500;
+		margin-bottom: 0px;
+		text-align: center;
+		table-layout: fixed;
+		/* border-collapse: collapse; */
+		/* background-color: #ffffff; */
+		/* padding: clamp(16px, 5vw, 32px); */
+		/* border-radius: 80px 12px; */
+		}
+
+		.styled-table th, .styled-table td {
+		padding: 10px;
+		}
+
+		.styled-table th {
+		color: #b8b8d6;
+		font-weight: medium;
+		}
+
+		.styled-table td {
+		color: #727BFF;
+		}
+
+		.styled-table tbody tr:hover {
+		background-color: #f3ffe5;
+		}
+
+		.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+		}
+	</style>
+
+</head>
+<body>
+	<div class='card'>
+		<h1>Prize Pool</h1>
+		<div class='table-container'>
+			<!-- <p>No entries yet</p> -->
+			<table class='styled-table'>
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Email</th>
+						<th>Age</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>{name}</td>
+						<td>{email}</td>
+						<td>{age}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class='navigation'>
+			<a href='/form' class='btn btn-primary'>
+				<span class='button-text button-text-big'>Fill Another Form</span>
+			</a>
+			<a href='/index' class='btn btn-home'>
+				<span class='button-text button-text-big'>Back to Home</span>
+			</a>
+		</div>
+		<script>
+			document.addEventListener('mousemove', (e) => {
+				const xRatio = e.clientX / window.innerWidth; // 0 to 1
+				const angle = xRatio * 360; // map to 0-360 degrees
+				document.body.style.background = `linear-gradient(${angle}deg, rgba(184, 255, 220, 1) 0%, rgba(130, 139, 255, 1) 100%)`;
+			});
+		</script>
+	</div>
+</body>
+</html>

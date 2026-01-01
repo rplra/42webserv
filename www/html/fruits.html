@@ -5,6 +5,12 @@
 </head>
 <body>
     <h1>Fruit List</h1>
+    <!-- <h3>Search Fruit by Color</h3> -->
+    <form action="/cgi-bin/fruits.py" method="get">
+        <input type="text" name="color" placeholder="search fruit by colour...">
+        <button type="submit">Search</button>
+    </form>
+
     <ul>
         <li>Apple - Red</li>
         <li>Banana - Yellow</li>
@@ -20,10 +26,5 @@
         <li>Pineapple - Yellow</li>
     </ul>
 
-    <h2>Search Fruit by Color</h2>
-    <form action="/cgi-bin/fruits.py" method="get">
-        <input type="text" name="color" placeholder="search fruit colour">
-        <button type="submit">Search</button>
-    </form>
 </body>
 </html>

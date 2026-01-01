@@ -1,54 +1,27 @@
-import cgi 
-import csv
-import os
+import csv, os
 
-form = cgi.FieldStorage()
+# view submission by form
+# -----------------------------------------------------
 
-id = form.getvalue("id", "")
-description = form.getvalue("description", "")
-done = form.getvalue("done", "")
-priority = form.getvalue("priority", "")
-
+# Save data to CSV file
 csv_dir = "www/csv" 
-csv_path = os.path.join(csv_dir, "task.csv")
+csv_path = os.path.join(csv_dir, "submissions.csv")
 
-tasks = []
+# Read all submissions
+submissions = []
 with open(csv_path, "r") as csvfile:
     reader = csv.reader(csvfile)
-    next(reader)
     for row in reader:
-        tasks.append(row)
+        submissions.append(row)
 
-filtered_tasks = []
-for idx, desc, d, prio in tasks:
-    desc = desc.strip()
-    d = d.strip()
-    prio = prio.strip()
-
-    if id and str(idx) != id:
-        continue
-    if description and desc.lower() != description.lower():
-        continue
-    if done and d != done:
-        print(f"done= {done}, d= {d}\n")
-        continue
-    if priority and prio != priority:
-        continue
-
-    filtered_tasks.append((idx, desc, d, prio))
-
-
-# print("<html><body>")
-# print(f"<h1>Filtered Tasks</h1>")
+# view prize pool
 # print('<table border="1">')
-# print("<tr><th>ID</th><th>Description</th><th>Done</th><th>Priority</th></tr>")
-# if not filtered_tasks:
-#     print("<tr><td colspan='4'>No tasks match the filter criteria.</td></tr>")
-# else: 
-#     for idx, desc, d, prio in filtered_tasks:
-#         print(f"<tr><td>{idx}</td><td>{desc}</td><td>{d}</td><td>{prio}</td></tr>")
+# print("<tr><th>Name</th><th>Email</th><th>Age</th></tr>")
+# for name, email, age in submissions:
+#     print(f"<tr><td>{name}</td><td>{email}</td><td>{age}</td></tr>")
 # print('</table><br>')
-# print('<a href="/filterTaskPYTHON">Back to Filter Form</a><br>')
+# print()
+# print('<a href="/form">Submit another response</a><br>')
 # print("</body></html>")
 
 # Print CGI headers ----------------------------------------------------------------
@@ -59,7 +32,7 @@ print() # This blank line is CRITICAL
 print("<html>")
 print("<head>")
 print("<meta charset='UTF-8'>")
-print("<title>Search Result</title>")
+print("<title>Prize Pool</title>")
 print("<style>")
 print("body {")
 print("display: flex;")
@@ -82,7 +55,6 @@ print("font-family: 'Inter-Regular', Helvetica;")
 print("font-weight: 400;")
 print("color: #9999ad;")
 print("font-size: 18px;")
-print("margin-left: 16px;")
 print("}")
 print("h1 {")
 print("position: relative;")
@@ -98,7 +70,7 @@ print(".card {")
 print("display: flex;")
 print("flex-direction: column;")
 print("width: 100%;")
-print("max-width: 900px;")
+print("max-width: 700px;")
 print("gap: 24px;")
 print("}")
 print(".navigation {")
@@ -184,7 +156,7 @@ print("padding: 10px;")
 print("}")
 print(".styled-table th {")
 print("color: #b8b8d6;")
-print("font-weight: medium;")
+print("font-weight: 500;")
 print("}")
 print(".styled-table td {")
 print("color: #727BFF;")
@@ -204,42 +176,41 @@ print("border-width: 0;")
 print("}")
 print("</style>")
 print("</head>")
+
 print("<body>")
 print("<div class='card'>")
-print("<h1>Filtered Task</h1>")
+print("<h1>Prize Pool</h1>")
 print("<div class='table-container'>")
+print("<table class='styled-table'>")
+print("<thead>")
+print("<tr>")
+print("<th>Name</th>")
+print("<th>Email</th>")
+print("<th>Age</th>")
+print("</tr>")
+print("</thead>")
+print("<tbody>")
 
-if not filtered_tasks:
-    print("<p>No tasks match for the filter criteria</p>")
-else: 
-    print("<table class='styled-table'>")
-    print("<thead>")
+# loop print
+for name, email, age in submissions:
     print("<tr>")
-    print("<th>ID</th>")
-    print("<th>Description</th>")
-    print("<th>Status</th>")
-    print("<th>Priority</th>")
+    print(f"<td>{name}</td>")
+    print(f"<td>{email}</td>")
+    print(f"<td>{age}</td>")
     print("</tr>")
-    print("</thead>")
-    print("<tbody>")
 
-    for idx, desc, d, prio in filtered_tasks:
-        print("<tr>")
-        print(f"<td>{idx}</td>")
-        print(f"<td>{desc}</td>")
-        print(f"<td>{d}</td>")
-        print(f"<td>{prio}</td>")
-        print("</tr>")
-
-    print("</tbody>")
-    print("</table>")
-
+print("</tbody>")
+print("</table>")
 print("</div>")
 print("<div class='navigation'>")
-print("<a href='/filterTaskPYTHON' class='btn btn-primary'>")
-print("<span class='button-text button-text-big'>Back to Filter</span>")
+print("<a href='/form' class='btn btn-primary'>")
+print("<span class='button-text button-text-big'>Fill Another Form</span>")
+print("</a>")
+print("<a href='/index' class='btn btn-home'>")
+print("<span class='button-text button-text-big'>Back to Home</span>")
 print("</a>")
 print("</div>")
 print("</div>")
 print("</body>")
+
 print("</html>")
