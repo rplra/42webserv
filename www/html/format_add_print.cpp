@@ -4,6 +4,11 @@
 #include <string>
 #include <locale>
 
+/*
+   This is a helper function that adds print() / echo
+   to each line in html file for python/php formatting
+ * ************************************************************** */
+
 std::string  removeSpaces(std::string &str)
 {
 	size_t i=0;
@@ -16,7 +21,6 @@ std::string  removeSpaces(std::string &str)
 	return (&str[i]);
 }
 
-/* adds print() to each line in html file for python to serve page */
 int main(int ac, char **av)
 {
 	if (ac != 3)
