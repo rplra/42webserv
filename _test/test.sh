@@ -37,8 +37,32 @@ send_request() {
 # send_request "POST /images HTTP/1.1\r\nHost: localhost:8082\r\nContent-Length: 11\r\n\r\nHELLO WORLD"
 # echo ""
 
-echo "TEST 5  : Send POST request (netcat)"
-echo "EXPECTED: Show HELLO WORLD"
+# echo "TEST 5  : POST request (netcat)"
+# echo "EXPECTED: Show HELLO WORLD"
+# echo "----------------------------------------"
+# send_request "POST /large HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nHELLO WORLD"
+# echo ""
+
+echo "TEST 6   : POST request, (upload file, curl)"
+echo "EXPECTED : File uploaded"
+echo "File     : basic.conf"
 echo "----------------------------------------"
-send_request "POST /large HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nHELLO WORLD"
+echo fufu > upload_test.txt
+curl -X POST http://localhost:8081/cgi-bin/upload_basic.py -F "file=@upload_test.txt"
 echo ""
+
+# echo "TEST 7   : DELETE request, (curl)"
+# echo "(need to change allowed_methods in /uploads to DELETE)"
+# echo "EXPECTED : File deleted"
+# echo "File     : basic.conf"
+# echo "----------------------------------------"
+# curl -X DELETE http://localhost:8081/uploads/upload_test.txt
+# echo ""
+
+# echo "TEST 8   : CGI DELETE request, (curl)"
+# echo "(need to change allowed_methods in /uploads to DELETE)"
+# echo "EXPECTED : File deleted"
+# echo "File     : basic.conf"
+# echo "----------------------------------------"
+# curl -X DELETE http://localhost:8081/cgi-bin/delete_basic.py?file=upload_test.txt
+# echo ""

@@ -17,12 +17,12 @@ if file_item is not None and file_item.filename:
     filepath = os.path.join(upload_dir, filename)
 
     # Prevent overwriting by adding a counter
-    base, ext = os.path.splitext(filename)
-    counter = 1
-    while os.path.exists(filepath):
-        filename = f"{base}_{counter}{ext}"
-        filepath = os.path.join(upload_dir, filename)
-        counter += 1
+    # base, ext = os.path.splitext(filename)
+    # counter = 1
+    # while os.path.exists(filepath):
+    #     filename = f"{base}_{counter}{ext}"
+    #     filepath = os.path.join(upload_dir, filename)
+    #     counter += 1
 
     # Save the file
     with open(filepath, "wb") as f:

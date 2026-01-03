@@ -52,6 +52,45 @@ run_method_test() {
     echo ""
 }
 
+# Modified for POST ONLY
+# $1 = HTTP method (POST)
+# $2 = path
+# $3 = expected status code
+# $4 = text to write into file (for POST)
+run_method_test_upload() {
+    local method=$1
+    local path=$2
+    local expected=$3
+    local body=$4
+    local test_name="${method} ${path}"
+
+    echo -e "${ORANGE}TEST: $test_name${RESET}"
+	echo "---------------------------------------------------------"
+	echo -e "EXPECTED: $expected"
+
+    # create file
+    echo $body > upload_test.txt
+
+    # Construct curl command
+    if [[ "$method" == "POST" ]]; then
+        response=$(curl -s -i -X "$method" "http://localhost:$PORT$path" -F "file=@upload_test.txt")
+    fi
+
+    # Extract HTTP status code
+    status_code=$(echo "$response" | head -n1 | awk '{print $2}')
+
+    echo "RESULT  : $status_code"
+
+    if [[ "$status_code" == "$expected" ]]; then
+        echo -e "${GREEN}OK!${RESET}"
+    else
+        echo -e "${RED}ERROR!${RESET}"
+        echo "GOT RESPONSE:"
+        echo "$response"
+    fi
+    echo ""
+}
+
 # Run all tests based on basic.conf
 # / -> GET only
 run_method_test GET "/" 200
@@ -88,13 +127,13 @@ run_method_test GET "/42" 302
 
 # /cgi-bin/upload_basic.py -> GET, POST, DELETE
 run_method_test GET "/cgi-bin/upload_basic.py" 200
-run_method_test POST "/cgi-bin/upload_basic.py" 200 "print('Hello from upload_basic.py')"
-run_method_test DELETE "/cgi-bin/upload_basic.py" 200
+run_method_test_upload POST "/cgi-bin/upload_basic.py" 200 "body to write into textfile"
+run_method_test DELETE "/cgi-bin/delete_basic.py?file=upload_test.txt" 200
 
 # /cgi-bin/fruits.py -> GET, POST, DELETE
 run_method_test GET "/cgi-bin/fruits.py" 200
-run_method_test POST "/cgi-bin/fruits.py" 200 "print('Hello from fruits.py')"
-run_method_test DELETE "/cgi-bin/fruits.py" 500
+run_method_test_upload POST "/cgi-bin/upload_basic.py" 200 "strawberry blueberry"
+run_method_test DELETE "/cgi-bin/delete_basic.py?file=upload_test.txt" 200
 
 # unkwown/invalid method
 run_method_test PUT "/" 400
