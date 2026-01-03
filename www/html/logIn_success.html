@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8' />
+		<title>Welcome back</title>
+
+		<style>
+			body {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+			padding: 24px;
+			/* flex-direction: column; */
+			/* gap: 10px; */
+			position: relative;
+			background: linear-gradient(
+				237deg,
+				rgba(184, 255, 220, 1) 0%,
+				rgba(130, 139, 255, 1) 100%
+				);
+			}
+
+			.card {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			max-width: 520px;
+			/* padding: 48px; */
+			gap: 32px;
+			background-color: #ffffff;
+			border-radius: 16px;
+			padding: clamp(24px, 5vw, 48px);
+			}
+
+			.desc {
+			gap: 12px;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			position: relative;
+			align-self: stretch;
+			width: 100%;
+			flex: 0 0 auto;
+			}
+
+			h1, p {
+				margin: 0;
+			}
+
+			h1 {
+			position: relative;
+			align-self: stretch;
+			font-family: 'Inter-Bold', Helvetica;
+			font-weight: 700;
+			color: #4d1799;
+			font-size: 36px;
+			text-align: center;
+			letter-spacing: 0;
+			line-height: normal;
+			}
+
+			p {
+			position: relative;
+			align-self: stretch;
+			font-family: 'Inter-Regular', Helvetica;
+			font-weight: 400;
+			color: #4d1799;
+			font-size: 24px;
+			text-align: center;
+			letter-spacing: 0;
+			line-height: normal;
+			}
+
+			.navigation {
+			display: flex;
+			flex-wrap: wrap;
+			padding-top: 16px;
+			align-items: flex-end;
+			justify-content: center;
+			gap: 8px 8px;
+			position: relative;
+			align-self: stretch;
+			width: 100%;
+			flex: 0 0 auto;
+			}
+
+			.button-text {
+			position: relative;
+			width: fit-content;
+			font-family: 'Inter-Bold', Helvetica;
+			font-weight: 700;
+			color: #ffffff;
+			font-size: 18px;
+			text-align: center;
+			letter-spacing: 0;
+			line-height: normal;
+			}
+
+			.btn {
+			all: unset;
+			/* box-sizing: border-box; */
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			padding: 14px 16px;
+			position: relative;
+			flex: 0 0 auto;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: background-color 0.2s ease;
+			}
+
+			.btn-primary {
+				background-color: #717bff;
+			}
+
+			.btn-primary:hover {
+			background-color: #5a66e6;
+			}
+
+			.btn-primary:active {
+			background-color: #a05aeb;
+			}
+
+			.btn-primary:focus-visible {
+			outline: 2px solid #4a90e2;
+			outline-offset: 2px;
+			}
+		</style>
+
+	</head>
+	<body>
+		<section class='card'>
+			<header class='desc'>
+				<h1>Login Success</h1>
+				<p>Welcome {name} (づ ◕‿◕ )づ</p>
+			</header>
+
+			<div class='navigation'>
+				<button type='submit' class='btn btn-primary'>
+					<span class='button-text'>Back to Home</span>
+				</button>
+			</div>
+
+			<script>
+				document.addEventListener('mousemove', (e) => {
+				const xRatio = e.clientX / window.innerWidth; // 0 to 1
+				const angle = xRatio * 360; // map to 0-360 degrees
+				document.body.style.background = `linear-gradient(${angle}deg, rgba(184, 255, 220, 1) 0%, rgba(130, 139, 255, 1) 100%)`;
+				});
+			</script>
+
+		</section>
+	</body>
+</html>

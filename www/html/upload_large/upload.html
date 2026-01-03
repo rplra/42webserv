@@ -3,7 +3,7 @@
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta charset="utf-8" />
-		<title>Filter Task (Python)</title>
+		<title>Upload File</title>
 
 		<style>
 			body {
@@ -51,7 +51,6 @@
 			h1 {
 			position: relative;
 			align-self: stretch;
-			margin-top: -1.00px;
 			font-family: "Inter-Bold", Helvetica;
 			font-weight: 700;
 			color: #4d1799;
@@ -99,8 +98,8 @@
 
 			.input-text-wrapper {
 			border: none;
-			width: 100%;
 			background: transparent;
+			width: 100%;
 			position: relative;
 			color: #5f48f9;
 			text-align: left;
@@ -111,9 +110,9 @@
 			line-height: normal;
 			}
 
-			select.input-text-wrapper:invalid,
 			.input-text-wrapper::placeholder {
 			color: #c2b3ce;
+			opacity: 1;
 			}
 
 			.input-text-wrapper:focus {
@@ -140,7 +139,6 @@
 			.button-text {
 			position: relative;
 			width: fit-content;
-			margin-top: -1.00px;
 			font-family: "Inter-Bold", Helvetica;
 			font-weight: 700;
 			color: #ffffff;
@@ -181,11 +179,6 @@
 			background-color: #a05aeb;
 			}
 
-			.btn-primary:focus-visible {
-			outline: 2px solid #4a90e2;
-			outline-offset: 2px;
-			}
-
 			.btn-secondary:hover {
 			background-color: #6fb3c9;
 			}
@@ -194,17 +187,11 @@
 			background-color: #5a9fb8;
 			}
 
-			.btn-secondary:focus-visible {
-			outline: 2px solid #4a90e2;
-			outline-offset: 2px;
-			}
-
 			.visually-hidden {
 			position: absolute;
 			width: 1px;
 			height: 1px;
 			padding: 0;
-			margin: -1px;
 			overflow: hidden;
 			clip: rect(0, 0, 0, 0);
 			white-space: nowrap;
@@ -228,89 +215,42 @@
 	<body>
 		<section class="card">
 			<header class="desc">
-				<h1>Filter Task</h1>
-				<p>Python</p>
+				<h1>Upload a Large File</h1>
+				<p>Select a large file to test payload limit</p>
 			</header>
 
-			<form class="input-field-group" action="/cgi-bin/filterTask.py" method="get" onsubmit="return validateForm()">
+			<form class="input-field-group" action="/large-cgi/upload.py" method="post" enctype="multipart/form-data">
 				<div class="input-field">
-					<label for="id" class="visually-hidden">ID</label>
+					<label for="file" class="visually-hidden">Choose a file</label>
 					<input
+						type="file"
+						id="file"
 						class="input-text-wrapper"
-						type="number"
-						id="id"
-						name="id"
-						placeholder="Enter Task ID..."
+						name="file"
+						required
 					/>
-				</div>
-				<div class="input-field">
-					<label for="description" class="visually-hidden">Description</label>
-					<select
-						class="input-text-wrapper"
-						id="description"
-						name="description"
-						>
-						<option value="" disabled selected>--- Select Description ---</option>
-						<option value="Finish Express.js tutorial">Finish Express.js tutorial</option>
-						<option value="Go grocery shopping">Go grocery shopping</option>
-						<option value="Prepare for exams">Prepare for exams</option>
-						<option value="Book dentist appointment">Book dentist appointment</option>
-						<option value="Water the plants">Water the plants</option>
-						<option value="Call the bank">Call the bank</option>
-					</select>
-				</div>
-				<div class="input-field">
-					<label for="done" class="visually-hidden">Status</label>
-					<select
-						class="input-text-wrapper"
-						id="done"
-						name="done"
-						>
-						<option value="" disabled selected>--- Select Status ---</option>
-						<option value="true">Done</option>
-						<option value="false">Not Done</option>
-					</select>
-				</div>
-				<div class="input-field">
-					<label for="priority" class="visually-hidden">Priority</label>
-					<select
-						id="priority"
-						class="input-text-wrapper"
-						name="priority"
-						>
-						<option value="" disabled selected>--- Select Priority ---</option>
-						<option value="high">High</option>
-						<option value="medium">Medium</option>
-						<option value="low">Low</option>
-					</select>
 				</div>
 
 				<div class="navigation">
 					<button type="submit" class="btn btn-primary">
-						<span class="button-text">Apply Filter</span>
+						<span class="button-text">Upload</span>
 					</button>
-					<button type="button" class="btn btn-secondary" onclick="location.href='/'">
+					<button type="button" class="btn btn-secondary" onclick="location.href='/index'">
 						<span class="button-text">Back to Home</span>
 					</button>
 				</div>
-			</form>
-		</section>
-		<script>
-			// JavaScript function to validate form
-			function validateForm() {
-			// Get the values of the input fields
-			const idField = document.getElementById("id").value;
-			const descriptionField = document.getElementById("description").value;
-			const doneField = document.getElementById("done").value;
-			const priorityField = document.getElementById("priority").value;
 
-			// Check if at least one of the fields has a value
-			if (idField.trim() === "" && descriptionField.trim() === "" && doneField.trim() === "" && priorityField.trim() === "") {
-				alert("Please fill up at least one field.");
-				return false;  // Prevent form submission
-			}
-			return true;
-			}
-		</script>
+			</form>
+
+			<script>
+				// mouse reactive bg
+				// document.addEventListener('mousemove', (e) => {
+				// const xRatio = e.clientX / window.innerWidth; // 0 to 1
+				// const angle = xRatio * 360; // map to 0-360 degrees
+				// document.body.style.background = `linear-gradient(${angle}deg, rgba(184, 255, 220, 1) 0%, rgba(130, 139, 255, 1) 100%)`;
+				// });
+			</script>
+
+		</section>
 	</body>
 </html>

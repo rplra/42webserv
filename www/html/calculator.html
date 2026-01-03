@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- this version uses cgi with js -->
 <html lang="en">
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -222,6 +223,19 @@
 			.error.active {
 			display: inline;
 			}
+
+			.overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(0,0,0,0.6);
+				display: none;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.card.pop-up {
+			max-width: 300px;
+			}
 		</style>
 
 	</head>
@@ -232,7 +246,7 @@
 				<p>Apply operation to 2 numbers below</p>
 			</header>
 
-			<form class="input-field-group" action="/cgi-bin/calculator.py" method="post">
+			<form id="form-calc" class="input-field-group">
 				<div class="input-field">
 					<label for="num1" class="visually-hidden">First Number</label>
 					<input
@@ -271,26 +285,68 @@
 						aria-required="true"
 					/>
 				</div>
-
 				<div class="navigation">
 					<button type="submit" class="btn btn-primary">
 						<span class="button-text">Calculate</span>
 					</button>
-					<button type="button" class="btn btn-secondary" onclick="location.href='/index'">
+					<button type="button" class="btn btn-secondary" onclick="location.href='/'">
 						<span class="button-text">Back to Home</span>
 					</button>
 				</div>
-
 			</form>
 
-			<!-- <script>
+			<!-- popup -->
+			<div class="overlay" id="overlay">
+				<div class="card pop-up">
+					<header class="desc">
+						<h1>Result</h1>
+						<p id="popup-text">{number}</p>
+					</header>
+						<div class="navigation">
+							<button onclick="closePopup()" class="btn btn-primary">
+								<span class="button-text">Close</span>
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			<script>
+				document.getElementById("form-calc").addEventListener("submit", function(def) {
+					def.preventDefault();
+					calculate();
+				})
+
+				function calculate() {
+				const num1 = Number(document.getElementById("num1").value);
+				const num2 = Number(document.getElementById("num2").value);
+				const op = document.getElementById("operation").value;
+
+				const formData = new FormData;
+				formData.append("num1", num1);
+				formData.append("num2", num2);
+				formData.append("operation", op);
+
+				// pass form data via js
+				fetch("/cgi-bin/calculator_js.py", {
+					method: "post",
+					body: formData
+				})
+				.then(response => response.text())
+				.then(result => {
+					document.getElementById("popup-text").textContent = result,
+					document.getElementById("overlay").style.display = "flex"
+				})
+				}
+				function closePopup() {
+				document.getElementById("overlay").style.display = "none";
+				}
 				// mouse reactive bg
 				// document.addEventListener('mousemove', (e) => {
 				// const xRatio = e.clientX / window.innerWidth; // 0 to 1
 				// const angle = xRatio * 360; // map to 0-360 degrees
 				// document.body.style.background = `linear-gradient(${angle}deg, rgba(184, 255, 220, 1) 0%, rgba(130, 139, 255, 1) 100%)`;
 				// });
-			</script> -->
+			</script>
 
 		</section>
 	</body>

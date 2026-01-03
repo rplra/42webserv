@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta charset="utf-8" />
-		<title>Filter Task (Python)</title>
+		<meta charset='utf-8' />
+		<title>Login</title>
 
 		<style>
 			body {
@@ -27,15 +26,15 @@
 			flex-direction: column;
 			width: 100%;
 			max-width: 520px;
-			padding: 48px;
+			/* padding: 48px; */
 			gap: 32px;
 			background-color: #ffffff;
 			border-radius: 16px;
-			padding: clamp(24px, 5vw, 48px);
+			padding: 72px clamp(24px, 5vw, 48px);
 			}
 
 			.desc {
-			gap: 8px;
+			gap: 12px;
 			display: flex;
 			flex-direction: column;
 			align-items: flex-start;
@@ -51,8 +50,7 @@
 			h1 {
 			position: relative;
 			align-self: stretch;
-			margin-top: -1.00px;
-			font-family: "Inter-Bold", Helvetica;
+			font-family: 'Inter-Bold', Helvetica;
 			font-weight: 700;
 			color: #4d1799;
 			font-size: 36px;
@@ -64,7 +62,7 @@
 			p {
 			position: relative;
 			align-self: stretch;
-			font-family: "Inter-Regular", Helvetica;
+			font-family: 'Inter-Regular', Helvetica;
 			font-weight: 400;
 			color: #4d1799;
 			font-size: 24px;
@@ -104,16 +102,16 @@
 			position: relative;
 			color: #5f48f9;
 			text-align: left;
-			font-family: "Inter-Regular", Helvetica;
+			font-family: 'Inter-Regular', Helvetica;
 			font-weight: 100;
 			font-size: 18px;
 			letter-spacing: 0;
 			line-height: normal;
 			}
 
-			select.input-text-wrapper:invalid,
 			.input-text-wrapper::placeholder {
 			color: #c2b3ce;
+			opacity: 1;
 			}
 
 			.input-text-wrapper:focus {
@@ -128,6 +126,7 @@
 			.navigation {
 			display: flex;
 			flex-wrap: wrap;
+			padding-top: 16px;
 			align-items: flex-end;
 			justify-content: center;
 			gap: 8px 8px;
@@ -140,8 +139,7 @@
 			.button-text {
 			position: relative;
 			width: fit-content;
-			margin-top: -1.00px;
-			font-family: "Inter-Bold", Helvetica;
+			font-family: 'Inter-Bold', Helvetica;
 			font-weight: 700;
 			color: #ffffff;
 			font-size: 18px;
@@ -214,9 +212,9 @@
 			.error {
 			color: #f38265;
 			text-align: left;
-			font-family: "Inter-Regular", Helvetica;
+			font-family: 'Inter-Regular', Helvetica;
 			font-size: 14px;
-			display: none;
+			/* display: none; */
 			}
 
 			.error.active {
@@ -226,91 +224,51 @@
 
 	</head>
 	<body>
-		<section class="card">
-			<header class="desc">
-				<h1>Filter Task</h1>
-				<p>Python</p>
+		<section class='card'>
+			<header class='desc'>
+				<h1>Login</h1>
+				<p>Welcome back!</p>
 			</header>
 
-			<form class="input-field-group" action="/cgi-bin/filterTask.py" method="get" onsubmit="return validateForm()">
-				<div class="input-field">
-					<label for="id" class="visually-hidden">ID</label>
+			<form class='input-field-group' action='/cgi-bin/logIn.php' method='post'>
+				<div class='input-field'>
+					<label for='username' class='visually-hidden'>username</label>
 					<input
-						class="input-text-wrapper"
-						type="number"
-						id="id"
-						name="id"
-						placeholder="Enter Task ID..."
+						type='text'
+						id='username'
+						class='input-text-wrapper'
+						placeholder='Username'
+						name='username'
+						required
+						aria-required='true'
 					/>
 				</div>
-				<div class="input-field">
-					<label for="description" class="visually-hidden">Description</label>
-					<select
-						class="input-text-wrapper"
-						id="description"
-						name="description"
-						>
-						<option value="" disabled selected>--- Select Description ---</option>
-						<option value="Finish Express.js tutorial">Finish Express.js tutorial</option>
-						<option value="Go grocery shopping">Go grocery shopping</option>
-						<option value="Prepare for exams">Prepare for exams</option>
-						<option value="Book dentist appointment">Book dentist appointment</option>
-						<option value="Water the plants">Water the plants</option>
-						<option value="Call the bank">Call the bank</option>
-					</select>
+
+				<div class='input-field'>
+					<label for='password' class='visually-hidden'>Email</label>
+					<input
+						type='password'
+						id='password'
+						class='input-text-wrapper'
+						placeholder='Password'
+						name='password'
+						required
+						aria-required='true'
+					/>
 				</div>
-				<div class="input-field">
-					<label for="done" class="visually-hidden">Status</label>
-					<select
-						class="input-text-wrapper"
-						id="done"
-						name="done"
-						>
-						<option value="" disabled selected>--- Select Status ---</option>
-						<option value="true">Done</option>
-						<option value="false">Not Done</option>
-					</select>
-				</div>
-				<div class="input-field">
-					<label for="priority" class="visually-hidden">Priority</label>
-					<select
-						id="priority"
-						class="input-text-wrapper"
-						name="priority"
-						>
-						<option value="" disabled selected>--- Select Priority ---</option>
-						<option value="high">High</option>
-						<option value="medium">Medium</option>
-						<option value="low">Low</option>
-					</select>
+				<span class='error'>Invalid username or password</span>
+
+				<div class='navigation'>
+					<button type='submit' class='btn btn-primary'>
+						<span class='button-text'>Login</span>
+					</button>
+					<a href='/' class='btn btn-secondary'>
+						<span class='button-text'>Back to Home</span>
+					</a>
 				</div>
 
-				<div class="navigation">
-					<button type="submit" class="btn btn-primary">
-						<span class="button-text">Apply Filter</span>
-					</button>
-					<button type="button" class="btn btn-secondary" onclick="location.href='/'">
-						<span class="button-text">Back to Home</span>
-					</button>
-				</div>
 			</form>
-		</section>
-		<script>
-			// JavaScript function to validate form
-			function validateForm() {
-			// Get the values of the input fields
-			const idField = document.getElementById("id").value;
-			const descriptionField = document.getElementById("description").value;
-			const doneField = document.getElementById("done").value;
-			const priorityField = document.getElementById("priority").value;
 
-			// Check if at least one of the fields has a value
-			if (idField.trim() === "" && descriptionField.trim() === "" && doneField.trim() === "" && priorityField.trim() === "") {
-				alert("Please fill up at least one field.");
-				return false;  // Prevent form submission
-			}
-			return true;
-			}
-		</script>
+		</section>
 	</body>
 </html>

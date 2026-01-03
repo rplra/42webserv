@@ -1,40 +1,15 @@
 <?php
-    $id = $_GET['id'] ?? '';
-    $description = $_GET['description'] ?? '';
-    $done = $_GET['done'] ?? '';
-    $priority = $_GET['priority'] ?? '';
-
-    $csvPath = '../csv/task.csv'; 
-
-    $allTasks = [];
+    $csvPath = '../csv/parcels.csv';
+    $allParcels = [];
     if (($handle = fopen($csvPath, 'r')) !== FALSE) {
         while (($data = fgetcsv($handle, 0, ',', '"', '\\')) !== FALSE) {
-            $allTasks[] = $data;
+            $allParcels[] = $data;
         }
         fclose($handle);
-    } 
-
-    $filteredTasks = [];
-    foreach ($allTasks as $task) {
-        list($idx, $desc, $d, $prio) = $task;
-
-        $desc = trim($desc);
-        $d = trim($d);
-        $prio = trim($prio);
-
-        if (($id === '' || $id == $idx) &&
-            ($description === '' || stripos($desc, $description) !== false) &&
-            ($done === '' || $done == $d) &&
-            ($priority === '' || $priority == $prio)) {
-            $filteredTasks[] = [$idx, $desc, $d, $prio];
-        }
     }
-
     echo "<html>";
     echo "<head>";
-    echo "<meta charset='UTF-8'>";
-    echo "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
-    echo "<title>Search Result</title>";
+    echo "<title>All Parcels</title>";
     echo "<style>";
     echo "body {";
     echo "display: flex;";
@@ -57,7 +32,6 @@
     echo "font-weight: 400;";
     echo "color: #9999ad;";
     echo "font-size: 18px;";
-    echo "margin-left: 16px;";
     echo "}";
     echo "h1 {";
     echo "position: relative;";
@@ -73,7 +47,8 @@
     echo "display: flex;";
     echo "flex-direction: column;";
     echo "width: 100%;";
-    echo "max-width: 900px;";
+    echo "max-width: 700px;";
+    echo "padding: 32px;";
     echo "gap: 24px;";
     echo "}";
     echo ".navigation {";
@@ -126,17 +101,10 @@
     echo ".btn-home {";
     echo "background-color: #43bccf;";
     echo "}";
-    echo ".btn-secondary {";
-    echo "background-color: #FFA33B;";
-    echo "}";
     echo ".btn-primary:hover,";
-    echo ".btn-home:hover,";
-    echo ".btn-secondary:hover {";
+    echo ".btn-home:hover {";
     echo "background-color: #5064FF;";
     echo "transform: translateY(-1px);";
-    echo "}";
-    echo ".btn-secondary:hover {";
-    echo "background-color: #FF7171;";
     echo "}";
     echo ".btn-home:hover {";
     echo "background-color: #2EB5CA;";
@@ -145,6 +113,8 @@
     echo "background-color: #ffffff;";
     echo "border-radius: 80px 12px;";
     echo "padding: clamp(16px, 5vw, 24px);";
+    echo "max-height: 200px;";
+    echo "overflow-y: auto;";
     echo "}";
     echo ".styled-table {";
     echo "width: 100%;";
@@ -159,7 +129,7 @@
     echo "}";
     echo ".styled-table th {";
     echo "color: #b8b8d6;";
-    echo "font-weight: medium;";
+    echo "font-weight: 200px;";
     echo "}";
     echo ".styled-table td {";
     echo "color: #727BFF;";
@@ -181,39 +151,35 @@
     echo "</head>";
     echo "<body>";
     echo "<div class='card'>";
-    echo "<h1>Filtered Task</h1>";
+    echo "<h1>All Parcels</h1>";
     echo "<div class='table-container'>";
+    echo "<table class='styled-table'>";
+    echo "<thead>";
+    echo "<tr>";
+    echo "<th>Parcel ID</th>";
+    echo "<th>Sender</th>";
+    echo "<th>Weight</th>";
+    echo "</tr>";
+    echo "</thead>";
+    echo "<tbody>";
 
-    if (!$filteredTasks)
-        echo "<p>No tasks match the filter criteria</p>";
-    else {
-        echo "<table class='styled-table'>";
-        echo "<thead>";
+    foreach ($allParcels as $parcel) {
         echo "<tr>";
-        echo "<th>ID</th>";
-        echo "<th>Description</th>";
-        echo "<th>Status</th>";
-        echo "<th>Priority</th>";
-        echo "</tr>";
-        echo "</thead>";
-        echo "<tbody>";
-        // loop start
-        foreach ($filteredTasks as $task) {
-            echo "<tr>";
-            foreach ($task as $field) {
-                echo "<td>" . htmlspecialchars($field) . "</td>";
-            }
-            echo "</tr>";
+        foreach ($parcel as $field) {
+            echo "<td>" . htmlspecialchars($field) . "</td>";
         }
-        // loop end
-        echo "</tbody>";
-        echo "</table>";
+        echo "</tr>";
     }
 
+    echo "</tbody>";
+    echo "</table>";
     echo "</div>";
     echo "<div class='navigation'>";
-    echo "<a href='/filterTaskPHP' class='btn btn-primary'>";
-    echo "<span class='button-text button-text-big'>Back to Filter</span>";
+    echo "<a href='/addParcel' class='btn btn-primary'>";
+    echo "<span class='button-text button-text-big'>Add Another Parcel</span>";
+    echo "</a>";
+    echo "<a href='/index' class='btn btn-home'>";
+    echo "<span class='button-text button-text-big'>Back to Home</span>";
     echo "</a>";
     echo "</div>";
     echo "</div>";

@@ -24,7 +24,10 @@ std::string  removeSpaces(std::string &str)
 int main(int ac, char **av)
 {
 	if (ac != 3)
+	{
 		std::cerr << "Input must be 2: <input_filename> <output_filename>" << std::endl;
+		return (1);
+	}
 
 	std::ifstream   infile(av[1]);
 	if (!infile)
@@ -52,7 +55,7 @@ int main(int ac, char **av)
 			continue ;
 		// outfile << "print(\"" << buffer << "\")" << std::endl;
 		// outfile << "print(\"" << removeSpaces(buffer) << "\")" << std::endl;
-		outfile << "echo \"" << removeSpaces(buffer) << "\"" << std::endl;
+		outfile << "echo \"" << removeSpaces(buffer) << "\";" << std::endl;
 	}
 
 	infile.close();
