@@ -29,21 +29,15 @@ void	Request::handleRequest(const char* data, size_t size, size_t limit)
 	parseByState(limit);
 }
 
-// void	Request::setBodySizeLimit(size_t limit)
-// {
-// 	/* debug */std::cout << PINK << "> REQ: set bodySizeLimit" << RESET << std::endl;
-// 	_body_size_limit = limit;
-// }
+void	Request::setStatus(HttpStatus status)
+{
+	_status = status;
+}
 
-// void	Request::setStatus(HttpStatus status)
-// {
-// 	_status = status;
-// }
-
-// void	Request::setState(ParserState state)
-// {
-// 	_state = state;
-// }
+void	Request::setState(ParserState state)
+{
+	_state = state;
+}
 
 const	std::string& Request::getMethod() const
 {
@@ -93,10 +87,10 @@ const	std::map<std::string, std::string>&	Request::getHeaders() const
 	return (_headers);
 }
 
-// const	std::string& Request::getBoundary() const
-// {
-// 	return (_boundary);
-// }
+size_t Request::getContentLength() const
+{
+	return (_content_length);
+}
 
 const	std::string& Request::getContentType() const
 {
@@ -119,11 +113,6 @@ const	std::string& Request::getBody() const
 	return (_body);
 }
 
-// const 	std::map<std::string, std::string>&	Request::getCookies() const
-// {
-// 	return (_cookies);
-// }
-
 const	ParserState& Request::getState() const
 {
 	return (_state);
@@ -140,11 +129,6 @@ bool	Request::hasBody()
 	return (!_body.empty());
 }
 
-// bool	Request::hasMultipart() const
-// {
-// 	return (_content_type.find("multipart/form-data") != std::string::npos);
-// }
-
 bool 	Request::hasSessionId() const
 {
 	return (!_session_id.empty());
@@ -157,8 +141,6 @@ bool	Request::isParseComplete()
 
 void	Request::parseByState(size_t limit)
 {
-	// /* debug */std::cout << _parsed_pos << std::endl;
-	// /* debug */std::cout << _raw.size() << std::endl;
 	while (_parsed_pos < _raw.size())
 	{
 		switch (_state)
@@ -201,7 +183,7 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	size_t line_end = raw.find("\r\n", pos);
 	if (line_end == std::string::npos)
 	{
-		/* debug */std::cout << PINK << "> REQ: no \\r\\n end found" << RESET << std::endl;
+		/* debug */std::cout << RED << "> REQ: no \\r\\n end found" << RESET << std::endl;
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
@@ -210,7 +192,7 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	size_t method_end = raw.find(' ', pos);
 	if (method_end == std::string::npos || method_end > line_end)
 	{
-		/* debug */std::cout << PINK << "> REQ: no method end found" << RESET << std::endl;
+		/* debug */std::cout << RED << "> REQ: no method end found" << RESET << std::endl;
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
@@ -219,7 +201,7 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	size_t path_end = raw.find(' ', method_end + 1);
 	if (path_end == std::string::npos || path_end > line_end)
 	{
-		/* debug */std::cout << PINK << "> REQ: no path end found" << RESET << std::endl;
+		/* debug */std::cout << RED << "> REQ: no path end found" << RESET << std::endl;
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
@@ -331,22 +313,6 @@ void 	Request::parseHeaders(const std::string& raw, size_t &pos)
 	validateHeaders();
 	pos = headers_end + 4; // move cursor to body_start, skipping header_end empty line
 }
-
-// void	Request::parseBoundary()
-// {
-// 	if (_content_type.find("multipart/form-data") == std::string::npos)
-// 		return ;
-	
-// 	size_t pos = _content_type.find("boundary=");
-// 	if (pos == std::string::npos)
-// 		return ;
-
-// 	_boundary = std::string(_content_type.c_str() + pos + 9);
-
-// 	size_t end = _boundary.find_first_of(" \t\r\n\"");
-// 	if (end != std::string::npos)
-// 		_boundary = std::string(_boundary.c_str(), end);
-// }
 
 void	Request::parseCookies(const std::string& value)
 {

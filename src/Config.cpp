@@ -43,60 +43,6 @@ size_t Server::getClientMaxBodySize() const {
 	return _client_max_body_size;
 }
 
-// std::string	Server::getFullPath(const Request& request) const
-// {
-// 	const Location* location = getMatchingLocation(request.getPath());
-
-// 	// /* debug */std::cout << PINK << "> SVR: req path: " << RESET << request.getPath() << std::endl;
-// 	// /* debug */std::cout << PINK << "> SVR: location found: " << RESET << (location ? "YES" : "NO") << std::endl;
-// 	// /* debug */if (location)
-// 	// /* debug */{
-// 	// /* debug */		std::cout << PINK << "> SVR: location path: " << RESET << location->_path << std::endl;
-// 	// /* debug */		std::cout << PINK << "> SVR: location root: " << RESET << location->_root << std::endl;
-// 	// /* debug */}
-// 	// /* debug */std::cout << PINK << "> SVR: server root: " << RESET << _root << std::endl;
-
-// 	std::string path = request.getPath();
-// 	std::cout << YELLOW << "> SVR: initial req path: " << RESET << path << std::endl;
-// 	std::string root = _root;
-
-// 	// if location has custom root, use it and strip the location prefix
-// 	if (location && !location->_alias.empty())
-// 	{
-// 		root = location->_alias;
-// 		std::cout << YELLOW << "> SVR: adjusted root to: " << RESET << root << std::endl;
-
-// 		// strip location from prefix path
-// 		if (!location->_path.empty())
-// 		{
-// 			size_t loc_len = location->_path.length();
-// 			if (path.compare(0, loc_len, location->_path) == 0)
-// 			{
-// 				path = path.substr(loc_len);
-// 				// ensure path starts with /
-// 				if (path.empty() || path[0] != '/')
-// 				{
-// 					path = "/" + path;
-// 					std::cout << PINK << "> SVR: adjusted path to have leading / : " << RESET << path << std::endl;
-// 				}
-// 			}
-// 		}
-
-// 		std::cout << PINK << "> SVR: full path resolved to: " << RESET << root + path << std::endl;
-// 		return root + path;
-// 	}
-// 	else if (location && !location->_root.empty()) 
-// 	{
-// 		root = location->_root;
-
-// 		return root + path;
-// 	}
-// 	else {
-// 		/* debug */std::cout << PINK << "> SVR: using server root" << RESET << std::endl;
-// 		return root;
-// 	}
-// }
-
 /* 
 	if server->_root && location->_root.empty, simply use server block root and append to path
 		- full path = root + path
@@ -119,15 +65,12 @@ std::string	Server::getFullPath(const Request& request) const
 	const Location* location = getMatchingLocation(request.getPath());
 	std::string path = request.getPath();
 	std::string root = _root;
-	// std::string index = _index;
 
 	/* debug */std::cout << YELLOW << "> ROUTING: initial req path: " << RESET << path << std::endl;
 
 	// check alias first (precedence) and then root
 	if (location)
 	{
-		// if (!location->_index.empty())
-		// 	index = location->_index;
 		if (!location->_alias.empty())
 		{
 			root = location->_alias;
@@ -145,9 +88,6 @@ std::string	Server::getFullPath(const Request& request) const
 			/* debug */std::cout << YELLOW << "> ROUTING: using location root: " << RESET << root << std::endl;
 		}
 	}
-	// append index if path ends with /
-	// if (!path.empty() && path.back() == '/')
-	// 	path += index;
 
 	return (normalizePath(root + path));
 }
@@ -171,36 +111,6 @@ const std::string Server::getErrorPagePath(int errorCode) const {
 	return default_it->second;
 }
 
-// const Location* Server::getMatchingLocation(const std::string& requestPath) const {
-// 	const Location* best_match = NULL;
-// 	size_t best_len = 0;
-
-// 	// /* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << "'" << std::endl;
-// 	for (size_t i = 0; i < _locations.size(); ++i) {
-// 		const Location& loc = _locations[i];
-// 		size_t len = loc._path.length();
-// 		bool match = false;
-// 		if (requestPath.compare(0, len, loc._path) == 0) {
-// 			if ((requestPath.length() == len || requestPath[len] == '/'))
-// 				match = true;
-// 			else if (requestPath[len - 1] == '/' && loc._path[len - 1] == '/')
-// 				match = true;
-// 		}
-
-// 		if (match && len > best_len) {
-// 			best_len = len;
-// 			best_match = &_locations[i];
-// 		}
-// 	}
-
-// 	// debug
-// 	if (best_match)
-// 		std::cout << YELLOW << "> SVR: best matching location: " << RESET << best_match->_path << std::endl;
-// 	else 
-// 		std::cout << YELLOW << "> SVR: no matching location found" << RESET << std::endl;
-// 	return best_match;
-// }
-
 /* 
 	match by longest prefix match (location blocks can have the same initial prefix)
 	location /images/
@@ -214,7 +124,7 @@ const Location* Server::getMatchingLocation(const std::string& requestPath) cons
 	const Location* best_match = NULL;
 	size_t best_len = 0;
 
-	/* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << "'" << std::endl;
+	/* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << std::endl;
 	for (size_t i = 0; i < _locations.size(); ++i) {
 		const Location& loc = _locations[i];
 		std::string loc_path = loc._path;

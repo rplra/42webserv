@@ -79,6 +79,6 @@ void	Server::assignCgiContainer(std::map<int, std::string> &data, std::istringst
 
 void	Server::initLocation(Location &obj)
 {
-	obj._autoindex = 0;
+	obj._autoindex = -1;
 	obj._client_max_body_size = this->_client_max_body_size;
 }
