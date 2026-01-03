@@ -86,10 +86,10 @@ run_method_test DELETE "/fruits/" 405
 # /42 -> redirect
 run_method_test GET "/42" 302
 
-# /cgi-bin/upload.py -> GET, POST, DELETE
-run_method_test GET "/cgi-bin/upload.py" 200
-run_method_test POST "/cgi-bin/upload.py" 200 "print('Hello from upload.py')"
-run_method_test DELETE "/cgi-bin/upload.py" 200
+# /cgi-bin/upload_basic.py -> GET, POST, DELETE
+run_method_test GET "/cgi-bin/upload_basic.py" 200
+run_method_test POST "/cgi-bin/upload_basic.py" 200 "print('Hello from upload_basic.py')"
+run_method_test DELETE "/cgi-bin/upload_basic.py" 200
 
 # /cgi-bin/fruits.py -> GET, POST, DELETE
 run_method_test GET "/cgi-bin/fruits.py" 200

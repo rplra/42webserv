@@ -269,20 +269,7 @@
 
 			</form>
 
-			<!-- error checking -->
 			<script>
-				const ageInput = document.getElementById('age');
-				const ageError = document.querySelector('.error');
-
-				ageInput.addEventListener('input', () => {
-				const isValid = /^[0-9]+$/.test(ageInput.value);
-				if (ageInput.value === '' || isValid) {
-					ageError.classList.remove('active');
-				} else {
-					ageError.classList.add('active');
-				}
-				});
-
 				// mouse reactive bg
 				document.addEventListener('mousemove', (e) => {
 				const xRatio = e.clientX / window.innerWidth; // 0 to 1

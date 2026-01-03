@@ -3,6 +3,7 @@
 # --------------------------------------------------------------
 # :: Readme ::
 # Start up the webserver, then run this script to test
+# [file]   virtual.conf
 # --------------------------------------------------------------
 
 # Colours
