@@ -30,7 +30,9 @@ files = []
 if session_id and session_id in session_data:
     for file_obj in session_data[session_id]:
         name = file_obj.get("filename")
-        path = os.path.join(upload_dir, name)
+        encrypt_name = file_obj.get("encrypt_name")
+
+        path = os.path.join(upload_dir, encrypt_name)
         if not os.path.isfile(path):
             continue
         size = os.path.getsize(path)
@@ -39,7 +41,8 @@ if session_id and session_id in session_data:
             "name": name,
             "size": size,
             "type": mime,
-            "uploaded_at": file_obj.get("uploaded_at")
+            "uploaded_at": file_obj.get("uploaded_at"),
+            "encrypt_name": encrypt_name
         })
 
 # Print CGI headers -------------------------------------------
@@ -165,6 +168,7 @@ print("		border-radius: 80px 12px;")
 print("		padding: clamp(16px, 5vw, 24px);")
 print("		}")
 print("		.styled-table {")
+# print("		table-layout: fixed;")
 print("		width: 100%;")
 print("		font-family: 'Inter-Bold', Helvetica;")
 print("		font-weight: 500;")
@@ -218,9 +222,12 @@ else:
     for f in files:
         name = f["name"]
         uploaded_at = f["uploaded_at"]
-        safe_url = urllib.parse.quote(name)
+        encrypt_name = f["encrypt_name"]
+
+        safe_url = urllib.parse.quote(encrypt_name)
         safe_html = html.escape(name)
         safe_time = html.escape(uploaded_at)
+        safe_file = html.escape(encrypt_name)
 
         print("<tr>")
 
@@ -240,7 +247,7 @@ else:
         print("<input")
         print("type='hidden'")
         print("name='file'")
-        print(f"value='{safe_html}'/>")
+        print(f"value='{safe_file}'/>")
         print("<input")
         print("type='hidden'")
         print("name='uploaded_at'")

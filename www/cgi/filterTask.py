@@ -30,7 +30,6 @@ for idx, desc, d, prio in tasks:
     if description and desc.lower() != description.lower():
         continue
     if done and d != done:
-        print(f"done= {done}, d= {d}\n")
         continue
     if priority and prio != priority:
         continue
@@ -217,7 +216,7 @@ else:
     print("<tr>")
     print("<th>ID</th>")
     print("<th>Description</th>")
-    print("<th>Status</th>")
+    print("<th>Task Completed</th>")
     print("<th>Priority</th>")
     print("</tr>")
     print("</thead>")

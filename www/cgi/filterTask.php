@@ -192,7 +192,7 @@
         echo "<tr>";
         echo "<th>ID</th>";
         echo "<th>Description</th>";
-        echo "<th>Status</th>";
+        echo "<th>Task Completed</th>";
         echo "<th>Priority</th>";
         echo "</tr>";
         echo "</thead>";

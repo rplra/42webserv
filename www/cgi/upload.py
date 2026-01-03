@@ -6,6 +6,7 @@ import  json
 from    datetime import datetime
 from    http.cookies import SimpleCookie
 from    print_html import  print_html
+from    randomString import generate_string
 
 
 upload_dir = "www/uploads"
@@ -36,14 +37,19 @@ else:
     filepath = os.path.join(upload_dir, filename)
 
     # Prevent overwriting by adding a counter
-    base, ext = os.path.splitext(filename)
-    counter = 1
-    while os.path.exists(filepath):
-        filename = f"{base}_{counter}{ext}"
-        filepath = os.path.join(upload_dir, filename)
-        counter += 1
+    # base, ext = os.path.splitext(filename)
+    # counter = 1
+    # while os.path.exists(filepath):
+    #     filename = f"{base}_{counter}{ext}"
+    #     filepath = os.path.join(upload_dir, filename)
+    #     counter += 1
 
-    # Save the file
+    # Rename file with random string
+    base, ext = os.path.splitext(filename)
+    encrpt_filename = generate_string() + ext
+    filepath = os.path.join(upload_dir, encrpt_filename)
+
+    # Save the uploaded file
     with open(filepath, "wb") as f:
         f.write(file_item.file.read())
 
@@ -66,6 +72,7 @@ else:
     # save session_id:filename
     data.setdefault(session_id, []).append({
         "filename": filename,
+        "encrypt_name": encrpt_filename,
         "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     })
 

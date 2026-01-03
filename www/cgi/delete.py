@@ -59,7 +59,7 @@ else:
             # Select only entries that not match
             data[session_id] = [
                 file_obj for file_obj in data[session_id]
-                if not (file_obj.get("filename") == filename and file_obj.get("uploaded_at") == uploaded_at)
+                if not (file_obj.get("encrypt_name") == filename and file_obj.get("uploaded_at") == uploaded_at)
             ]
 
             # If the session list is empty after deletion, delete the session ID
