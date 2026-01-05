@@ -218,15 +218,19 @@ void	Response::buildPost()
  */
 void	Response::buildDelete()
 {
-	std::string full_path = _server.getFullPath(*_request);
-	std::string dir_path = full_path;
-	std::string delete_path = full_path;
-	std::string query_str = _request->getQuery();
+	std::string	full_path = _server.getFullPath(*_request);
+	std::string	dir_path = full_path;
+	std::string	delete_path = full_path;
+	std::string	query_str = _request->getQuery();
+	size_t		end_pos = full_path.rfind('/');
 
 	// if has_query
 	if (!query_str.empty())
 	{
-		std::string key, value;
+		if (end_pos != std::string::npos)
+			dir_path = full_path.substr(end_pos + 1);
+
+		std::string value;
 		value = _request->getQueryEntry("file");
 		std::cout << "query length: " << value.length() << std::endl;
 	
@@ -249,23 +253,30 @@ void	Response::buildDelete()
 	}
 	else // if no query
 	{
-		size_t pos = full_path.rfind('/');
-		if (pos != std::string::npos)
+		// dir = www/html/uploads/file.txt
+		if (end_pos != std::string::npos)
 		{
-			dir_path = full_path.substr(0, pos);
+			// ################## wip
+			dir_path = full_path.substr(0, end_pos);
+
+			size_t start_pos = dir_path.rfind('/'); //up to n
+			if (start_pos != std::string::npos)
+				dir_path = dir_path.substr(start_pos + 1, end_pos);
+				// /*debug*/std::cout << PINK << "> RESPONSE: DELETE req dir (start_pos): " << RESET << &full_path[start_pos] << std::endl;
+				// /*debug*/std::cout << PINK << "> RESPONSE: DELETE req dir (end_pos): " << RESET << &full_path[end_pos] << std::endl;
+
 			/*debug*/std::cout << PINK << "> RESPONSE: DELETE req dir (path): " << RESET << dir_path << std::endl;
 		}
 	}
-
-	if (dir_path != "www/uploads" || delete_path == "www/uploads")
-		return (setError(HTTP_FORBIDDEN));
-
-	/*debug*/std::cout << PINK << "> RESPONSE: DELETE req file: " << RESET << delete_path << std::endl;
+	/*debug*/std::cout << PINK << "> RESPONSE: to DELETE: " << RESET << delete_path << std::endl;
 
 	// file exist?
 	struct stat file_stat;
 	if (stat(delete_path.c_str(), &file_stat) != 0)
 		return (setError(HTTP_NOT_FOUND));
+
+	if (dir_path != "uploads" || delete_path == "uploads")
+		return (setError(HTTP_FORBIDDEN));
 
 	// delete file
 	if (std::remove(delete_path.c_str()) != 0) // if delete fail

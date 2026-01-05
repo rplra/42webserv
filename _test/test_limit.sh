@@ -58,9 +58,9 @@ echo "---------------------------------------------------------"
 run_limit_test "POST /upload (10 bytes)" http://localhost:$PORT/upload/ 10 200
 run_limit_test "POST /upload/ (31 bytes)" http://localhost:$PORT/upload/ 31 413
 
-# location /cgi-bin client_max_body_size = 30
+# location /cgi-bin client_max_body_size = 500
 echo ""
-echo -e "${ORANGE}LOCATION /cgi-bin (30 bytes)${RESET}"
+echo -e "${ORANGE}LOCATION /cgi-bin (500 bytes)${RESET}"
 echo "---------------------------------------------------------"
 run_limit_test "POST CGI (10 bytes)" http://localhost:$PORT/cgi-bin/upload_basic.py 10 200
-run_limit_test "POST CGI (31 bytes)" http://localhost:$PORT/cgi-bin/upload_basic.py 31 413
+run_limit_test "POST CGI (501 bytes)" http://localhost:$PORT/cgi-bin/upload_basic.py 501 413

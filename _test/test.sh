@@ -33,14 +33,15 @@ send_request() {
 # echo "---------------------------------------------------------"
 # # curl -X POST -H "Content-Type: text/plain" --data "$(printf '%2001s' | tr ' ' 'A')" http://localhost:8081/form
 # # curl -v -X POST -H "Content-Type: text/plain" -d "hello" http://localhost:8081/form
-# curl -X POST http://localhost:8081/form -d "hello whale"
+# curl -s -i -X POST -H "Content-Type: text/plain" -d "hello" http://localhost:8081/form
+# # curl -X POST http://localhost:8081/form -d "hello whale"
 # echo ""
 
 # echo "TEST 3   : Method not Allowed (curl)"
 # echo "EXPECTED : 405 Method not Allowed"
 # echo "File     : basic.conf"
 # echo "---------------------------------------------------------"
-# curl -X POST -H "Content-Type: text/plain" --data "$(printf '%20s' | tr ' ' 'A')" http://localhost:8081/images
+# curl -s -i -X POST -H "Content-Type: text/plain" --data "$(printf '%20s' | tr ' ' 'A')" http://localhost:8081/images
 # echo ""
 
 # echo "TEST 4   : Method not Allowed (netcat)"
@@ -62,7 +63,7 @@ echo "EXPECTED : File uploaded"
 echo "File     : basic.conf"
 echo "----------------------------------------"
 echo fufu > upload_test.txt
-curl -X POST http://localhost:8081/cgi-bin/upload_basic.py -F "file=@upload_test.txt"
+curl -s -i -X POST http://localhost:8081/cgi-bin/upload_basic.py -F "file=@upload_test.txt"
 echo ""
 
 # echo "TEST 7   : DELETE request using path, (curl)"
@@ -70,26 +71,27 @@ echo ""
 # echo "EXPECTED : File deleted"
 # echo "File     : basic.conf"
 # echo "----------------------------------------"
-# curl -X DELETE http://localhost:8081/del_test/upload_test.txt
-# # curl -X DELETE http://localhost:8081/del_test/
+# curl -s -i -X DELETE http://localhost:8081/del_test/upload_test.txt #200
+# # curl -s -i -X DELETE http://localhost:8081/del_test/bl/upload_test.txt #404
+# # curl -s -i -X DELETE http://localhost:8081/del_test/ #403
 # echo ""
 
-# echo "TEST 8   : DELETE request using query, (curl)"
-# echo "           (need to change allowed_methods in /del_test to DELETE)"
-# echo "EXPECTED : File deleted"
-# echo "File     : basic.conf"
-# echo "----------------------------------------"
-# curl -X DELETE http://localhost:8081/del_test?file=upload_test.txt #200
-# # curl -X DELETE http://localhost:8081/del_test?file=u.txt #404
-# # curl -X DELETE http://localhost:8081/del_test?fil=upload_test.txt #400
-# # curl -X DELETE http://localhost:8081/del_test?file= #400
-# # curl -X DELETE http://localhost:8081/del_test? #403
-# echo ""
-
-echo "TEST 9   : CGI DELETE request using query, (curl)"
-echo "           (need to change allowed_methods in /cgi-bin to DELETE)"
+echo "TEST 8   : DELETE request using query, (curl)"
+echo "           (need to change allowed_methods in /del_test to DELETE)"
 echo "EXPECTED : File deleted"
 echo "File     : basic.conf"
 echo "----------------------------------------"
-curl -X DELETE http://localhost:8081/cgi-bin/delete_basic.py?file=upload_test.txt
+curl -s -i -X DELETE http://localhost:8081/del_test?file=upload_test.txt #200
+# curl -s -i -X DELETE http://localhost:8081/del_test?file=u.txt #404
+# curl -s -i -X DELETE http://localhost:8081/del_test?fil=upload_test.txt #400
+# curl -s -i -X DELETE http://localhost:8081/del_test?file= #400
+# curl -s -i -X DELETE http://localhost:8081/del_test? #403
 echo ""
+
+# echo "TEST 9   : CGI DELETE request using query, (curl)"
+# echo "           (need to change allowed_methods in /cgi-bin to DELETE)"
+# echo "EXPECTED : File deleted"
+# echo "File     : basic.conf"
+# echo "----------------------------------------"
+# curl -X DELETE http://localhost:8081/cgi-bin/delete_basic.py?file=upload_test.txt
+# echo ""

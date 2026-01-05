@@ -92,7 +92,7 @@ run_method_test_upload() {
 }
 
 # Run all tests based on basic.conf
-/ -> GET only
+# / -> GET only
 run_method_test GET "/" 200
 run_method_test POST "/" 405
 run_method_test DELETE "/" 405
@@ -131,13 +131,11 @@ run_method_test GET "/cgi-bin/upload_basic.py" 200
 run_method_test_upload POST "/cgi-bin/upload_basic.py" 200 "body to write into textfile"
 run_method_test DELETE "/cgi-bin/delete_basic.py?file=upload_test.txt" 200
 
-# need to configure allowed_methods DELETE in /uploads
-/cgi-bin/fruits.py -> GET, POST, normal DELETE (path)
+# /cgi-bin/fruits.py -> GET, POST, normal DELETE (path)
 run_method_test GET "/cgi-bin/fruits.py" 200
 run_method_test_upload POST "/cgi-bin/upload_basic.py" 200 "strawberry blueberry"
 run_method_test DELETE "/del_test/upload_test.txt" 200
 
-# need to configure allowed_methods DELETE in /uploads
 # /cgi-bin/fruits.py -> GET, POST, normal DELETE (query)
 run_method_test GET "/cgi-bin/fruits.py" 200
 run_method_test_upload POST "/cgi-bin/upload_basic.py" 200 "strawberry blueberry"
