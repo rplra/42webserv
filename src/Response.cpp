@@ -1,5 +1,6 @@
 #include "Webserv.hpp"
 #include "ConfigParse.hpp"
+#include <cstdio> // for std::remove
 
 Response::Response(const Request* request, const Server& server, HttpStatus status) 
 :
@@ -25,11 +26,13 @@ std::string	Response::buildResponse()
 	/* debug */std::cout << PINK << "> building response" << RESET << std::endl;
 	switch(_type)
 	{
-		case (REDIRECT):	buildRedirect(); break;
-		case (STATIC):		buildStatic(); break;
-		case (AUTOINDEX):	buildAutoIndex(); break;
-		case (CGI):			buildCgi(); break;
-		case (ERROR):		buildError(); break;
+		case (REDIRECT):		buildRedirect(); break;
+		case (STATIC):			buildStatic(); break;
+		case (AUTOINDEX):		buildAutoIndex(); break;
+		case (CGI):				buildCgi(); break;
+		case (ERROR):			buildError(); break;
+		case (POST_HANDLER)	:	buildPost(); break;
+		case (DELETE_HANDLER):	buildDelete(); break;
 	}
 
 	_isBuilt = true;
@@ -185,8 +188,93 @@ void	Response::buildStatic()
 	// regular file? (non normal files - socket, device files, pipes etc)
 	if (!S_ISREG(file_stat.st_mode))
 		return (setError(HTTP_FORBIDDEN));
-
 	serveFile(full_path, HTTP_OK);
+}
+
+/*
+ simple POST response from server
+ in usual cases it's not compulsory to return received POST content (for security)
+ */
+void	Response::buildPost()
+{
+	std::string full_path = _server.getFullPath(*_request);
+
+	struct stat file_stat;
+	// file exist?
+	if (stat(full_path.c_str(), &file_stat) != 0)
+		return (setError(HTTP_NOT_FOUND));
+
+	/*debug*/std::cout << PINK << "> RESPONSE: body received: " << RESET << _request->getBody() << std::endl;
+	setStatus(HTTP_OK);		
+	std::string responseBody = "[POST received]: " + _request->getBody();
+	setBody(responseBody); // set response body
+	setHeader("Content-Type", "text/plain"); //set response header
+	setHeaders();
+}
+
+/*
+ * handles when server receives non-cgi DELETE requests
+ * restrict DELETE to happen only in www/uploads
+ */
+void	Response::buildDelete()
+{
+	std::string full_path = _server.getFullPath(*_request);
+	std::string dir_path = full_path;
+	std::string delete_path = full_path;
+	std::string query_str = _request->getQuery();
+
+	// if has_query
+	if (!query_str.empty())
+	{
+		std::string key, value;
+		value = _request->getQueryEntry("file");
+		std::cout << "query length: " << value.length() << std::endl;
+	
+		if (value.empty() || value.length() <= 1)
+			return (setError(HTTP_BAD_REQUEST));
+
+		// size_t pos = query_str.find('=');
+		// if (pos == std::string::npos)
+		// 	return (setError(HTTP_BAD_REQUEST));
+
+		// key = query_str.substr(0, pos);
+		// value = query_str.substr(pos + 1);
+
+		// if (key.empty() || value.empty() || key != "file")
+		// 	return (setError(HTTP_BAD_REQUEST));
+
+		delete_path.clear();
+		delete_path = full_path + "/" + value;
+		/*debug*/std::cout << PINK << "> RESPONSE: DELETE req dir (query): " << RESET << dir_path << std::endl;
+	}
+	else // if no query
+	{
+		size_t pos = full_path.rfind('/');
+		if (pos != std::string::npos)
+		{
+			dir_path = full_path.substr(0, pos);
+			/*debug*/std::cout << PINK << "> RESPONSE: DELETE req dir (path): " << RESET << dir_path << std::endl;
+		}
+	}
+
+	if (dir_path != "www/uploads" || delete_path == "www/uploads")
+		return (setError(HTTP_FORBIDDEN));
+
+	/*debug*/std::cout << PINK << "> RESPONSE: DELETE req file: " << RESET << delete_path << std::endl;
+
+	// file exist?
+	struct stat file_stat;
+	if (stat(delete_path.c_str(), &file_stat) != 0)
+		return (setError(HTTP_NOT_FOUND));
+
+	// delete file
+	if (std::remove(delete_path.c_str()) != 0) // if delete fail
+		return (setError(HTTP_BAD_REQUEST));
+
+	setStatus(HTTP_OK);	
+	setBody("File deleted successfully"); // set response body
+	setHeader("Content-Type", "text/plain"); //set response header
+	setHeaders();
 }
 
 /* 

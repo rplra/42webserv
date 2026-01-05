@@ -88,7 +88,6 @@ std::string	Server::getFullPath(const Request& request) const
 			/* debug */std::cout << YELLOW << "> ROUTING: using location root: " << RESET << root << std::endl;
 		}
 	}
-
 	return (normalizePath(root + path));
 }
 

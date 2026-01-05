@@ -122,6 +122,13 @@ void Client::buildResponse()
 	// 6. else, serve static content
 	_response->setType(STATIC);
 
+	// 7. POST or DELETE overrides static
+	if (_request.getMethod() == "POST")
+		_response->setType(POST_HANDLER);
+	else if (_request.getMethod() == "DELETE")
+		_response->setType(DELETE_HANDLER);
+
+	// 8. CGI overrides
 	if (location && location->_cgi.size() > 0)
 		_response->setType(CGI);
 

@@ -14,7 +14,9 @@ enum	ResponseType
 	STATIC,
 	AUTOINDEX,
 	CGI,
-	ERROR
+	ERROR,
+	POST_HANDLER,
+	DELETE_HANDLER
 };
 
 class Response
@@ -70,6 +72,8 @@ private:
 	void		buildAutoIndex();
 	void		buildCgi();
 	void		buildError(); 
+	void		buildPost(); 
+	void		buildDelete(); 
 
 	// 			helpers
 	std::string getDate();

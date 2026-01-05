@@ -6,44 +6,58 @@
 # --------------------------------------------------------------
 
 # Configuration
-PORT=8082
+PORT=8081
 
 # Function to send HTTP request via netcat
 send_request() {
     echo -en "$1" | nc -w 1 localhost $PORT
 }
 
-# echo "TEST 1  : Test Virtual Host (setup post 8080)"
-# echo "EXPECTED: Page loading successfully"
+# echo "TEST 1   : Test Virtual Host (setup post 8081)"
+# echo "EXPECTED : Page loading successfully"
+# echo "File     : virtual.conf"
 # echo "---------------------------------------------------------"
-# curl --resolve webserv.example.com:8080:127.0.0.1 http://webserv.example.com:8080/
+# curl --resolve www.default.com:8000:127.0.0.1 http://www.default.com:8000/
 # echo ""
 
-# echo "TEST 2  : Overflow Body Cap (max 2000 bytes, need to setup 8082 in config)"
-# echo "EXPECTED: 413 Payload Too Large"
+# echo "TEST 2   : Overflow Body Cap (max 2000 bytes, need to setup 8081 in config)"
+# echo "EXPECTED : 413 Payload Too Large"
+# echo "File     : basic.conf"
 # echo "---------------------------------------------------------"
-# curl -X POST -H "Content-Type: text/plain" --data "$(printf '%2001s' | tr ' ' 'A')" http://localhost:$PORT/
+# curl -X POST -H "Content-Type: text/plain" --data "$(printf '%2001s' | tr ' ' 'A')" http://localhost:8081/upload
 # echo ""
 
-# echo "TEST 3  : Method not Allowed (curl)"
-# echo "EXPECTED: 405 Method not Allowed"
+# echo "TEST 3   : POST success"
+# echo "EXPECTED : 200 OK"
+# echo "File     : basic.conf"
 # echo "---------------------------------------------------------"
-# curl -X POST -H "Content-Type: text/plain" --data "$(printf '%20s' | tr ' ' 'A')" http://localhost:8082/images
+# # curl -X POST -H "Content-Type: text/plain" --data "$(printf '%2001s' | tr ' ' 'A')" http://localhost:8081/form
+# # curl -v -X POST -H "Content-Type: text/plain" -d "hello" http://localhost:8081/form
+# curl -X POST http://localhost:8081/form -d "hello whale"
 # echo ""
 
-# echo "TEST 4  : Method not Allowed (netcat)"
-# echo "EXPECTED: 405 Method not Allowed"
+# echo "TEST 3   : Method not Allowed (curl)"
+# echo "EXPECTED : 405 Method not Allowed"
+# echo "File     : basic.conf"
+# echo "---------------------------------------------------------"
+# curl -X POST -H "Content-Type: text/plain" --data "$(printf '%20s' | tr ' ' 'A')" http://localhost:8081/images
+# echo ""
+
+# echo "TEST 4   : Method not Allowed (netcat)"
+# echo "EXPECTED : 405 Method not Allowed"
+# echo "File     : basic.conf"
 # echo "----------------------------------------"
-# send_request "POST /images HTTP/1.1\r\nHost: localhost:8082\r\nContent-Length: 11\r\n\r\nHELLO WORLD"
+# send_request "POST /images HTTP/1.1\r\nHost: localhost:8081\r\nContent-Length: 11\r\n\r\nHELLO WORLD"
 # echo ""
 
-# echo "TEST 5  : POST request (netcat)"
-# echo "EXPECTED: Show HELLO WORLD"
+# echo "TEST 5   : POST request (netcat)"
+# echo "EXPECTED : Show HELLO WORLD"
+# echo "File     : basic.conf"
 # echo "----------------------------------------"
-# send_request "POST /large HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nHELLO WORLD"
+# send_request "POST /form HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nHELLO WORLD"
 # echo ""
 
-echo "TEST 6   : POST request, (upload file, curl)"
+echo "TEST 6   : CGI POST request, (upload, curl)"
 echo "EXPECTED : File uploaded"
 echo "File     : basic.conf"
 echo "----------------------------------------"
@@ -51,18 +65,31 @@ echo fufu > upload_test.txt
 curl -X POST http://localhost:8081/cgi-bin/upload_basic.py -F "file=@upload_test.txt"
 echo ""
 
-# echo "TEST 7   : DELETE request, (curl)"
-# echo "(need to change allowed_methods in /uploads to DELETE)"
+# echo "TEST 7   : DELETE request using path, (curl)"
+# echo "           (need to change allowed_methods in /del_test to DELETE)"
 # echo "EXPECTED : File deleted"
 # echo "File     : basic.conf"
 # echo "----------------------------------------"
-# curl -X DELETE http://localhost:8081/uploads/upload_test.txt
+# curl -X DELETE http://localhost:8081/del_test/upload_test.txt
+# # curl -X DELETE http://localhost:8081/del_test/
 # echo ""
 
-# echo "TEST 8   : CGI DELETE request, (curl)"
-# echo "(need to change allowed_methods in /uploads to DELETE)"
+# echo "TEST 8   : DELETE request using query, (curl)"
+# echo "           (need to change allowed_methods in /del_test to DELETE)"
 # echo "EXPECTED : File deleted"
 # echo "File     : basic.conf"
 # echo "----------------------------------------"
-# curl -X DELETE http://localhost:8081/cgi-bin/delete_basic.py?file=upload_test.txt
+# curl -X DELETE http://localhost:8081/del_test?file=upload_test.txt #200
+# # curl -X DELETE http://localhost:8081/del_test?file=u.txt #404
+# # curl -X DELETE http://localhost:8081/del_test?fil=upload_test.txt #400
+# # curl -X DELETE http://localhost:8081/del_test?file= #400
+# # curl -X DELETE http://localhost:8081/del_test? #403
 # echo ""
+
+echo "TEST 9   : CGI DELETE request using query, (curl)"
+echo "           (need to change allowed_methods in /cgi-bin to DELETE)"
+echo "EXPECTED : File deleted"
+echo "File     : basic.conf"
+echo "----------------------------------------"
+curl -X DELETE http://localhost:8081/cgi-bin/delete_basic.py?file=upload_test.txt
+echo ""
