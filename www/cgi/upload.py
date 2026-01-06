@@ -36,14 +36,6 @@ else:
     filename = os.path.basename(file_item.filename)
     filepath = os.path.join(upload_dir, filename)
 
-    # Prevent overwriting by adding a counter
-    # base, ext = os.path.splitext(filename)
-    # counter = 1
-    # while os.path.exists(filepath):
-    #     filename = f"{base}_{counter}{ext}"
-    #     filepath = os.path.join(upload_dir, filename)
-    #     counter += 1
-
     # Rename file with random string
     base, ext = os.path.splitext(filename)
     encrpt_filename = generate_string() + ext

@@ -14,16 +14,6 @@ with open(csv_path, "r") as csvfile:
     for row in reader:
         submissions.append(row)
 
-# view prize pool
-# print('<table border="1">')
-# print("<tr><th>Name</th><th>Email</th><th>Age</th></tr>")
-# for name, email, age in submissions:
-#     print(f"<tr><td>{name}</td><td>{email}</td><td>{age}</td></tr>")
-# print('</table><br>')
-# print()
-# print('<a href="/form">Submit another response</a><br>')
-# print("</body></html>")
-
 # Print CGI headers ----------------------------------------------------------------
 print(f"Status: 200 OK")
 print("Content-Type: text/html")

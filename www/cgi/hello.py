@@ -6,8 +6,6 @@ import time
 # # Required header
 print("Status: 200")
 print("Content-Type: text/html")
-# Optional: The server will calculate this if you don't
-# print("Content-Length: 55")
 print() # This blank line is CRITICAL
 
 # Body

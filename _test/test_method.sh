@@ -139,8 +139,8 @@ run_method_test DELETE "/del_test/upload_test.txt" 200
 # /cgi-bin/fruits.py -> GET, POST, normal DELETE (query)
 run_method_test GET "/cgi-bin/fruits.py" 200
 run_method_test_upload POST "/cgi-bin/upload_basic.py" 200 "strawberry blueberry"
-run_method_test DELETE "/del_test?file=upload_test.txt" 200
 run_method_test DELETE "/del_test?file=file_dont_exist.txt" 404
+run_method_test DELETE "/del_test?file=upload_test.txt" 200
 
 # unkwown/invalid method
 run_method_test PUT "/" 400

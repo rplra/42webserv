@@ -23,9 +23,9 @@ std::string  removeSpaces(std::string &str)
 
 int main(int ac, char **av)
 {
-	if (ac != 3)
+	if (ac != 4)
 	{
-		std::cerr << "Input must be 2: <input_filename> <output_filename>" << std::endl;
+		std::cerr << "Input must be 3: <input_filename> <output_filename> <mode:py or php>" << std::endl;
 		return (1);
 	}
 
@@ -42,9 +42,10 @@ int main(int ac, char **av)
 		return (1);
 	}
 	
-	std::string 		buffer, word;
+	std::string 		buffer, word, mode;
 	std::istringstream	iss;
 
+	mode = av[3];
 	while (std::getline(infile, buffer))
 	{
 		iss.clear();
@@ -53,9 +54,11 @@ int main(int ac, char **av)
 			continue ;
 		if (word == "/*" || word == "<!--")
 			continue ;
-		// outfile << "print(\"" << buffer << "\")" << std::endl;
-		// outfile << "print(\"" << removeSpaces(buffer) << "\")" << std::endl;
-		outfile << "echo \"" << removeSpaces(buffer) << "\";" << std::endl;
+			
+		if (mode == "py")
+			outfile << "print(\"" << buffer << "\")" << std::endl;
+		else if (mode == "php")
+			outfile << "echo \"" << removeSpaces(buffer) << "\";" << std::endl;
 	}
 
 	infile.close();

@@ -228,17 +228,6 @@
         echo "</section></body></html>";
     } else {
         $message = "Error: Invalid username or password.";
-        // echo "<html><body>";
-        // echo "<h1>Log In</h1>";
-        // echo "<p style=\"color:red;\">" . htmlspecialchars($message) . "</p>";
-        // echo "<form action=\"/cgi-bin/logIn.php\" method=\"post\">";
-        // echo "<label for=\"username\">Username:</label>";
-        // echo "<input type=\"text\" id=\"username\" name=\"username\" required><br><br>";
-        // echo "<label for=\"password\">Password:</label>";
-        // echo "<input type=\"password\" id=\"password\" name=\"password\" required><br><br>";
-        // echo "<button type=\"submit\">Log In</button>";
-        // echo "</form>";
-        // echo "</body></html>";
 
         echo "<title>Login</title>";
         echo "</head>";
