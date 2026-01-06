@@ -21,6 +21,7 @@ const size_t DEFAULT_LIMIT	= 104576; // default initial limit 1MB
 // error - args
 const std::string ERR_ARGFORMAT			= "Invalid argument. Usage: ./webserv [configuration file]";
 const std::string ERR_FILEINVALID	    = "Invalid file:";
+const std::string ERR_FILEEXTINVALID    = "Invalid extension! Only .conf files allowed";
 const std::string ERR_FILEEMPTY			= "Empty file!";
 
 // error - config

@@ -215,12 +215,19 @@ void	ConfigParser::startParser(std::ifstream &inFile)
 
 void	ConfigParser::parseConfig(char **av)
 {
-	std::ifstream inFile(av[1]);
+	std::string		filename = av[1];
+	std::ifstream	inFile(filename);
 
 	try
 	{
 		if (!inFile.is_open())
 			throw (std::invalid_argument(ERR_FILEINVALID));
+
+		// if filename doesnt end with .conf
+		size_t pos = filename.rfind('.');
+		if (pos == std::string::npos || filename.substr(pos) != ".conf")
+			throw (std::invalid_argument(ERR_FILEEXTINVALID));
+
 		if (inFile.peek() == EOF)
 			throw (std::invalid_argument(ERR_FILEEMPTY));
 		/* scan all errors */
