@@ -216,7 +216,7 @@ void	ConfigParser::startParser(std::ifstream &inFile)
 void	ConfigParser::parseConfig(char **av)
 {
 	std::string		filename = av[1];
-	std::ifstream	inFile(filename);
+	std::ifstream	inFile(filename.c_str());
 
 	try
 	{
