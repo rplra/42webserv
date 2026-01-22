@@ -123,7 +123,6 @@ HttpStatus	Request::getStatus() const
 	return (_status);
 }
 
-
 bool	Request::hasBody()
 {
 	return (!_body.empty());
@@ -143,6 +142,7 @@ void	Request::parseByState(size_t limit)
 {
 	while (_parsed_pos < _raw.size())
 	{
+		size_t prev_pos = _parsed_pos;
 		switch (_state)
 		{
 			case PARSE_REQUEST_LINE:
@@ -151,7 +151,9 @@ void	Request::parseByState(size_t limit)
 			
 			case PARSE_HEADERS:
 				parseHeaders(_raw, _parsed_pos);
-				decideBodyState();
+				// only decide body state after headers fully parsed
+				if (_parsed_pos > prev_pos)
+					decideBodyState();
 				break;
 
 			case PARSE_BODY:
@@ -174,6 +176,8 @@ void	Request::parseByState(size_t limit)
 			case PARSE_ERROR:
 				return;
 		}
+		if (prev_pos == _parsed_pos)
+			break;
 	}
 }
 
@@ -183,7 +187,7 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	size_t line_end = raw.find("\r\n", pos);
 	if (line_end == std::string::npos)
 	{
-		/* debug */std::cout << RED << "> REQ: no \\r\\n end found" << RESET << std::endl;
+		// /* debug */std::cout << RED << "> REQ: no \\r\\n end found" << RESET << std::endl;
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
@@ -192,7 +196,7 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	size_t method_end = raw.find(' ', pos);
 	if (method_end == std::string::npos || method_end > line_end)
 	{
-		/* debug */std::cout << RED << "> REQ: no method end found" << RESET << std::endl;
+		// /* debug */std::cout << RED << "> REQ: no method end found" << RESET << std::endl;
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
@@ -201,7 +205,7 @@ void 	Request::parseRequestLine(const std::string& raw, size_t &pos)
 	size_t path_end = raw.find(' ', method_end + 1);
 	if (path_end == std::string::npos || path_end > line_end)
 	{
-		/* debug */std::cout << RED << "> REQ: no path end found" << RESET << std::endl;
+		// /* debug */std::cout << RED << "> REQ: no path end found" << RESET << std::endl;
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 		return;
@@ -452,9 +456,9 @@ void	Request::parseContentLengthBody(const std::string& raw, size_t &pos, size_t
 
 
 /* 
-	check for c <= 31 || c == 127 is to abide RFC 9112 (HTTP/1.1)
-		- HTTP messages must consist of printable ASCII characters (0x20–0x7E) plus CRLF.
-		- Control characters (0x00–0x1F, except \r and \n) MUST NOT appear in the request line or header fields. 
+	check for c <= 31 || c >= 127 is to abide RFC 9112 (HTTP/1.1)
+	- HTTP messages must consist of printable ASCII characters (0x20–0x7E) plus CRLF.
+	- Control characters (0x00–0x1F, except \r and \n) MUST NOT appear in the request line or header fields. 
 */
 bool	Request::isValidPath()
 {
@@ -465,7 +469,7 @@ bool	Request::isValidPath()
 	{
 		char c = _path[i];
 
-		if (c <= 31 || c == 127 || c == ' ' || c == '\\')
+		if (c <= 31 || c >= 127 || c == ' ' || c == '\\')
 			return (false);
 	}
 	return (true);
@@ -487,7 +491,7 @@ void	Request::validateHeaders()
 	// missing host (typically absent with HTTP/1.0)
 	if (_headers.find("host") == _headers.end() || _headers.at("host").empty())
 	{
-		/* debug */std::cout << PINK << "> REQ: invalid host header" << RESET << std::endl;
+		// /* debug */std::cout << PINK << "> REQ: invalid host header" << RESET << std::endl;
 		_status = HTTP_BAD_REQUEST;
 		_state = PARSE_ERROR;
 	}
