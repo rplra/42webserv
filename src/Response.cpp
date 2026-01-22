@@ -23,7 +23,9 @@ Response::Response(const Request* request, const Server& server, HttpStatus stat
 
 std::string	Response::buildResponse()
 {	
-	/* debug */std::cout << PINK << "> building response" << RESET << std::endl;
+	if (_isBuilt)
+		return (_raw_response);
+	// /* debug */std::cout << PINK << "> building response" << RESET << std::endl;
 	switch(_type)
 	{
 		case (REDIRECT):		buildRedirect(); break;
@@ -54,7 +56,11 @@ void	Response::setError(HttpStatus code)
 {
 	_type = ERROR;
 	setStatus(code);
-	buildError();
+	if (!_isBuilt)
+	{
+		buildError();
+		_isBuilt = true;
+	}
 }
 
 void	Response::setStatus(HttpStatus status)
@@ -74,9 +80,6 @@ void	Response::setStatus(HttpStatus status)
 		case (HTTP_LENGTH_REQUIRED):		_reason_phrase = "Length Required"; break;
 		case (HTTP_PAYLOAD_TOO_LARGE):		_reason_phrase = "Payload Too Large"; break;
 		case (HTTP_INTERNAL_SERVER_ERROR):	_reason_phrase = "Internal Server Error"; break;
-		case (HTTP_NOT_IMPLEMENTED):		_reason_phrase = "Not Implemented"; break;
-		case (HTTP_BAD_GATEWAY):			_reason_phrase = "Bad Gateway"; break;
-		case (HTTP_SERVICE_UNAVAILABLE):	_reason_phrase = "Service Unavailable"; break;
 	}
 }
 
@@ -99,10 +102,10 @@ void	Response::setHeaders()
 	_headers["Date"] = getDate();
 	
 	const std::vector<std::string>& server_names = _server.getServerNames();
-	if (!_server.getServerNames().empty())
+	if (!server_names.empty())
 		_headers["Server"] = server_names[0];
 	else 
-		_headers["Server"] = "Webserv/1.0";
+		_headers["Server"] = "mewserv/1.0";
 	
 	oss << _body.size();
 	_headers["Content-Length"] = oss.str();
@@ -141,13 +144,12 @@ void	Response::buildRedirect()
 	const Location* loc = _server.getMatchingLocation(_request->getPath());
 	if (!loc)
 	{
-		/* debug */std::cerr << RED << "> no matching loc " << RESET << std::endl;
+		// /* debug */std::cerr << RED << "> no matching loc " << RESET << std::endl;
 		setError(HTTP_INTERNAL_SERVER_ERROR);
 		return ;
 	}
-	/* debug */std::cout << PINK << "> matching loc path: " << RESET << loc->_path << "'" << std::endl;
+	// /* debug */std::cout << PINK << "> matching loc path: " << RESET << loc->_path << "'" << std::endl;
 
-	// fix : get redirect code and url from config
 	std::map<int, std::string>::const_iterator it = loc->_redirect.begin();
 	if (it == loc->_redirect.end())
 	{
@@ -156,7 +158,6 @@ void	Response::buildRedirect()
 	}
 	int code = it->first;
 	std::string url = it->second;
-	
 
 	setStatus(static_cast<HttpStatus>(code));
 	setHeader("Location", url);
@@ -181,7 +182,7 @@ void	Response::buildStatic()
 	// is directory?
 	if (S_ISDIR(file_stat.st_mode))
 	{
-		/* debug */std::cout << PINK << "> build static: is directory" << RESET << std::endl;
+		// /* debug */std::cout << PINK << "> build static: is directory" << RESET << std::endl;
 		handleDirectory(full_path);
 		return;
 	}
@@ -204,7 +205,7 @@ void	Response::buildPost()
 	if (stat(full_path.c_str(), &file_stat) != 0)
 		return (setError(HTTP_NOT_FOUND));
 
-	/*debug*/std::cout << PINK << "> RESPONSE: body received: " << RESET << _request->getBody() << std::endl;
+	// /*debug*/std::cout << PINK << "> RESPONSE: body received: " << RESET << _request->getBody() << std::endl;
 	setStatus(HTTP_OK);		
 	std::string responseBody = "[POST received]: " + _request->getBody();
 	setBody(responseBody); // set response body
@@ -306,7 +307,8 @@ void	Response::buildAutoIndex()
 	}
 	closedir(dir);
 
-	_status_code = HTTP_OK;
+	// _status_code = HTTP_OK;
+	setStatus(HTTP_OK);
 	setBody(generateAutoIndexBody(file_path));
 	setHeader("Content-Type", "text/html");
 	setHeaders();
@@ -346,57 +348,6 @@ void	Response::buildCgi()
 	setHeaders();
 }
 
-bool 	Response::parseCgiHeaders(const std::string& raw, size_t &pos)
-{
-	size_t	line_end = 0;
-	size_t	sep_len = 4;
-	bool	flag = 0;
-	
-	size_t	headers_end = raw.find("\r\n\r\n");
-	if (headers_end == std::string::npos) // if not found
-	{
-		headers_end = raw.find("\n\n");
-		sep_len = 2;
-	}
-	else if (headers_end == std::string::npos)
-		return (0); // no headers found
-
-	while (pos < headers_end)
-	{
-		if (sep_len == 4)
-			line_end = raw.find("\r\n", pos);
-		else
-			line_end = raw.find("\n", pos);
-
-		if (line_end == std::string::npos || line_end > headers_end)
-			break ;
-
-		size_t colon = raw.find(':', pos);
-		if (colon == std::string::npos || colon > line_end)
-			break ;
-		
-		std::string key = trim(std::string(&raw[pos], colon - pos));
-		key = toLower(key);
-		std::string value = trim(std::string(&raw[colon + 1], line_end - (colon + 1)));
-		// /* debug */std::cout << "> KEY:VALUE -> " << key << " : " << value << std::endl;
-
-		if (!flag)
-			flag = 1;
-		if (key == "status")
-		{
-			size_t code = std::strtod(value.c_str(), NULL);
-			setStatus(static_cast<HttpStatus>(code));
-		}
-		else if (key == "content-type")
-			_content_type = value;
-
-		pos = line_end + 1;
-	}
-	// /*debug*/std::cout << "leftbody: " << &raw[pos] << std::endl;
-	// pos = headers_end + sep_len; // move cursor to body_start, skipping header_end empty line
-	return (flag);
-}
-
 /* 
 	1. check if there's custom error config-ed for the status
 	2. if yes > serve (read file > detect mime > set headers)
@@ -404,7 +355,7 @@ bool 	Response::parseCgiHeaders(const std::string& raw, size_t &pos)
 */
 void	Response::buildError()
 {
-	/* debug */std::cout << PINK << "> building error" << RESET << std::endl;
+	// /* debug */std::cout << PINK << "> building error" << RESET << std::endl;
 	// std::map<HttpStatus, std::string>::const_iterator it = _server.getErrorPagePath(_status_code).find(_status_code);
 	// if (it != _server.getErrorPagePath().end())
 	std::string error_file = _server.getErrorPagePath(_status_code);
@@ -417,13 +368,11 @@ void	Response::buildError()
 		if (stat(full_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
 		{
 			// file exist > serve
-			/* debug */std::cout << PINK << "> serving error page" << RESET << std::endl;
+			// /* debug */std::cout << PINK << "> serving error page" << RESET << std::endl;
 			serveFile(full_path, _status_code);
 			return;
 		}
 	}
-	// else
-	// 	generateErrorPage(_status_code);
 }
 
 std::string Response::getDate()
@@ -629,26 +578,9 @@ std::string	Response::generateAutoIndexBody(const std::string& file_path)
 			url = url.substr(0, url.length() - 1);
 		url += name;
 		// make url relative to request path, not filesystem path
-		html += "      <li><a href=\"" + _request->getPath() + name + "\">" + name + "</a></li>\n";
+		html += "      <li><a href=\"" + url + "\">" + name + "</a></li>\n";
 	}
 	closedir(dir);
 	html += "   </ul>\n  </body>\n</html>\n";
 	return (html);
 }
-
-// std::string Response::generateErrorPage(HttpStatus status)
-// {
-// 	std::string error_code = std::to_string(status);
-
-// 	std::string html =
-// 	"<!DOCTYPE html><html><head>"
-//     "<meta charset=\"UTF-8\">"
-//     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-//     "<title>404 - Not Found</title>"
-//     "</head><body>"
-//     "<h1>" + error_code + " - Unknown Error</h1>"
-//     "<p>An unidentified error occured.</p>"
-//     "</body></html>";
-
-// 	return (html);
-// }
