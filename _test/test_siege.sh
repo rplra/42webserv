@@ -29,22 +29,29 @@ RESET="\033[0m"
 PORT=8000
 
 # Tests
-echo "${YELLOW}TEST 1 : simulate max load on server, send requests as fast without delay${RESET}"
-echo "EXPECTED: Availability above 99.5%"
-echo "----------------------------------------"
-siege -b http://localhost:8000/empty.html
-echo ""
-
-# echo "${YELLOW}TEST 2 : handle multiple simultaneous users${RESET}"
+# echo "${YELLOW}TEST 1 : simulate max load on server, send requests as fast without delay${RESET}"
 # echo "EXPECTED: Availability above 99.5%"
 # echo "----------------------------------------"
-# siege -b -c 10 -t 30S http://localhost:8000/empty.html
+# siege -b http://localhost:8000/empty.html
 # echo ""
+
+echo "${YELLOW}TEST 2 : handle multiple simultaneous users${RESET}"
+echo "EXPECTED: Availability above 99.5%"
+echo "----------------------------------------"
+siege -b -c 100 -t 30S http://localhost:8000/empty.html
+echo ""
 
 # echo "${YELLOW}TEST 3 : detect memory leaks or slow-growing issues${RESET}"
 # echo "EXPECTED: Availability above 99.5%"
 # echo "----------------------------------------"
 # siege -b -c 200 -t 30S http://localhost:8000/empty.html
+# echo ""
+
+# echo "${YELLOW}TEST 4 : multiple client with specified requests count${RESET}"
+# echo "-d=delay before reconnecting, -r=how many request per client"
+# echo "EXPECTED: Availability above 99.5%"
+# echo "----------------------------------------"
+# siege -b -c 10 -d 2 -r 10 -t 30S http://localhost:8000/empty.html
 # echo ""
 
 
