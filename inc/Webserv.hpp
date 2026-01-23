@@ -12,6 +12,7 @@
 #include <ctime>
 #include <exception>
 #include <stdexcept>
+#include <ctime>
 
 // stl
 #include <vector>
