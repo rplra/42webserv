@@ -370,7 +370,7 @@ void	ServerManager::handleEventWrite(int clientSocket)
 		else
 			removeClient(clientSocket);
 	}
-}
+} 
 
 void	ServerManager::enableWriteEvent(int clientSocket)
 {

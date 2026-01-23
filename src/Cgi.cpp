@@ -157,45 +157,37 @@ void	Response::executeCgi(const Location* location, int len)
     int flag = fcntl(stdout_pipe[0], F_GETFL, 0);
     fcntl(stdout_pipe[0], F_SETFL, flag | O_NONBLOCK);
 
-    // Setup pollfd
-    struct pollfd pfd;
-    pfd.fd = stdout_pipe[0];
-    pfd.events = POLLIN;
+	clock_t start = clock(); // start timer
+    const double TIMEOUT = 2.0; // 2 seconds
 
-    // timeout for poll
-    const int timeout = 2000; // 2 seconds
-    int poll_result = poll(&pfd, 1, timeout);
-
-    if (poll_result > 0) {
-		while (true)
-		{
-			nbytes = read(stdout_pipe[0], buffer, sizeof(buffer));
-			if (nbytes > 0) {
-				cgiResponse.append(buffer, nbytes);
-			}
-			else if (nbytes == 0)
-			{
-				// further process if is php
-				if (_request->getPath().compare(len - 4, 4, ".php") == 0) {
-					size_t start = cgiResponse.find("<html>");
-					// /*debug*/std::cout  <<"cgiR: " << cgiResponse << std::endl;
-					_cgiResponse = cgiResponse.substr(start);
-				}
-				else
-					_cgiResponse = cgiResponse;
-				break ;
-			}
+	while (true)
+	{
+		nbytes = read(stdout_pipe[0], buffer, sizeof(buffer));
+		if (nbytes > 0) {
+			cgiResponse.append(buffer, nbytes);
 		}
-    }
-	else if (poll_result == 0) {
-        kill(pid, SIGKILL);
-        waitpid(pid, NULL, 0);  // clean up zombie
-        std::cerr << RED << "CGI script timed out" << RESET << std::endl;
-    } else {
-        kill(pid, SIGKILL);
-        waitpid(pid, NULL, 0);  // clean up zombie
-        std::cerr << RED << ERR_POLL << RESET << std::endl;
-    }
+		else if (nbytes == 0)
+		{
+			// further process if is php
+			if (_request->getPath().compare(len - 4, 4, ".php") == 0) {
+				size_t start = cgiResponse.find("<html>");
+				_cgiResponse = cgiResponse.substr(start);
+			}
+			else
+				_cgiResponse = cgiResponse;
+			break ;
+		}
+
+		// check elapsed time
+        double elapsed = double(clock() - start) / CLOCKS_PER_SEC;
+        if (elapsed > TIMEOUT)
+        {
+            std::cerr << RED << "CGI script timed out" << RESET << std::endl;
+            kill(pid, SIGKILL);
+            waitpid(pid, NULL, 0);
+            break;
+        }
+	}
 
 	std::cout << GREEN << "CGI Response: \n" << RESET << _cgiResponse << std::endl;
 

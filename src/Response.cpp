@@ -327,9 +327,9 @@ void	Response::buildCgi()
 	_file_path = _server.getFullPath(*_request);
 	int len = _request->getPath().length();
 
-	if (_request->getMethod() == "GET") {
-		_env_variables.push_back("QUERY_STRING=" + _request->getQuery());
-	}
+	// if (_request->getMethod() == "GET") {
+	// 	_env_variables.push_back("QUERY_STRING=" + _request->getQuery());
+	// }
 
 	// 1. Setup environment variables
 	setEnvVariables();
