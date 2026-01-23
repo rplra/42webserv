@@ -13,8 +13,6 @@ Server::Server()
 	_locations()
 {};
 
-// Server::~Server(){}
-
 const std::string& Server::getHost() const {
 	return _host;
 }
@@ -66,7 +64,7 @@ std::string	Server::getFullPath(const Request& request) const
 	std::string path = request.getPath();
 	std::string root = _root;
 
-	/* debug */std::cout << YELLOW << "> ROUTING: initial req path: " << RESET << path << std::endl;
+	// /* debug */std::cout << YELLOW << "> ROUTING: initial req path: " << RESET << path << std::endl;
 
 	// check alias first (precedence) and then root
 	if (location)
@@ -85,7 +83,7 @@ std::string	Server::getFullPath(const Request& request) const
 		else if (!location->_root.empty())
 		{
 			root = location->_root;
-			/* debug */std::cout << YELLOW << "> ROUTING: using location root: " << RESET << root << std::endl;
+			// /* debug */std::cout << YELLOW << "> ROUTING: using location root: " << RESET << root << std::endl;
 		}
 	}
 	return (normalizePath(root + path));
@@ -123,7 +121,7 @@ const Location* Server::getMatchingLocation(const std::string& requestPath) cons
 	const Location* best_match = NULL;
 	size_t best_len = 0;
 
-	/* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << std::endl;
+	// /* debug */std::cout << PINK << "> SVR: matching for req: " << RESET << requestPath << std::endl;
 	for (size_t i = 0; i < _locations.size(); ++i) {
 		const Location& loc = _locations[i];
 		std::string loc_path = loc._path;
