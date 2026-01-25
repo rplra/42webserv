@@ -14,13 +14,14 @@ message = ""
 
 # Determine effective method
 effective_method = method
+print(f'methoda: {effective_method}')
 if method == "POST" and form.getvalue("_method") == "DELETE":
     effective_method = "DELETE"
 
 # Enforce method
 if effective_method != "DELETE":
     status = "405 Method Not Allowed"
-    message = "Method Not Allowed ༼ ༎ຶ ෴ ༎ຶ༽"
+    message = "Method Not Alloweed ༼ ༎ຶ ෴ ༎ຶ༽"
 
 else:
     # Get filename (from query or form)
