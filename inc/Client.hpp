@@ -20,7 +20,7 @@ public:
 
 	bool			responseReady() const;
 	void			markResponseReady();
-	void			buildResponse();
+	void			handleResponse();
 	bool			sendResponse();
 	bool			hasSendError();
 	

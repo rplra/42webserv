@@ -63,7 +63,7 @@ void Client::markResponseReady()
 	_bytesSent = 0;
 }
 
-void Client::buildResponse()
+void Client::handleResponse()
 {
 	const Location* location = _server->getMatchingLocation(_request.getPath());
 	
@@ -80,9 +80,7 @@ void Client::buildResponse()
 	// handle parse errors
 	if (status != HTTP_OK)
 	{
-		_response->setType(ERROR);
 		_response->setError(status);
-		_response->buildResponse();
 		markResponseReady();
 		return ;
 	}
@@ -98,12 +96,10 @@ void Client::buildResponse()
 				break;
 			}
 		}
-		
+
 		if (!methodAllowed)
 		{
-			_response->setType(ERROR);
 			_response->setError(HTTP_METHOD_NOT_ALLOWED);
-			_response->buildResponse();
 			markResponseReady();
 			return;
 		}

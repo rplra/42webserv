@@ -1,6 +1,57 @@
 #include "Webserv.hpp"
 #include "ConfigParse.hpp"
 
+bool 	Response::parseCgiHeaders(const std::string& raw, size_t &pos)
+{
+	size_t	line_end = 0;
+	size_t	sep_len = 4;
+	bool	flag = 0;
+	
+	size_t	headers_end = raw.find("\r\n\r\n");
+	if (headers_end == std::string::npos) // if not found
+	{
+		headers_end = raw.find("\n\n");
+		sep_len = 2;
+	}
+	else if (headers_end == std::string::npos)
+		return (0); // no headers found
+
+	while (pos < headers_end)
+	{
+		if (sep_len == 4)
+			line_end = raw.find("\r\n", pos);
+		else
+			line_end = raw.find("\n", pos);
+
+		if (line_end == std::string::npos || line_end > headers_end)
+			break ;
+
+		size_t colon = raw.find(':', pos);
+		if (colon == std::string::npos || colon > line_end)
+			break ;
+		
+		std::string key = trim(std::string(&raw[pos], colon - pos));
+		key = toLower(key);
+		std::string value = trim(std::string(&raw[colon + 1], line_end - (colon + 1)));
+		// /* debug */std::cout << "> KEY:VALUE -> " << key << " : " << value << std::endl;
+
+		if (!flag)
+			flag = 1;
+		if (key == "status")
+		{
+			size_t code = std::strtod(value.c_str(), NULL);
+			setStatus(static_cast<HttpStatus>(code));
+		}
+		else if (key == "content-type")
+			_content_type = value;
+
+		pos = line_end + 1;
+	}
+	// /*debug*/std::cout << "leftbody: " << &raw[pos] << std::endl;
+	// pos = headers_end + sep_len; // move cursor to body_start, skipping header_end empty line
+	return (flag);
+}
+
 void	Response::setEnvVariables()
 {
 	// get absolute path for PHP-CGI script

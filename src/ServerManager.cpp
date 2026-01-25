@@ -345,7 +345,7 @@ void	ServerManager::handleEventRead(int clientSocket)
 
 	if (client->getRequest().isParseComplete() || client->getRequest().getState() == PARSE_ERROR)
 	{
-		client->buildResponse();			// build response (routing handled by config > file_path)
+		client->handleResponse();			// build response (routing handled by config > file_path)
 		enableWriteEvent(clientSocket);		// enable POLLOUT so we can send the data
 	}
 }
